@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://kit.fontawesome.com/dadb716e41.js" crossorigin="anonymous"></script>
+    <link href="../assets/css/loginAndRegistration.css" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+
+<nav class="navbar">
+  <span class="navbar-text">
+    Simulador de Colas
+  </span>
+</nav>
+
+<div class="container">
+    <div class="wrap">
+        <form class="needs-validation" novalidate>
+            <span class="login-title">Iniciar sesión</span>
+            <label class="subHeader" for="email">Email <span class="asterisk">*</span></label>
+            <div class="input-group ">
+                <span class="input-group-text">
+                    <i class="fa-solid fa-user"></i>
+                </span>
+                <input class="form-control" id="email" name="email" required type="text" placeholder="Email">
+                <div class="invalid-feedback">
+                    Es obligatorio introducir el apodo para continuar.
+                </div>
+            </div>
+            <label class="subHeader" for="password">Contraseña <span class="asterisk">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fa-solid fa-lock"></i>
+                </span>
+                <input class="form-control" id="password" name="password" required type="password"
+                       placeholder="Contraseña">
+                <span class="input-group-text" id="togglePassword" style="cursor: pointer">
+                    <i id="icon" class="far fa-eye"></i>
+                </span>
+                <div class="invalid-feedback">
+                    Es obligatorio introducir la contraseña para continuar.
+                </div>
+            </div>
+            <div id="headerPassword">
+                <a class="forgottenPassword" href="#">¿Olvidaste tu contraseña?</a>
+            </div>
+            <div class="container-form-btn">
+                <button class="btn btn-corporative form-btn">Iniciar sesión</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="container-2">
+    <div class="wrap-2">
+        <div>
+            <span class="newAccount">¿Eres nuevo?</span><a class="forgottenPassword" href="registration.html">Crear una cuenta.</a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+<script src="../assets/js/loginAndRegistration.js"></script>
+</body>
+</html>
