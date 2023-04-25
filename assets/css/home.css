@@ -170,6 +170,11 @@
     padding-right: 30px;
 }
 
+.simulationLink {
+    text-decoration: none;
+    color: black;
+}
+
 
 /* Cards without content*/
 .noContentCard {
@@ -217,7 +222,7 @@
     color: #f1f1f1;
 }
 
-.home{
+.home {
     margin-left: 50px;
     font-size: 40px;
 }

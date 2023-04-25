@@ -127,6 +127,10 @@
     color: white;
 }
 
+.homeLink{
+    text-decoration: none;
+ }
+
 
 /* Second Box Styles*/
 .newAccount{
