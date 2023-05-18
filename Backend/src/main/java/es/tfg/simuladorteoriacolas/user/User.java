@@ -1,6 +1,10 @@
 package es.tfg.simuladorteoriacolas.user;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,6 +12,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(indexes = {@Index(columnList = "nickname, email", unique = true)})
 public class User  implements UserDetails {
@@ -27,18 +35,6 @@ public class User  implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
-
-    public User (){
-
-    }
-
-    public User(Integer id,String email, String nickname, String password, Role role){
-        this.id=id;
-        this.nickname=nickname;
-        this.email=email;
-        this.password=password;
-        this.role=role;
-    }
 
     public Integer getId() {
         return id;
