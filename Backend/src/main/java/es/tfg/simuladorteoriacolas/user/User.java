@@ -1,5 +1,6 @@
 package es.tfg.simuladorteoriacolas.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import es.tfg.simuladorteoriacolas.token.Token;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,15 +32,19 @@ public class User  implements UserDetails {
     @Column(nullable = false)
     private String nickname;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    private String securityQuestion;
+
+    @Column(nullable = false)
+    private String securityAnswer;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    /*@OneToMany(mappedBy = "user")
-    private List<Token> tokens;
-*/
     public Integer getId() {
         return id;
     }
@@ -70,6 +75,22 @@ public class User  implements UserDetails {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getSecurityQuestion() {
+        return securityQuestion;
+    }
+
+    public void setSecurityQuestion(String securityQuestion) {
+        this.securityQuestion = securityQuestion;
+    }
+
+    public String getSecurityAnswer() {
+        return securityAnswer;
+    }
+
+    public void setSecurityAnswer(String securityAnswer) {
+        this.securityAnswer = securityAnswer;
     }
 
     @Override
