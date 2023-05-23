@@ -8,14 +8,57 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class AuthenticationResponse {
 
-    @JsonProperty("access_token")
-    private String accessToken;
+    private Status status;
+    private String message;
+    private String error;
 
-    @JsonProperty("refresh_token")
-    private String refreshToken;
+    public enum Status {
+        SUCCESS, FAILURE
+    }
+
+    public AuthenticationResponse() {
+    }
+
+    public AuthenticationResponse(Status status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
+    public AuthenticationResponse(Status status, String message, String error) {
+        this.status = status;
+        this.message = message;
+        this.error = error;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    @Override
+    public String toString() {
+        return "LoginResponse [status=" + status + ", message=" + message + ", error=" + error + "]";
+    }
 
 }

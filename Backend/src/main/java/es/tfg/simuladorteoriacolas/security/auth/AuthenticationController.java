@@ -1,16 +1,21 @@
 package es.tfg.simuladorteoriacolas.security.auth;
 
+import es.tfg.simuladorteoriacolas.security.services.UserDetailsServiceImpl;
+import es.tfg.simuladorteoriacolas.user.Role;
+import es.tfg.simuladorteoriacolas.user.User;
+import es.tfg.simuladorteoriacolas.user.UserService;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+
+import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentRequest;
 
 @RestController
 @RequestMapping("/api")
@@ -18,20 +23,48 @@ import java.io.IOException;
 public class AuthenticationController {
 
     @Autowired
-    private  AuthenticationService authenticationService;
+    private AuthenticationService authenticationService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register (@RequestBody RegisterRequest request){
-        return ResponseEntity.ok(authenticationService.register(request));
+    public ResponseEntity<User> register (@RequestBody RegisterRequest request){
+        if (userService.findByNickname(request.getNickname()).isPresent()){
+            return ResponseEntity.badRequest().build();
+        }
+        var user= new User();
+        user.setNickname(request.getNickname());
+        user.setEmail(request.getEmail());
+        user.setRole(Role.USER);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        var savedUser=userService.save(user);
+
+        return ResponseEntity.created(fromCurrentRequest().path("/{id}").buildAndExpand(user.getNickname()).toUri()).body(savedUser);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> register (@RequestBody LoginRequest request){
-        return ResponseEntity.ok(authenticationService.login(request));
+    public ResponseEntity<AuthenticationResponse> login(
+            @Parameter(description = "Access token.") @CookieValue(name = "accessToken", required = false) String accessToken,
+            @Parameter(description = "Refresh token.") @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            @Parameter(description = "Login request.") @RequestBody LoginRequest loginRequest) {
+
+        return authenticationService.login(loginRequest, accessToken, refreshToken);
     }
 
-    @PostMapping("/refresh-token")
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        authenticationService.refreshToken(request, response);
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthenticationResponse> refreshToken(
+            @Parameter(description = "Refresh token.") @CookieValue(name = "refreshToken", required = false) String refreshToken) throws IOException {
+        return authenticationService.refreshToken(refreshToken);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<AuthenticationResponse> logOut(@Parameter(description = "HTTP Servlet Request.") HttpServletRequest request,
+                                               @Parameter(description = "HTTP Servlet Response.") HttpServletResponse response) {
+        return ResponseEntity.ok(new AuthenticationResponse(AuthenticationResponse.Status.SUCCESS, authenticationService.logout(request, response)));
+    }
+
 }

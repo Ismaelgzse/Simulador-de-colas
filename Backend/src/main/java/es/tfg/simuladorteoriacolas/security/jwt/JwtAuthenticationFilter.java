@@ -1,6 +1,5 @@
 package es.tfg.simuladorteoriacolas.security.jwt;
 
-import es.tfg.simuladorteoriacolas.token.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,10 +11,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import jakarta.servlet.http.Cookie;
+
 
 import java.io.IOException;
 
@@ -27,33 +28,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
 
-    @Autowired
-    private TokenRepository tokenRepository;
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        //Extract Jwt from the header of the request
-        final String jwtHeader = request.getHeader("Authorization");
-        //Check there is a jwt token
-        if (jwtHeader == null || !jwtHeader.startsWith("Bearer ")){
-            filterChain.doFilter(request,response);
-            return;
-        }
-        final String jwt= jwtHeader.substring(7);
-        final String nickname= jwtService.extractNickname(jwt);
-        //Check that there is a nickname in the jwt token and the tokend is correct, and the user is not logged
-        if (nickname != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            //Check the user exist in the database
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(nickname);
-            //Check the token is not expired or revoked
-            var isValid= tokenRepository.findByToken(jwt)
-                    .map(token -> !token.isExpired() && !token.isRevoked())
-                    .orElse(false);
-            //if is in the database and the token is valid
-            if (jwtService.isTokenValid(jwt, userDetails) && isValid){
+        //Try to extract the token from the cookie
+        String tokenFromCookie= getJwtToken(request,true);
+
+        if (StringUtils.hasText(tokenFromCookie) && jwtService.validateToken(tokenFromCookie)) {
+            final String nickname = jwtService.extractNickname(tokenFromCookie);
+
+            //Check that there is a nickname in the jwt token and the tokend is correct, and the user is not logged
+            if (nickname != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                //Check the user exist in the database
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(nickname);
                 UsernamePasswordAuthenticationToken authenticationToken= new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
                 authenticationToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
@@ -62,6 +51,53 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
         }
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
+    }
+
+    private String getJwtToken(HttpServletRequest request, boolean fromCookie) {
+
+        if (fromCookie) {
+            return getJwtFromCookie(request);
+        } else {
+            return getJwtFromRequest(request);
+        }
+    }
+
+    private String getJwtFromRequest(HttpServletRequest request) {
+
+        //Extract Jwt from the header of the request
+        String bearerToken = request.getHeader("Authorization");
+        //Check there is a jwt token
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+
+            String accessToken = bearerToken.substring(7);
+            if (accessToken == null) {
+                return null;
+            }
+
+            return SecurityCipher.decrypt(accessToken);
+        }
+        return null;
+    }
+
+    private String getJwtFromCookie(HttpServletRequest request) {
+
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) {
+            return "";
+        }
+
+        for (Cookie cookie : cookies) {
+            if (JwtCookieManager.ACCESS_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
+                String accessToken = cookie.getValue();
+                if (accessToken == null) {
+                    return null;
+                }
+
+                return SecurityCipher.decrypt(accessToken);
+            }
+        }
+        return null;
     }
 }

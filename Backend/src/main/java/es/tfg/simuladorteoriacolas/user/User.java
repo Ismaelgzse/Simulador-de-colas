@@ -37,9 +37,9 @@ public class User  implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "user")
+    /*@OneToMany(mappedBy = "user")
     private List<Token> tokens;
-
+*/
     public Integer getId() {
         return id;
     }
