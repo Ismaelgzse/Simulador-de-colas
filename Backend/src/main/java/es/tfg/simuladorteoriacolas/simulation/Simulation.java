@@ -21,7 +21,7 @@ public class Simulation {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "LONGTEXT")
+    @Column(nullable = false)
     private String body;
 
     @Column(nullable = false)

@@ -20,6 +20,10 @@ public class RegisterRequest {
 
     private String password;
 
+    private String securityQuestion;
+
+    private String securityAnswer;
+
     public String getNickname() {
         return nickname;
     }
@@ -42,5 +46,21 @@ public class RegisterRequest {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getSecurityAnswer() {
+        return securityAnswer;
+    }
+
+    public void setSecurityAnswer(String securityAnswer) {
+        this.securityAnswer = securityAnswer;
+    }
+
+    public String getSecurityQuestion() {
+        return securityQuestion;
+    }
+
+    public void setSecurityQuestion(String securityQuestion) {
+        this.securityQuestion = securityQuestion;
     }
 }

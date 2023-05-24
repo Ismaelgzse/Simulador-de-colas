@@ -39,6 +39,8 @@ public class AuthenticationController {
         var user= new User();
         user.setNickname(request.getNickname());
         user.setEmail(request.getEmail());
+        user.setSecurityQuestion(request.getSecurityQuestion());
+        user.setSecurityAnswer(request.getSecurityAnswer());
         user.setRole(Role.USER);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         var savedUser=userService.save(user);
