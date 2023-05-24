@@ -12,11 +12,11 @@ public class Sink {
 
     private Integer in;
 
-    @ManyToOne
+    @OneToOne
     private Item item;
 
     public Sink(){
-        
+
     }
 
     public Integer getIn() {

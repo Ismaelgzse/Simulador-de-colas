@@ -3,6 +3,8 @@ package es.tfg.simuladorteoriacolas.items;
 import es.tfg.simuladorteoriacolas.simulation.Simulation;
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 public class Item {
 
@@ -21,8 +23,8 @@ public class Item {
     @ManyToOne
     private Simulation idSimulation;
 
-    @ManyToOne
-    private Item connectedItem;
+    @ManyToMany
+    private List<Item> connectedItem;
 
     private Integer connectedPossitionX;
 
