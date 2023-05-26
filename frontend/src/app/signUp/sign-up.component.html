@@ -1,0 +1,101 @@
+<header class="contentHeader">
+  <nav class="navbar">
+  <span class="navbar-text">
+    Simulador de Colas
+  </span>
+  </nav>
+</header>
+
+<div class="mainContainer">
+  <div class="row">
+    <div class="containerRegistration col-12">
+      <div class="wrap">
+        <form class="needs-validation" novalidate>
+          <span class="login-title">Regístrate</span>
+          <label class="subHeader" for="email">Email <span class="asterisk">*</span></label>
+          <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+            <input class="form-control" id="email" name="email" required type="text" placeholder="Email">
+            <div class="invalid-feedback">
+              Es obligatorio introducir el apodo para continuar.
+            </div>
+          </div>
+
+          <label class="subHeader" for="apodo">Apodo </label>
+          <div class="input-group">
+            <input class="form-control" id="apodo" name="apodo"
+                   placeholder="Apodo">
+          </div>
+
+          <label class="subHeader">Fecha de nacimiento</label>
+          <div class="input-group date" id="datepicker">
+            <input type="text" class="form-control" placeholder="Fecha de nacimiento">
+            <span class="input-group-append d-block">
+                            <span class="input-group-text d-block" style="cursor:pointer">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                        </span>
+          </div>
+
+          <label class="subHeader" for="password">Contraseña <span class="asterisk">*</span></label>
+          <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+            <input class="form-control" id="password" name="password" required type="password"
+                   placeholder="Contraseña">
+            <span class="input-group-text d-block" id="togglePassword" style="cursor:pointer">
+                            <i id="icon" class="far fa-eye"></i>
+                        </span>
+            <div class="invalid-feedback">
+              Es obligatorio introducir la contraseña para continuar.
+            </div>
+          </div>
+
+          <label class="subHeader" for="question">Pregunta de seguridad <span class="asterisk">*</span></label>
+          <div class="input-group">
+            <select id="question" class="form-select" aria-label="Default select example">
+              <option selected>Selecciona una pregunta</option>
+              <option value="1">Nombre de tu mascota</option>
+              <option value="2">Nombre de tu comida favorita</option>
+              <option value="3">Año nacimiento de tu padre</option>
+              <option value="4">Año nacimiento de tu madre</option>
+              <option value="5">Serie favorita</option>
+              <option value="6">Pelicula favorita</option>
+            </select>
+          </div>
+
+          <label class="subHeader" for="answer">Respuesta <span class="asterisk">*</span></label>
+          <div class="input-group finalItem">
+            <input class="form-control" id="answer" name="answer" required type="password"
+                   placeholder="Respuesta">
+            <span class="input-group-text d-block" id="toggleAnswer" style="cursor:pointer">
+                            <i id="icon2" class="far fa-eye"></i>
+                        </span>
+            <div class="invalid-feedback">
+              Es obligatorio introducir la respuesta para continuar.
+            </div>
+          </div>
+
+          <div class="container-form-btn">
+            <a class="homeLink" href="home.html">
+              <button class="btn btn-corporative form-btn">Crear cuenta</button>
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="container-2 col-12">
+      <div class="wrap-2">
+        <div>
+          <span class="newAccount">¿Ya tienes cuenta?</span><a class="forgottenPassword" href="login.html">Iniciar
+          sesión.</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

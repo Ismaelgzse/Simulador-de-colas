@@ -1,0 +1,159 @@
+/* Navbar */
+.navbar{
+    background-color: #ed1212;
+}
+
+.navbar-text{
+    margin-left: 20px;
+    color: white;
+    font: inherit !important;
+    font-weight: bold !important;
+}
+
+/*Container styles*/
+.mainContainer {
+    width: 100%;
+    height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+
+}
+
+.containerRegistration {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+
+}
+
+.container-2{
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+.wrap {
+    padding: 55px 85px 35px;
+    width: 500px;
+    border-radius: 25px;
+    box-shadow: 0 0 20px #ff9999;
+}
+
+.wrap-2 {
+    padding: 15px 85px 15px;
+    width: 500px;
+    border-radius: 25px;
+    box-shadow: 0 0 20px #ff9999;
+}
+
+.wrap-forgottenPass{
+    padding: 55px 85px 35px;
+    width: 800px;
+    border-radius: 25px;
+    box-shadow: 0 0 20px #ff9999;
+}
+
+/* First Box Styles*/
+
+/* Main title */
+.login-title {
+    padding-bottom: 20px;
+    font-size: 30px;
+    color: #555555;
+    line-height: 1.2;
+    text-transform: uppercase;
+    text-align: left;
+    width: 100%;
+    display: block;
+}
+
+/* Titles of the input elements */
+.subHeader {
+    padding: 5px 0;
+    font-size: 14px;
+    color: #555555;
+    line-height: 1.4;
+    margin-top: 15px;
+}
+
+.subHeader > .asterisk {
+    padding-left: 2px;
+    color: #ff0000 !important;
+}
+
+/* Password message styles*/
+#headerPassword {
+    margin-bottom: 23px;
+    margin-top: 10px;
+}
+
+.forgottenPassword {
+    font-size: 15px;
+    color: #800000;
+}
+
+/* Button styles */
+.container-form-btn {
+    width: 100%;
+    justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.form-btn {
+    font-size: 16px;
+    color: #fff;
+    line-height: 1.2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+    min-width: 150px;
+    height: 55px;
+    background-color: #f14141;
+    border-radius: 15px;
+
+    -webkit-transition: all 0.4s;
+    -o-transition: all 0.4s;
+    -moz-transition: all 0.4s;
+    transition: all 0.4s;
+}
+
+.form-btn:hover {
+    background-color: #800000;
+    color: white;
+}
+
+.homeLink{
+    text-decoration: none;
+ }
+
+
+/* Second Box Styles*/
+.newAccount{
+    margin-right: 10px;
+}
+
+.finalItem{
+    padding-bottom: 30px;
+}
+
+
+
+
