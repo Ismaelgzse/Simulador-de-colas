@@ -15,7 +15,7 @@ public class UserAPIController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @GetMapping("/passwordRecovery")
+    @GetMapping("/forgottenPassword")
     public ResponseEntity<Boolean> passwordRecoveryStep1(@RequestBody PasswordDTO passwordDTO){
         Boolean match=userService.matchingNickQuestionAnswer(passwordDTO.getNickname(),passwordDTO.getSecurityQuestion(),passwordDTO.getSecurityAnswer());
         if (match){
@@ -24,7 +24,7 @@ public class UserAPIController {
         return ResponseEntity.badRequest().build();
     }
 
-    @PutMapping("/passwordRecovery")
+    @PutMapping("/forgottenPassword")
     public ResponseEntity<User> passwordRecoveryStep2(@RequestBody PasswordDTO passwordDTO){
         Boolean match=userService.matchingNickQuestionAnswer(passwordDTO.getNickname(),passwordDTO.getSecurityQuestion(),passwordDTO.getSecurityAnswer());
         if (match){
