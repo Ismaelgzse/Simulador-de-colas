@@ -31,7 +31,7 @@ public class AuthenticationController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @PostMapping("/register")
+    @PostMapping("/newUser")
     public ResponseEntity<User> register (@RequestBody RegisterRequest request){
         if (userService.findByNickname(request.getNickname()).isPresent()){
             return ResponseEntity.badRequest().build();

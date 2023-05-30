@@ -1,0 +1,85 @@
+<header class="contentHeader">
+  <nav class="navbar">
+  <span class="navbar-text">
+    Simulador de Colas
+  </span>
+  </nav>
+</header>
+
+<div class="mainContainer">
+  <div class="row">
+    <div class="containerRegistration col-12">
+      <div class="wrap">
+        <form [ngClass]="{'was-validated': wasValidated}" class="needs-validation" novalidate enctype="multipart/form-data" (ngSubmit)="signUp($event)" #form>
+          <span class="login-title">Regístrate</span>
+          <label class="subHeader" for="email">Email <span class="asterisk">*</span></label>
+          <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+            <input class="form-control" id="email" name="email" required type="text" placeholder="Email" [(ngModel)]="registrationForm.email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+            <div class="invalid-feedback">
+              Es obligatorio introducir el apodo para continuar.
+            </div>
+          </div>
+
+          <label class="subHeader" for="apodo">Apodo </label>
+          <div class="input-group">
+            <input class="form-control" id="apodo" name="apodo" placeholder="Apodo" [(ngModel)]="registrationForm.nickname">
+            <div class="invalid-feedback">
+              Es obligatorio introducir el apodo para continuar.
+            </div>
+          </div>
+
+          <label class="subHeader" for="password">Contraseña <span class="asterisk">*</span></label>
+          <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+            <input class="form-control" [type]="visibilidadPassword ? 'password' : 'text' " id="password" name="password" required placeholder="Contraseña" [(ngModel)]="registrationForm.password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
+            <button type="button" (click)="changeVisibilityPassword()" class="input-group-text d-block" id="togglePassword" >
+                            <i id="icon" [ngClass]="{'far':true, 'fa-eye':visibilidadPassword , 'fa-eye-slash':!visibilidadPassword}"></i>
+                        </button>
+            <div class="invalid-feedback">
+              Es obligatorio introducir la contraseña para continuar.
+            </div>
+          </div>
+
+          <label class="subHeader" for="question">Pregunta de seguridad <span class="asterisk">*</span></label>
+          <div class="input-group">
+            <select id="question" class="form-select" name="question" required [(ngModel)]="registrationForm.securityQuestion">
+              <option selected disabled value="">Selecciona una pregunta</option>
+              <option [value]="question" *ngFor="let question of preguntaseguridadOpciones">{{ question }}</option>
+            </select>
+          </div>
+
+          <label class="subHeader" for="answer">Respuesta <span class="asterisk">*</span></label>
+          <div class="input-group finalItem">
+            <input class="form-control" id="answer" name="answer" required [type]="visibilidadRespuesta ? 'password' : 'text' " placeholder="Respuesta" [(ngModel)]="registrationForm.securityAnswer">
+            <button (click)="changeVisibilityAnswer()" class="input-group-text d-block" id="toggleAnswer">
+                            <i id="icon2" [ngClass]="{'far':true, 'fa-eye':visibilidadRespuesta , 'fa-eye-slash':!visibilidadRespuesta}"></i>
+                        </button>
+            <div class="invalid-feedback">
+              Es obligatorio introducir la respuesta para continuar.
+            </div>
+          </div>
+
+          <div class="container-form-btn">
+              <button type="submit" class="btn btn-corporative form-btn homeLink">Crear cuenta<i class="fas fa-spin fa-circle-notch" *ngIf="loading"></i></button>
+
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="container-2 col-12">
+      <div class="wrap-2">
+        <div>
+          <span class="newAccount">¿Ya tienes cuenta?</span><a class="forgottenPassword" [routerLink]="['/login']">Iniciar
+          sesión.</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

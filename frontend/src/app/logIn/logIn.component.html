@@ -1,0 +1,61 @@
+<header class="contentHeader">
+  <nav class="navbar">
+  <span class="navbar-text">
+    Simulador de Colas
+  </span>
+  </nav>
+</header>
+
+<div class="mainContainer">
+  <div class="row">
+    <div class="container col-12">
+      <div class="wrap">
+        <form [ngClass]="{'was-validated': wasValidated}" class="needs-validation" novalidate enctype="multipart/form-data" (ngSubmit)="logIn($event)" #form>
+          <span class="login-title">Iniciar sesión</span>
+          <label class="subHeader" for="email">Email <span class="asterisk">*</span></label>
+          <div class="input-group ">
+                <span class="input-group-text">
+                    <i class="fa-solid fa-user"></i>
+                </span>
+            <input class="form-control" id="email" name="email" required type="text" placeholder="Email" [(ngModel)]=logInForm.nickname pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+            <div class="invalid-feedback">
+              Es obligatorio introducir el apodo para continuar.
+            </div>
+          </div>
+          <label class="subHeader" for="password">Contraseña <span class="asterisk">*</span></label>
+          <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fa-solid fa-lock"></i>
+                </span>
+            <input class="form-control" id="password" name="password" required [(ngModel)]=logInForm.password [type]="visibilityPassword ? 'password' : 'text' "
+                   placeholder="Contraseña">
+            <button (click)="changeVisibility()" class="input-group-text" id="togglePassword" style="cursor: pointer">
+                    <i id="icon" [ngClass]="{'far':true, 'fa-eye':visibilityPassword , 'fa-eye-slash':!visibilityPassword}"></i>
+                </button>
+            <div class="invalid-feedback">
+              Es obligatorio introducir la contraseña para continuar.
+            </div>
+          </div>
+          <div id="headerPassword">
+            <a class="forgottenPassword" [routerLink]="['/forgottenPassword']">¿Olvidaste tu contraseña?</a>
+          </div>
+          <div class="container-form-btn">
+            <a class="homeLink">
+              <button type="button" class="btn btn-corporative form-btn">Iniciar sesión<i class="fas fa-spin fa-circle-notch" *ngIf="loading"></i></button>
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="container-2 col-12">
+      <div class="wrap-2">
+        <div>
+          <span class="newAccount">¿Eres nuevo?</span><a class="forgottenPassword" [routerLink]="['/sign-up']">Crear
+          una
+          cuenta.</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
