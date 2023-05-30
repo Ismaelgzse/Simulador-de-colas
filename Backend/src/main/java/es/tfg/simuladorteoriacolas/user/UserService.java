@@ -32,6 +32,16 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public Boolean matchingNickQuestionAnswer(String nickname, String securityQuestion, String securityAnswer){
+        Optional<User> user=userRepository.findByNickname(nickname);
+        if (user.isPresent()){
+            if (user.get().getSecurityAnswer()==securityAnswer && user.get().getSecurityQuestion()==securityQuestion){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Optional<User> findByNickname(String nickname){
         return userRepository.findByNickname(nickname);
     }
