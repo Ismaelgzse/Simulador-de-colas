@@ -17,7 +17,7 @@
                 <span class="input-group-text">
                     <i class="fa-solid fa-user"></i>
                 </span>
-            <input class="form-control" id="email" name="email" required type="text" placeholder="Email" [(ngModel)]=logInForm.nickname pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+            <input class="form-control" id="email" name="email" required type="text" placeholder="Email" [(ngModel)]=logInForm.nickname>
             <div class="invalid-feedback">
               Es obligatorio introducir el apodo para continuar.
             </div>
@@ -41,7 +41,7 @@
           </div>
           <div class="container-form-btn">
             <a class="homeLink">
-              <button type="button" class="btn btn-corporative form-btn">Iniciar sesión<i class="fas fa-spin fa-circle-notch" *ngIf="loading"></i></button>
+              <button type="submit" class="btn btn-corporative form-btn">Iniciar sesión<i class="fas fa-spin fa-circle-notch" *ngIf="loading"></i></button>
             </a>
           </div>
         </form>

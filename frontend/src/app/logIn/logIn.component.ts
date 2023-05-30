@@ -20,11 +20,10 @@ export class LogInComponent implements OnInit{
   @ViewChild('form') logInFormElement: ElementRef;
   logInForm:LoginForm;
   loading:boolean
-  logInService: LogInService;
   visibilityPassword:boolean
 
 
-  constructor(private router:Router) {
+  constructor(private router:Router,private logInService:LogInService) {
   }
 
   ngOnInit(): void {
@@ -50,6 +49,8 @@ export class LogInComponent implements OnInit{
           //hacer control de errores
         })
       )
+    }else {
+      this.logInForm.nickname="jj";
     }
   }
 
