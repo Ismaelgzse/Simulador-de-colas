@@ -36,16 +36,8 @@ public class AuthenticationController {
         if (userService.findByNickname(request.getNickname()).isPresent()){
             return ResponseEntity.badRequest().build();
         }
-        var user= new User();
-        user.setNickname(request.getNickname());
-        user.setEmail(request.getEmail());
-        user.setSecurityQuestion(request.getSecurityQuestion());
-        user.setSecurityAnswer(request.getSecurityAnswer());
-        user.setRole(Role.USER);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        var savedUser=userService.save(user);
-
-        return ResponseEntity.created(fromCurrentRequest().path("/{id}").buildAndExpand(user.getNickname()).toUri()).body(savedUser);
+        var savedUser=userService.save(request.getNickname(),request.getEmail(),request.getSecurityQuestion(),request.getSecurityAnswer(),request.getPassword());
+        return ResponseEntity.created(fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getNickname()).toUri()).body(savedUser);
     }
 
     @PostMapping("/login")
