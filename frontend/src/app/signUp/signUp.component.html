@@ -19,13 +19,13 @@
                         </span>
             <input class="form-control" id="email" name="email" required type="text" placeholder="Email" [(ngModel)]="registrationForm.email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
             <div class="invalid-feedback">
-              Es obligatorio introducir el apodo para continuar.
+              Es obligatorio introducir el email para continuar.
             </div>
           </div>
 
           <label class="subHeader" for="apodo">Apodo </label>
           <div class="input-group">
-            <input class="form-control" id="apodo" name="apodo" placeholder="Apodo" [(ngModel)]="registrationForm.nickname">
+            <input class="form-control" id="apodo" name="apodo" required placeholder="Apodo" [(ngModel)]="registrationForm.nickname" pattern="[a-z0-9.-]{4,}$">
             <div class="invalid-feedback">
               Es obligatorio introducir el apodo para continuar.
             </div>
@@ -43,6 +43,8 @@
             <div class="invalid-feedback">
               Es obligatorio introducir la contraseña para continuar.
             </div>
+            <div class="passwordRequirements">La contraseña tiene que tener al menos 8 caracteres incluyendo al menos una mayúscula, una minúscula y un número.
+            </div>
           </div>
 
           <label class="subHeader" for="question">Pregunta de seguridad <span class="asterisk">*</span></label>
@@ -51,6 +53,9 @@
               <option selected disabled value="">Selecciona una pregunta</option>
               <option [value]="question" *ngFor="let question of preguntaseguridadOpciones">{{ question }}</option>
             </select>
+          </div>
+          <div class="invalid-feedback">
+            Es obligatorio seleccionar la pregunta de seguridad para continuar.
           </div>
 
           <label class="subHeader" for="answer">Respuesta <span class="asterisk">*</span></label>

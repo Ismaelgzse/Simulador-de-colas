@@ -108,6 +108,11 @@
     color: #800000;
 }
 
+.passwordRequirements{
+    font-size: 15px;
+    color: #b3b3b3;
+}
+
 /* Button styles */
 .container-form-btn {
     width: 100%;
