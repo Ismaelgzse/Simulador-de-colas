@@ -35,7 +35,7 @@ public class UserService {
     public Boolean matchingNickQuestionAnswer(String nickname, String securityQuestion, String securityAnswer){
         Optional<User> user=userRepository.findByNickname(nickname);
         if (user.isPresent()){
-            if (user.get().getSecurityAnswer()==securityAnswer && user.get().getSecurityQuestion()==securityQuestion){
+            if (user.get().getSecurityAnswer().equals(securityAnswer) && user.get().getSecurityQuestion().equals(securityQuestion)){
                 return true;
             }
         }

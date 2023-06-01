@@ -49,8 +49,6 @@ export class LogInComponent implements OnInit{
           //hacer control de errores
         })
       )
-    }else {
-      this.logInForm.nickname="jj";
     }
   }
 

@@ -56,8 +56,8 @@
           <label class="subHeader" for="answer">Respuesta <span class="asterisk">*</span></label>
           <div class="input-group finalItem">
             <input class="form-control" id="answer" name="answer" required [type]="visibilidadRespuesta ? 'password' : 'text' " placeholder="Respuesta" [(ngModel)]="registrationForm.securityAnswer">
-            <button (click)="changeVisibilityAnswer()" class="input-group-text d-block" id="toggleAnswer">
-                            <i id="icon2" [ngClass]="{'far':true, 'fa-eye':visibilidadRespuesta , 'fa-eye-slash':!visibilidadRespuesta}"></i>
+            <button type="button" (click)="changeVisibilityAnswer()" class="input-group-text d-block">
+                            <i [ngClass]="{'far':true, 'fa-eye':visibilidadRespuesta , 'fa-eye-slash':!visibilidadRespuesta}"></i>
                         </button>
             <div class="invalid-feedback">
               Es obligatorio introducir la respuesta para continuar.

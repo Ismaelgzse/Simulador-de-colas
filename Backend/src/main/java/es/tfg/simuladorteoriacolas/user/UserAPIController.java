@@ -15,7 +15,7 @@ public class UserAPIController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @GetMapping("/forgottenPassword")
+    @PostMapping("/forgottenPassword")
     public ResponseEntity<Boolean> passwordRecoveryStep1(@RequestBody PasswordDTO passwordDTO){
         Boolean match=userService.matchingNickQuestionAnswer(passwordDTO.getNickname(),passwordDTO.getSecurityQuestion(),passwordDTO.getSecurityAnswer());
         if (match){

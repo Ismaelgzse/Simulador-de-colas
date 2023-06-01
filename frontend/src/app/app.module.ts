@@ -9,6 +9,7 @@ import {HttpClientModule} from "@angular/common/http";
 import {NgModule} from "@angular/core";
 import {LogInComponent} from "./logIn/logIn.component";
 import {HomeComponent} from "./home/home.component";
+import {PasswordRecoveryComponent} from "./passwordRecovery/passwordRecovery.component";
 
 
 @NgModule({
@@ -16,7 +17,8 @@ import {HomeComponent} from "./home/home.component";
     AppComponent,
     SignUpComponent,
     LogInComponent,
-    HomeComponent
+    HomeComponent,
+    PasswordRecoveryComponent
   ],
   imports: [
     BrowserModule,
