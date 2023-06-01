@@ -76,9 +76,14 @@ export class PasswordRecoveryComponent implements OnInit{
     if (this.passwordRecoveryFormElement.nativeElement.checkValidity()){
       this.loading=true;
       this.passwordRecoveryService.checkUser(this.passwordRecoveryForm).subscribe(
-        (success =>{
-          this.formNum=2;
-          this.loading=false;
+        ((success: boolean) =>{
+          if (success) {
+            this.formNum=2;
+            this.loading=false;
+          }
+          else {
+            //Control de errores
+          }
         }),
         (error => {
           this.wasValidated = false;

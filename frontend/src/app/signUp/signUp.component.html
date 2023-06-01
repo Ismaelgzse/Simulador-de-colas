@@ -12,6 +12,11 @@
       <div class="wrap">
         <form [ngClass]="{'was-validated': wasValidated}" class="needs-validation" novalidate enctype="multipart/form-data" (ngSubmit)="signUp($event)" #form>
           <span class="login-title">Regístrate</span>
+
+          <div *ngIf="existUser===true" class="alert alert-danger" role="alert">
+            Ya existe un usuario con el mismo apodo, prueba otro.
+          </div>
+
           <label class="subHeader" for="email">Email <span class="asterisk">*</span></label>
           <div class="input-group">
                         <span class="input-group-text">

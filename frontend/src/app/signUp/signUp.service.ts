@@ -12,4 +12,8 @@ export class SignUpService {
    signUp(user:RegistrationForm) : Observable<User>{
      return this.httpClient.post('/api/newUser',user) as Observable<User>
    }
+
+   checkIfExistUser(nickname:String): Observable<boolean>{
+     return this.httpClient.get('/api/existingUser?nickname='+nickname) as Observable<boolean>;
+   }
 }

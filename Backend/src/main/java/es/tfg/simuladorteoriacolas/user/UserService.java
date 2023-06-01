@@ -17,12 +17,12 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
 
-    public User save(User user){
+    public User save(User user) {
         return userRepository.save(user);
     }
 
-    public User save(String nickname,String email, String securityQuestion, String securityAnswer, String password){
-        var user= new User();
+    public User save(String nickname, String email, String securityQuestion, String securityAnswer, String password) {
+        var user = new User();
         user.setNickname(nickname);
         user.setEmail(email);
         user.setSecurityQuestion(securityQuestion);
@@ -32,17 +32,25 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public Boolean matchingNickQuestionAnswer(String nickname, String securityQuestion, String securityAnswer){
-        Optional<User> user=userRepository.findByNickname(nickname);
-        if (user.isPresent()){
-            if (user.get().getSecurityAnswer().equals(securityAnswer) && user.get().getSecurityQuestion().equals(securityQuestion)){
+    public Boolean matchingNickQuestionAnswer(String nickname, String securityQuestion, String securityAnswer) {
+        Optional<User> user = userRepository.findByNickname(nickname);
+        if (user.isPresent()) {
+            if (user.get().getSecurityAnswer().equals(securityAnswer) && user.get().getSecurityQuestion().equals(securityQuestion)) {
                 return true;
             }
         }
         return false;
     }
 
-    public Optional<User> findByNickname(String nickname){
+    public Boolean existUser(String nickname) {
+        Optional<User> user = userRepository.findByNickname(nickname);
+        if (user.isPresent()){
+            return true;
+        }
+        return false;
+    }
+
+    public Optional<User> findByNickname(String nickname) {
         return userRepository.findByNickname(nickname);
     }
 }
