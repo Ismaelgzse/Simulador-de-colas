@@ -10,6 +10,7 @@ import {NgModule} from "@angular/core";
 import {LogInComponent} from "./logIn/logIn.component";
 import {HomeComponent} from "./home/home.component";
 import {PasswordRecoveryComponent} from "./passwordRecovery/passwordRecovery.component";
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 
 @NgModule({
@@ -25,7 +26,8 @@ import {PasswordRecoveryComponent} from "./passwordRecovery/passwordRecovery.com
     CommonModule,
     AppRoutingModule,
     FormsModule,
-    HttpClientModule
+    HttpClientModule,
+    NgbModule
   ],
   bootstrap: [AppComponent]
 })

@@ -2,6 +2,7 @@ import {Component, ElementRef, Injectable, OnInit, ViewChild} from "@angular/cor
 import {LogInService} from "./logIn.service";
 import {Router} from "@angular/router";
 
+
 export class LoginForm {
   nickname:String;
   password:String
