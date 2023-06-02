@@ -19,8 +19,9 @@ export class LogInComponent implements OnInit{
   wasValidated:boolean;
   @ViewChild('form') logInFormElement: ElementRef;
   logInForm:LoginForm;
-  loading:boolean
-  visibilityPassword:boolean
+  loading:boolean;
+  visibilityPassword:boolean;
+  error:boolean;
 
 
   constructor(private router:Router,private logInService:LogInService) {
@@ -33,7 +34,8 @@ export class LogInComponent implements OnInit{
       nickname:'',
       password:''
     }
-    this.visibilityPassword=true
+    this.visibilityPassword=true;
+    this.error=false;
   }
 
   logIn(event:Event):void{
@@ -46,7 +48,7 @@ export class LogInComponent implements OnInit{
         }),
         (error => {
           this.loading=false;
-          //hacer control de errores
+          this.error=true;
         })
       )
     }

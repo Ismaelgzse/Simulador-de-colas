@@ -12,12 +12,17 @@
       <div class="wrap">
         <form [ngClass]="{'was-validated': wasValidated}" class="needs-validation" novalidate enctype="multipart/form-data" (ngSubmit)="logIn($event)" #form>
           <span class="login-title">Iniciar sesión</span>
-          <label class="subHeader" for="email">Email <span class="asterisk">*</span></label>
+
+          <div *ngIf="error===true" class="alert alert-danger" role="alert">
+            Apodo o contraseña erróneos.
+          </div>
+
+          <label class="subHeader" for="nickname">Apodo <span class="asterisk">*</span></label>
           <div class="input-group ">
                 <span class="input-group-text">
                     <i class="fa-solid fa-user"></i>
                 </span>
-            <input class="form-control" id="email" name="email" required type="text" placeholder="Email" [(ngModel)]=logInForm.nickname>
+            <input class="form-control" id="nickname" name="nickname" required type="text" placeholder="Apodo" [(ngModel)]=logInForm.nickname>
             <div class="invalid-feedback">
               Es obligatorio introducir el apodo para continuar.
             </div>
