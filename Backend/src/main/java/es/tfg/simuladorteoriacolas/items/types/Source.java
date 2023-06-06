@@ -16,18 +16,18 @@ public class Source {
 
     private String numberProducts;
 
-    private Integer out;
+    private Integer outSource;
 
     public Source(){
 
     }
 
-    public Integer getOut() {
-        return out;
+    public Integer getOutSource() {
+        return outSource;
     }
 
-    public void setOut(Integer out) {
-        this.out = out;
+    public void setOutSource(Integer outSource) {
+        this.outSource = outSource;
     }
 
     public String getInterArrivalTime() {

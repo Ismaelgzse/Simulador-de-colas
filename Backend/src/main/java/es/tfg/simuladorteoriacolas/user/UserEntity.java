@@ -1,7 +1,6 @@
 package es.tfg.simuladorteoriacolas.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import es.tfg.simuladorteoriacolas.token.Token;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,11 +19,11 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(indexes = {@Index(columnList = "nickname, email", unique = true)})
-public class User  implements UserDetails {
+public class UserEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    private Integer idUser;
 
     @Column(nullable = false)
     private String email;
@@ -45,12 +44,12 @@ public class User  implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    public Integer getId() {
-        return id;
+    public Integer getIdUser() {
+        return idUser;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setIdUser(Integer idUser) {
+        this.idUser = idUser;
     }
 
     public String getEmail() {

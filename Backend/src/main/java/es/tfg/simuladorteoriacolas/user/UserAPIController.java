@@ -1,6 +1,5 @@
 package es.tfg.simuladorteoriacolas.user;
 
-import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,10 +22,10 @@ public class UserAPIController {
     }
 
     @PutMapping("/forgottenPassword")
-    public ResponseEntity<User> passwordRecoveryStep2(@RequestBody PasswordDTO passwordDTO){
+    public ResponseEntity<UserEntity> passwordRecoveryStep2(@RequestBody PasswordDTO passwordDTO){
         Boolean match=userService.matchingNickQuestionAnswer(passwordDTO.getNickname(),passwordDTO.getSecurityQuestion(),passwordDTO.getSecurityAnswer());
         if (match){
-            User user= userService.findByNickname(passwordDTO.getNickname()).get();
+            UserEntity user= userService.findByNickname(passwordDTO.getNickname()).get();
             user.setPassword(passwordEncoder.encode(passwordDTO.getPassword()));
             userService.save(user);
             return ResponseEntity.ok(user);

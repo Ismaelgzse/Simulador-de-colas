@@ -1,11 +1,7 @@
 package es.tfg.simuladorteoriacolas.token;
 
-import es.tfg.simuladorteoriacolas.user.User;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 

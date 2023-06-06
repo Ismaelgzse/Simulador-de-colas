@@ -3,7 +3,7 @@ package es.tfg.simuladorteoriacolas.simulation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import es.tfg.simuladorteoriacolas.folder.Folder;
-import es.tfg.simuladorteoriacolas.user.User;
+import es.tfg.simuladorteoriacolas.user.UserEntity;
 import jakarta.persistence.*;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.core.io.ClassPathResource;
@@ -24,11 +24,9 @@ public class Simulation {
     @Column(nullable = false)
     private String body;
 
-    @Column(nullable = false)
-    private String status;
+    private String statusSimulation;
 
-    @Column(nullable = false)
-    private Integer time;
+    private Integer timeSimulation;
 
     @Lob
     @JsonIgnore
@@ -38,7 +36,7 @@ public class Simulation {
     private String mimeImage;
 
     @ManyToOne
-    private User userCreator;
+    private UserEntity userCreator;
 
     @ManyToOne
     private Folder folder;
@@ -63,20 +61,28 @@ public class Simulation {
         this.body = body;
     }
 
-    public String getStatus() {
-        return status;
+    public String getStatusSimulation() {
+        return statusSimulation;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setStatusSimulation(String statusSimulation) {
+        this.statusSimulation = statusSimulation;
     }
 
-    public Integer getTime() {
-        return time;
+    public Integer getTimeSimulation() {
+        return timeSimulation;
     }
 
-    public void setTime(Integer time) {
-        this.time = time;
+    public void setTimeSimulation(Integer timeSimulation) {
+        this.timeSimulation = timeSimulation;
+    }
+
+    public void setUserCreator(UserEntity userCreator) {
+        this.userCreator = userCreator;
+    }
+
+    public void setFolder(Folder folder) {
+        this.folder = folder;
     }
 
     public Simulation setImageFile(String path) throws IOException {

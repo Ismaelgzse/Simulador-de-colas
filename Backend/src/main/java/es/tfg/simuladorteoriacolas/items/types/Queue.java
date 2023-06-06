@@ -2,7 +2,6 @@ package es.tfg.simuladorteoriacolas.items.types;
 
 import es.tfg.simuladorteoriacolas.items.Item;
 import jakarta.persistence.*;
-import jakarta.persistence.criteria.CriteriaBuilder;
 
 @Entity
 public class Queue {
@@ -14,47 +13,47 @@ public class Queue {
     @OneToOne
     private Item item;
 
-    private String capacity;
+    private String capacityQueue;
 
-    private String discipline;
+    private String disciplineQueue;
 
-    private Integer in;
+    private Integer inQueue;
 
-    private Integer out;
+    private Integer outQueue;
 
     public Queue(){
 
     }
 
-    public Integer getOut() {
-        return out;
+    public Integer getOutQueue() {
+        return outQueue;
     }
 
-    public void setOut(Integer out) {
-        this.out = out;
+    public void setOutQueue(Integer outQueue) {
+        this.outQueue = outQueue;
     }
 
-    public Integer getIn() {
-        return in;
+    public Integer getInQueue() {
+        return inQueue;
     }
 
-    public void setIn(Integer in) {
-        this.in = in;
+    public void setInQueue(Integer inQueue) {
+        this.inQueue = inQueue;
     }
 
-    public String getCapacity() {
-        return capacity;
+    public String getCapacityQueue() {
+        return capacityQueue;
     }
 
-    public void setCapacity(String capacity) {
-        this.capacity = capacity;
+    public void setCapacityQueue(String capacityQueue) {
+        this.capacityQueue = capacityQueue;
     }
 
-    public String getDiscipline() {
-        return discipline;
+    public String getDisciplineQueue() {
+        return disciplineQueue;
     }
 
-    public void setDiscipline(String discipline) {
-        this.discipline = discipline;
+    public void setDisciplineQueue(String disciplineQueue) {
+        this.disciplineQueue = disciplineQueue;
     }
 }

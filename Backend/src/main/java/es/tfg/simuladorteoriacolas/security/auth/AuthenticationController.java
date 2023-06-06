@@ -1,8 +1,6 @@
 package es.tfg.simuladorteoriacolas.security.auth;
 
-import es.tfg.simuladorteoriacolas.security.services.UserDetailsServiceImpl;
-import es.tfg.simuladorteoriacolas.user.Role;
-import es.tfg.simuladorteoriacolas.user.User;
+import es.tfg.simuladorteoriacolas.user.UserEntity;
 import es.tfg.simuladorteoriacolas.user.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,7 +30,7 @@ public class AuthenticationController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/newUser")
-    public ResponseEntity<User> register (@RequestBody RegisterRequest request){
+    public ResponseEntity<UserEntity> register (@RequestBody RegisterRequest request){
         if (userService.findByNickname(request.getNickname()).isPresent()){
             return ResponseEntity.badRequest().build();
         }

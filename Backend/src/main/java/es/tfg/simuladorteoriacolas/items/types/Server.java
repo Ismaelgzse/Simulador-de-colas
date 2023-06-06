@@ -2,7 +2,6 @@ package es.tfg.simuladorteoriacolas.items.types;
 
 import es.tfg.simuladorteoriacolas.items.Item;
 import jakarta.persistence.*;
-import jakarta.persistence.criteria.CriteriaBuilder;
 
 @Entity
 public class Server {
@@ -15,7 +14,7 @@ public class Server {
 
     private String cicleTime;
 
-    private Integer out;
+    private Integer outServer;
 
     @OneToOne
     private Item item;
@@ -40,11 +39,11 @@ public class Server {
         this.setupTime = setupTime;
     }
 
-    public Integer getOut() {
-        return out;
+    public Integer getOutServer() {
+        return outServer;
     }
 
-    public void setOut(Integer out) {
-        this.out = out;
+    public void setOutServer(Integer outServer) {
+        this.outServer = outServer;
     }
 }

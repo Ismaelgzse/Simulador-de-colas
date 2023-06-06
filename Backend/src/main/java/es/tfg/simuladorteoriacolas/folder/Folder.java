@@ -1,8 +1,11 @@
 package es.tfg.simuladorteoriacolas.folder;
 
-import es.tfg.simuladorteoriacolas.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import es.tfg.simuladorteoriacolas.simulation.Simulation;
+import es.tfg.simuladorteoriacolas.user.UserEntity;
 import jakarta.persistence.*;
-import lombok.Builder;
+
+import java.util.List;
 
 @Entity
 public class Folder {
@@ -12,17 +15,21 @@ public class Folder {
     private Integer idFolder;
 
     @Column(nullable = false)
-    private String name;
+    private String nameFolder;
 
+    @OneToMany(mappedBy="folder", cascade=CascadeType.ALL, orphanRemoval=true)
+    private List<Simulation> simulations;
+
+    @JsonIgnore
     @ManyToOne
-    private User userCreator;
+    private UserEntity userCreator;
 
     public Folder() {
 
     }
 
-    public Folder(String name, User userCreator){
-        this.name=name;
+    public Folder(String name, UserEntity userCreator){
+        this.nameFolder =name;
         this.userCreator=userCreator;
     }
 
@@ -34,19 +41,19 @@ public class Folder {
         this.idFolder = idFolder;
     }
 
-    public String getName() {
-        return name;
+    public String getNameFolder() {
+        return nameFolder;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNameFolder(String nameFolder) {
+        this.nameFolder = nameFolder;
     }
 
-    public User getUserCreator() {
+    public UserEntity getUserCreator() {
         return userCreator;
     }
 
-    public void setUserCreator(User userCreator) {
+    public void setUserCreator(UserEntity userCreator) {
         this.userCreator = userCreator;
     }
 }

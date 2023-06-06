@@ -10,7 +10,7 @@ public class Sink {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer idSink;
 
-    private Integer in;
+    private Integer inSink;
 
     @OneToOne
     private Item item;
@@ -19,8 +19,8 @@ public class Sink {
 
     }
 
-    public Integer getIn() {
-        return in;
+    public Integer getInSink() {
+        return inSink;
     }
 
     public void setIdSink(Integer idSink) {

@@ -2,7 +2,7 @@ package es.tfg.simuladorteoriacolas.simulation;
 
 import es.tfg.simuladorteoriacolas.folder.Folder;
 import es.tfg.simuladorteoriacolas.folder.FolderService;
-import es.tfg.simuladorteoriacolas.user.User;
+import es.tfg.simuladorteoriacolas.user.UserEntity;
 import es.tfg.simuladorteoriacolas.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ public class SimulationService {
         simulation.setTitle(simulationDTO.getTitle());
         Folder folder= folderService.findById(simulationDTO.getFolder()).get();
         simulation.setFolder(folder);
-        User user= userService.findByNickname(request.getUserPrincipal().getName()).get();
+        UserEntity user= userService.findByNickname(request.getUserPrincipal().getName()).get();
         simulation.setUserCreator(user);
         return simulationRepository.save(simulation);
     }
