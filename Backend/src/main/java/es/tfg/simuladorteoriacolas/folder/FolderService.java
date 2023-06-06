@@ -36,6 +36,7 @@ public class FolderService {
         folder.setNameFolder(name);
         var creator=userService.findByNickname(request.getUserPrincipal().getName()).get();
         folder.setUserCreator(creator);
+        folder.setSimulations(null);
         return folderRepository.save(folder);
     }
 }

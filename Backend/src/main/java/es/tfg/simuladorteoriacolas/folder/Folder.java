@@ -28,9 +28,10 @@ public class Folder {
 
     }
 
-    public Folder(String name, UserEntity userCreator){
+    public Folder(String name, UserEntity userCreator,List<Simulation> simulations){
         this.nameFolder =name;
         this.userCreator=userCreator;
+        this.simulations=simulations;
     }
 
     public Integer getIdFolder() {
@@ -55,5 +56,13 @@ public class Folder {
 
     public void setUserCreator(UserEntity userCreator) {
         this.userCreator = userCreator;
+    }
+
+    public List<Simulation> getSimulations() {
+        return simulations;
+    }
+
+    public void setSimulations(List<Simulation> simulations) {
+        this.simulations = simulations;
     }
 }

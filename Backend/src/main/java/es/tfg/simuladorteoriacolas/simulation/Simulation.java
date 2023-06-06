@@ -38,6 +38,7 @@ public class Simulation {
     @ManyToOne
     private UserEntity userCreator;
 
+    @JsonIgnore
     @ManyToOne
     private Folder folder;
 

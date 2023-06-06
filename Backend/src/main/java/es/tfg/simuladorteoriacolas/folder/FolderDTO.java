@@ -1,5 +1,7 @@
 package es.tfg.simuladorteoriacolas.folder;
 
+import java.util.List;
+
 public class FolderDTO {
     private Integer id;
 

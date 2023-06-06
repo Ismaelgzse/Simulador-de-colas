@@ -8,13 +8,10 @@ public class SimulationDTO {
 
     private String body;
 
-    private Integer folder;
-
-    public SimulationDTO(Integer id, String title, String body,Integer folder){
+    public SimulationDTO(Integer id, String title, String body){
         this.id=id;
         this.title=title;
         this.body=body;
-        this.folder=folder;
     }
 
     public Integer getId() {
@@ -41,11 +38,4 @@ public class SimulationDTO {
         this.title = title;
     }
 
-    public Integer getFolder() {
-        return folder;
-    }
-
-    public void setFolder(Integer folder) {
-        this.folder = folder;
-    }
 }

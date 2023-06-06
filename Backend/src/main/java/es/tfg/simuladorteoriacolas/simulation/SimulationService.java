@@ -25,7 +25,7 @@ public class SimulationService {
         return simulationRepository.findAllByFolder(folder);
     }
 
-    public Simulation save(SimulationDTO simulationDTO, HttpServletRequest request){
+    public Simulation save(Integer idFolder,SimulationDTO simulationDTO, HttpServletRequest request){
         Simulation simulation;
         if (simulationDTO.getId()==null){
             simulation = new Simulation();
@@ -35,7 +35,7 @@ public class SimulationService {
         }
         simulation.setBody(simulationDTO.getBody());
         simulation.setTitle(simulationDTO.getTitle());
-        Folder folder= folderService.findById(simulationDTO.getFolder()).get();
+        Folder folder= folderService.findById(idFolder).get();
         simulation.setFolder(folder);
         UserEntity user= userService.findByNickname(request.getUserPrincipal().getName()).get();
         simulation.setUserCreator(user);
