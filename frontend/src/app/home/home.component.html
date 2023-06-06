@@ -1,0 +1,183 @@
+<header class="contentHeader">
+  <nav class="navbar">
+  <span class="navbar-text">
+    Simulador de Colas
+  </span>
+  </nav>
+</header>
+
+<div id="content">
+  <div class="buttonAdd row">
+    <div class="col-5 home">Inicio</div>
+    <div class=" col-6 justify-content-end d-flex">
+      <div ngbDropdown class="dropdown menuDropdown">
+        <button class="btn btn-danger" type="button" ngbDropdownToggle><i class="fa-solid fa-plus"></i>
+          Nueva
+        </button>
+        <ul ngbDropdownMenu class="dropdown-menu ">
+          <li>
+            <button (click)="open(folder)" class="btnElem">
+              <i class="fa-solid fa-folder elementdropMenu"></i>Carpeta
+            </button>
+          </li>
+          <div class="dropdown-divider"></div>
+          <li>
+            <button (click)="open(simulation)" class="btnElem">
+              <i class="fa-solid fa-pencil elementdropMenu2"></i>Simulación
+            </button>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+  <div>
+    <div class="folder-title">
+      <i class="fa-solid fa-folder folderIconTitle"></i>
+      <span class="titleText">Carpeta 1</span>
+      <i type='button' class='editButton actionButton fa-regular fa-pen-to-square'></i>
+      <i type='button' (click)="open(deleteFolder)" class='deleteButton actionButton fa-regular fa-trash-can'></i>
+    </div>
+    <div class="row card-image">
+
+      <div class="card col-3" style="width: 25rem;">
+        <a class="simulationLink" >
+
+          <img class="card-img-top" style="height: 13rem;"
+               src="../assets/png/exampleImage1.PNG"
+               alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Card title
+              <i type='button' class='editButton2 actionButton2 fa-regular fa-pen-to-square'></i>
+              <i type='button' (click)="open(deleteSimulation)" class='deleteButton2 actionButton2 fa-regular fa-trash-can'></i>
+            </h5>
+            <p class="card-text">Some quick example text to build on the card title and make up the bulk of
+              the
+              card's content.</p>
+          </div>
+        </a>
+      </div>
+      <div class="card col-3" style="width: 25rem;">
+        <a class="simulationLink" href="simulation.html">
+          <img class="card-img-top" style="height: 13rem;"
+               src="../assets/png/exampleImage1.PNG"
+               alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Card title</h5>
+            <p class="card-text">Some quick example text to build on the card title and make up the bulk of
+              the
+              card's content.</p>
+          </div>
+        </a>
+      </div>
+      <div class="card col-3" style="width: 25rem;">
+        <a class="simulationLink" href="simulation.html">
+
+          <img class="card-img-top" style="height: 13rem;"
+               src="../assets/png/exampleImage2.PNG"
+               alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Card title</h5>
+            <p class="card-text">Some quick example text to build on the card title and make up the bulk of
+              the
+              card's content.</p>
+          </div>
+        </a>
+      </div>
+      <div class="card col-3" style="width: 25rem;">
+        <a class="simulationLink" href="simulation.html">
+
+          <img class="card-img-top" style="height: 13rem;"
+               src="../assets/png/exampleImage2.PNG"
+               alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Card title</h5>
+            <p class="card-text">Some quick example text to build on the card title and make up the bulk of
+              the
+              card's content.</p>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div class=" justify-content-center d-flex showMoreEnc">
+      <button class="btn btn-danger showMore"> Ver más</button>
+    </div>
+  </div>
+  <div>
+    <div class="folder-title">
+      <i class="fa-solid fa-folder folderIconTitle"></i>
+      <span class="titleText">Carpeta 2</span>
+    </div>
+    <div class="row card-image">
+      <div class="card col-12 noContentCard" style="width: 25rem;">
+        <div class="alert alert-info">Sin experimentos</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<ng-template #simulation let-modal class="modal fade">
+  <div class="modal-header">
+    <h5 class="modal-title">Nueva simulación</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <label for="input-name">Nombre</label>
+    <input type="text" class="form-control" id="input-name">
+    <div class="form-group mt-3">
+      <label for="message-text" class="col-form-label">Descripción</label>
+      <textarea class="form-control" id="message-text"></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
+    <button type="button" class="btn btn-danger" (click)="save()">Crear</button>
+  </div>
+
+</ng-template>
+
+
+<ng-template #folder let-modal class="modal fade">
+  <div class="modal-header">
+    <h5 class="modal-title">Elige un nombre para la nueva carpeta</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <input type="text" class="form-control">
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
+    <button type="button" class="btn btn-danger" (click)="save()">Crear</button>
+  </div>
+</ng-template>
+
+<ng-template #deleteFolder let-modal class="modal fade">
+  <div class="modal-header">
+    <h5 class="modal-title">Eliminar carpeta</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <p>Eliminar esta carpeta también borrará las simulaciones que hay dentro de ellas. ¿Deseas borrarla de todas formas?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
+    <button type="button" class="btn btn-danger" (click)="save()">Confirmar</button>
+  </div>
+</ng-template>
+
+<ng-template #deleteSimulation let-modal class="modal fade">
+  <div class="modal-header">
+    <h5 class="modal-title">Eliminar simulación</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+  </div>
+  <div class="modal-body">
+    <p>¿Deseas borrar esta simulación de forma permanente?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
+    <button type="button" class="btn btn-danger" (click)="save()">Confirmar</button>
+  </div>
+</ng-template>
+

@@ -227,6 +227,47 @@
     font-size: 40px;
 }
 
+.actionButton {
+  font-size: 20px;
+  padding-left: 15px;
+}
+
+.editButton{
+  padding-left: 50px;
+}
+
+.editButton:hover{
+  transform: scale(1.1);
+  color: sandybrown;
+  transition: color 0.5s;
+}
+
+.deleteButton:hover{
+  transform: scale(1.1);
+  color: red;
+  transition: color 0.5s;
+}
+
+.actionButton2 {
+  font-size: 20px;
+  padding-left: 10px;
+}
+
+.editButton2{
+  padding-left: 40px;
+}
+
+.editButton2:hover{
+  transform: scale(1.1);
+  color: sandybrown;
+  transition: color 0.5s;
+}
+
+.deleteButton2:hover{
+  transform: scale(1.1);
+  color: red;
+  transition: color 0.5s;
+}
 
 
 
