@@ -2,24 +2,27 @@ package es.tfg.simuladorteoriacolas.simulation;
 
 public class SimulationDTO {
 
-    private Integer id;
+    private Integer idSimulation;
 
     private String title;
 
     private String body;
 
-    public SimulationDTO(Integer id, String title, String body){
-        this.id=id;
+    private Integer folderId;
+
+    public SimulationDTO(Integer id, String title, String body,Integer folderId){
+        this.idSimulation =id;
         this.title=title;
         this.body=body;
+        this.folderId=folderId;
     }
 
-    public Integer getId() {
-        return id;
+    public Integer getIdSimulation() {
+        return idSimulation;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setIdSimulation(Integer idSimulation) {
+        this.idSimulation = idSimulation;
     }
 
     public String getBody() {
@@ -38,4 +41,11 @@ public class SimulationDTO {
         this.title = title;
     }
 
+    public Integer getFolderId() {
+        return folderId;
+    }
+
+    public void setFolderId(Integer folderId) {
+        this.folderId = folderId;
+    }
 }

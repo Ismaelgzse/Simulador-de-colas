@@ -1,12 +1,13 @@
 package es.tfg.simuladorteoriacolas.folder;
 
+import es.tfg.simuladorteoriacolas.simulation.SimulationService;
 import es.tfg.simuladorteoriacolas.user.UserService;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class FolderService {
@@ -16,27 +17,47 @@ public class FolderService {
     @Autowired
     private UserService userService;
 
+
+    /*public List<FolderWithPagedSimulationsDTO> buildFolderDTOWithPagedSimulations(List<Folder> folders){
+        List<FolderWithPagedSimulationsDTO> list= new ArrayList<>();
+        for (var i=0;i<folders.size();i++){
+            var simulationsPaged=simulationService.getSimulationsInPages(folders.get(i),0);
+            var folderDTO= new FolderWithPagedSimulationsDTO(folders.get(i).getIdFolder(),folders.get(i).getNameFolder(),simulationsPaged);
+            list.add(folderDTO);
+        }
+        Collections.reverse(list);
+        return list;
+    }*/
+
     public List<Folder> findByUser(HttpServletRequest request){
         var user=userService.findByNickname(request.getUserPrincipal().getName()).get();
         return folderRepository.findAllByUserCreator(user);
+    }
+
+    public void deleteById(Integer id){
+        folderRepository.deleteById(id);
     }
 
     public Optional<Folder> findById(Integer id){
         return folderRepository.findById(id);
     }
 
+    public Folder findByName(String name){
+        return folderRepository.findByNameFolder(name);
+    }
+
     public Folder save(Integer id, String name, HttpServletRequest request){
         Folder folder;
         if (id==null){
             folder= new Folder();
+            folder.setSimulations(null);
         }
         else {
-            folder=folderRepository.findAllByIdFolder(id);
+            folder=folderRepository.findByIdFolder(id);
         }
         folder.setNameFolder(name);
         var creator=userService.findByNickname(request.getUserPrincipal().getName()).get();
         folder.setUserCreator(creator);
-        folder.setSimulations(null);
         return folderRepository.save(folder);
     }
 }

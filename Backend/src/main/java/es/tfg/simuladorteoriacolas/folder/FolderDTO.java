@@ -1,30 +1,28 @@
 package es.tfg.simuladorteoriacolas.folder;
 
-import java.util.List;
-
 public class FolderDTO {
-    private Integer id;
+    private Integer idFolder;
 
-    private String name;
+    private String nameFolder;
 
     public FolderDTO(Integer id, String name){
-        this.id=id;
-        this.name=name;
+        this.idFolder =id;
+        this.nameFolder =name;
     }
 
-    public String getName() {
-        return name;
+    public String getNameFolder() {
+        return nameFolder;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNameFolder(String nameFolder) {
+        this.nameFolder = nameFolder;
     }
 
-    public Integer getId() {
-        return id;
+    public Integer getIdFolder() {
+        return idFolder;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setIdFolder(Integer idFolder) {
+        this.idFolder = idFolder;
     }
 }
