@@ -7,163 +7,141 @@
 </header>
 
 <div id="content">
-  <div class="buttonAdd row">
-    <div class="col-5 home">Inicio</div>
-    <div class=" col-6 justify-content-end d-flex">
-      <div ngbDropdown class="dropdown menuDropdown">
-        <button class="btn btn-danger" type="button" ngbDropdownToggle><i class="fa-solid fa-plus"></i>
-          Nueva
-        </button>
-        <ul ngbDropdownMenu class="dropdown-menu ">
-          <li>
-            <button (click)="open(folder)" class="btnElem">
-              <i class="fa-solid fa-folder elementdropMenu"></i>Carpeta
-            </button>
-          </li>
-          <div class="dropdown-divider"></div>
-          <li>
-            <button (click)="open(simulation)" class="btnElem">
-              <i class="fa-solid fa-pencil elementdropMenu2"></i>Simulación
-            </button>
-          </li>
-        </ul>
-      </div>
-
-    </div>
-  </div>
-  <div>
-    <div class="folder-title">
-      <i class="fa-solid fa-folder folderIconTitle"></i>
-      <span class="titleText">Carpeta 1</span>
-      <i type='button' class='editButton actionButton fa-regular fa-pen-to-square'></i>
-      <i type='button' (click)="open(deleteFolder)" class='deleteButton actionButton fa-regular fa-trash-can'></i>
-    </div>
-    <div class="row card-image">
-
-      <div class="card col-3" style="width: 25rem;">
-        <a class="simulationLink" >
-
-          <img class="card-img-top" style="height: 13rem;"
-               src="../assets/png/exampleImage1.PNG"
-               alt="Card image cap">
-          <div class="card-body">
-            <h5 class="card-title">Card title
-              <i type='button' class='editButton2 actionButton2 fa-regular fa-pen-to-square'></i>
-              <i type='button' (click)="open(deleteSimulation)" class='deleteButton2 actionButton2 fa-regular fa-trash-can'></i>
-            </h5>
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of
-              the
-              card's content.</p>
-          </div>
-        </a>
-      </div>
-      <div class="card col-3" style="width: 25rem;">
-        <a class="simulationLink" href="simulation.html">
-          <img class="card-img-top" style="height: 13rem;"
-               src="../assets/png/exampleImage1.PNG"
-               alt="Card image cap">
-          <div class="card-body">
-            <h5 class="card-title">Card title</h5>
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of
-              the
-              card's content.</p>
-          </div>
-        </a>
-      </div>
-      <div class="card col-3" style="width: 25rem;">
-        <a class="simulationLink" href="simulation.html">
-
-          <img class="card-img-top" style="height: 13rem;"
-               src="../assets/png/exampleImage2.PNG"
-               alt="Card image cap">
-          <div class="card-body">
-            <h5 class="card-title">Card title</h5>
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of
-              the
-              card's content.</p>
-          </div>
-        </a>
-      </div>
-      <div class="card col-3" style="width: 25rem;">
-        <a class="simulationLink" href="simulation.html">
-
-          <img class="card-img-top" style="height: 13rem;"
-               src="../assets/png/exampleImage2.PNG"
-               alt="Card image cap">
-          <div class="card-body">
-            <h5 class="card-title">Card title</h5>
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of
-              the
-              card's content.</p>
-          </div>
-        </a>
-      </div>
-    </div>
-    <div class=" justify-content-center d-flex showMoreEnc">
-      <button class="btn btn-danger showMore"> Ver más</button>
-    </div>
-  </div>
-  <div>
-    <div class="folder-title">
-      <i class="fa-solid fa-folder folderIconTitle"></i>
-      <span class="titleText">Carpeta 2</span>
-    </div>
-    <div class="row card-image">
-      <div class="card col-12 noContentCard" style="width: 25rem;">
-        <div class="alert alert-info">Sin experimentos</div>
+  <div class="buttonAdd">
+    <div class="row">
+      <div class="col-5 home">Inicio</div>
+      <div class="col-6 justify-content-end d-flex">
+        <div ngbDropdown class="dropdown menuDropdown">
+          <button class="btn btn-danger" type="button" ngbDropdownToggle><i class="fa-solid fa-plus"></i>
+            Nueva
+          </button>
+          <ul ngbDropdownMenu class="dropdown-menu ">
+            <li>
+              <button (click)="[newFolderTitle(),openModalFolder(newFolder,-1)]" class="btnElem">
+                <i class="fa-solid fa-folder elementdropMenu"></i>Carpeta
+              </button>
+            </li>
+            <div class="dropdown-divider"></div>
+            <li>
+              <button (click)="[newSimulationTitle(),openModalSimulation(newSimulation,-1,-1)]" class="btnElem">
+                <i class="fa-solid fa-pencil elementdropMenu2"></i>Simulación
+              </button>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
+
+
+  <div class="alert alert-info" role="alert" *ngIf="numFoldersEmpty; else notEmpty">
+    No hay carpetas ni simulaciones. Empieza creando una carpeta.
+  </div>
+
+  <ng-template #notEmpty>
+    <div *ngFor="let folderElem of listFolders; let f=index">
+      <div>
+        <div class="folder-title">
+          <i class="fa-solid fa-folder folderIconTitle"></i>
+          <span class="titleText">{{folderElem.nameFolder}}</span>
+          <i type='button' (click)="[modifyFolderTitle(),openModalFolder(newFolder,f)]" class='editButton actionButton fa-regular fa-pen-to-square'></i>
+          <i type='button' (click)="openModalFolder(deleteFolder,f)" class='deleteButton actionButton fa-regular fa-trash-can'></i>
+        </div>
+
+        <div class="alert alert-info" role="alert" *ngIf="folderElem.simulations.length===0">
+          No Hay simulaciones.
+        </div>
+
+        <div class="row card-image" >
+
+          <div class="card col-3" style="width: 25rem;" *ngFor="let simulationElem of folderElem.simulations; let s=index">
+            <a class="simulationLink">
+
+              <img class="card-img-top" style="height: 13rem;"
+                   *ngIf="simulationElem.imageFile" src="{{simulationElem.imageFile}}">
+              <div class="card-body">
+                <h5 class="card-title">{{simulationElem.title}}
+                  <i type='button' (click)="[modifyFolderTitle(),openModalSimulation(newSimulation,f,s)]" class='editButton2 actionButton2 fa-regular fa-pen-to-square'></i>
+                  <i type='button' (click)="openModalSimulation(deleteSimulation,f,s)" class='deleteButton2 actionButton2 fa-regular fa-trash-can'></i>
+                </h5>
+                <p class="card-text"></p>{{simulationElem.body}}
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class=" justify-content-center d-flex showMoreEnc">
+          <button *ngIf="folderElem.isLastPage===false" class="btn btn-danger showMore" (click)="loadNewPageSimulations(f)">Ver más</button>
+          <button [disabled]="folderElem.isLastPage" *ngIf="folderElem.isLastPage===true && folderElem.simulations.length!=0" type="button" class="btn btn-outline-danger ">No hay más simulaciones</button>
+        </div>
+      </div>
+    </div>
+  </ng-template>
 
 </div>
 
 
-<ng-template #simulation let-modal class="modal fade">
+<ng-template #newSimulation let-modal class="modal fade">
   <div class="modal-header">
-    <h5 class="modal-title">Nueva simulación</h5>
+    <h5 class="modal-title" *ngIf="newSimulationTitleBinding===true">Nueva simulación</h5>
+    <h5 class="modal-title" *ngIf="newSimulationTitleBinding===false">Edita la simulación</h5>
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
   </div>
   <div class="modal-body">
     <label for="input-name">Nombre</label>
-    <input type="text" class="form-control" id="input-name">
+    <input type="text" class="form-control" id="input-name" [(ngModel)]="simulationInfo.title">
     <div class="form-group mt-3">
       <label for="message-text" class="col-form-label">Descripción</label>
-      <textarea class="form-control" id="message-text"></textarea>
+      <textarea class="form-control" id="message-text" [(ngModel)]="simulationInfo.body"></textarea>
+    </div>
+    <div class="form-group mt-3">
+      <label for="message-text" class="col-form-label">Carpeta</label>
+      <select class="form-select" required [(ngModel)]="simulationInfo.folderId">
+        <ng-container *ngFor="let folder of listFolders">
+          <option [selected]="folder.idFolder===simulationInfo.folderId" [ngValue]="folder.idFolder">{{ folder.nameFolder }}</option>
+        </ng-container>
+      </select>
+    </div>
+    <div class="form-group mt-3">
+    <input (change)="selectImage($event)" [(ngModel)]="image" accept="image/jpeg, image/png" class="custom-file-input" name="image" type="file">
     </div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
-    <button type="button" class="btn btn-danger" (click)="save()">Crear</button>
+    <button type="button" class="btn btn-danger" *ngIf="newSimulationTitleBinding===true" (click)="[modal.dismiss(),saveSimulation(0)]">Crear</button>
+    <button type="button" class="btn btn-danger" *ngIf="newSimulationTitleBinding===false" (click)="[modal.dismiss(),saveSimulation(1)]">Guardar</button>
   </div>
 
 </ng-template>
 
 
-<ng-template #folder let-modal class="modal fade">
+<ng-template #newFolder let-modal class="modal fade">
   <div class="modal-header">
-    <h5 class="modal-title">Elige un nombre para la nueva carpeta</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+    <h5 class="modal-title" *ngIf="newFolderTitleBinding===true">Elige un nombre para la nueva carpeta</h5>
+    <h5 class="modal-title" *ngIf="newFolderTitleBinding===false">Elige nuevo nombre para la carpeta</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
-    <input type="text" class="form-control">
+    <input type="text" class="form-control" [(ngModel)]="folderInfo.nameFolder">
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
-    <button type="button" class="btn btn-danger" (click)="save()">Crear</button>
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancelar</button>
+    <button type="button" class="btn btn-danger" *ngIf="newFolderTitleBinding===true" (click)="[modal.dismiss(),saveFolder(0)]">Crear</button>
+    <button type="button" class="btn btn-danger" *ngIf="newFolderTitleBinding===false" (click)="[modal.dismiss(),saveFolder(1)]">Guardar</button>
   </div>
 </ng-template>
 
 <ng-template #deleteFolder let-modal class="modal fade">
   <div class="modal-header">
     <h5 class="modal-title">Eliminar carpeta</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
-    <p>Eliminar esta carpeta también borrará las simulaciones que hay dentro de ellas. ¿Deseas borrarla de todas formas?</p>
+    <p>Eliminar esta carpeta también borrará las simulaciones que hay dentro de ellas. ¿Deseas borrarla de todas
+      formas?</p>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
-    <button type="button" class="btn btn-danger" (click)="save()">Confirmar</button>
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancelar</button>
+    <button type="button" class="btn btn-danger" (click)="deleteFolderFunction()">Confirmar</button>
   </div>
 </ng-template>
 
@@ -177,7 +155,7 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
-    <button type="button" class="btn btn-danger" (click)="save()">Confirmar</button>
+    <button type="button" class="btn btn-danger" (click)="deleteSimulationFunction()">Confirmar</button>
   </div>
 </ng-template>
 

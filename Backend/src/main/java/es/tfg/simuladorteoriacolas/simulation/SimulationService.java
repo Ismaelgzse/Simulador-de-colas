@@ -32,6 +32,10 @@ public class SimulationService {
         return simulationRepository.findAllByFolderOrderByIdSimulation(folder,PageRequest.of(page,5));
     }
 
+    public Simulation save(Simulation simulation){
+        return simulationRepository.save(simulation);
+    }
+
     public Optional<Simulation> findById(Integer id){
         return simulationRepository.findById(id);
     }

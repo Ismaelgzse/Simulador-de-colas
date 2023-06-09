@@ -18,17 +18,6 @@ public class FolderService {
     private UserService userService;
 
 
-    /*public List<FolderWithPagedSimulationsDTO> buildFolderDTOWithPagedSimulations(List<Folder> folders){
-        List<FolderWithPagedSimulationsDTO> list= new ArrayList<>();
-        for (var i=0;i<folders.size();i++){
-            var simulationsPaged=simulationService.getSimulationsInPages(folders.get(i),0);
-            var folderDTO= new FolderWithPagedSimulationsDTO(folders.get(i).getIdFolder(),folders.get(i).getNameFolder(),simulationsPaged);
-            list.add(folderDTO);
-        }
-        Collections.reverse(list);
-        return list;
-    }*/
-
     public List<Folder> findByUser(HttpServletRequest request){
         var user=userService.findByNickname(request.getUserPrincipal().getName()).get();
         return folderRepository.findAllByUserCreator(user);

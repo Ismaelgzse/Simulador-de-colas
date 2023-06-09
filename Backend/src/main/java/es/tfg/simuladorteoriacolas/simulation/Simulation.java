@@ -82,6 +82,14 @@ public class Simulation {
         this.userCreator = userCreator;
     }
 
+    public UserEntity getUserCreator() {
+        return userCreator;
+    }
+
+    public Blob getImageFile() {
+        return imageFile;
+    }
+
     public void setFolder(Folder folder) {
         this.folder = folder;
     }
@@ -109,6 +117,6 @@ public class Simulation {
 
     @JsonProperty("imageFile")
     public String imageFile() {
-        return "/api/simulation/" + getIdSimulation() + "/image";
+        return "/api/simulations/" + getIdSimulation() + "/image";
     }
 }
