@@ -1,11 +1,3 @@
-<header class="contentHeader">
-  <nav class="navbar">
-  <span class="navbar-text">
-    Simulador de Colas
-  </span>
-  </nav>
-</header>
-
 <div id="content">
   <div class="buttonAdd">
     <div class="row">
@@ -23,7 +15,7 @@
             </li>
             <div class="dropdown-divider"></div>
             <li>
-              <button (click)="[newSimulationTitle(),openModalSimulation(newSimulation,-1,-1)]" class="btnElem">
+              <button [disabled]="listFolders.length===0" (click)="[newSimulationTitle(),openModalSimulation(newSimulation,-1,-1)]" class="btnElem">
                 <i class="fa-solid fa-pencil elementdropMenu2"></i>Simulación
               </button>
             </li>

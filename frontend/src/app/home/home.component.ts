@@ -5,6 +5,7 @@ import {HomeService} from "./home.service";
 import {ModalDismissReasons, NgbDatepickerModule, NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Folder} from "./folder.model";
 import {Simulation} from "./simulation.model";
+import {Router} from "@angular/router";
 
 
 @Component({
@@ -26,7 +27,7 @@ export class HomeComponent implements OnInit {
   newSimulationTitleBinding: boolean;
 
 
-  constructor(private modalService: NgbModal, private homeService: HomeService) {
+  constructor(private modalService: NgbModal, private homeService: HomeService, private router:Router) {
   }
 
   ngOnInit(): void {
@@ -58,7 +59,7 @@ export class HomeComponent implements OnInit {
 
       }),
       (error => {
-        this.numFoldersEmpty = true;
+        this.router.navigate(['error403'])
       })
     )
   }

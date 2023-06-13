@@ -1,0 +1,11 @@
+<header class="contentHeader">
+  <nav class="navbar">
+    <a *ngIf="header===1" routerLink="/login"><img class="imgHeader" src="../../assets/png/icono.png" height="20px"></a>
+    <a *ngIf="header===0" routerLink="/home"><img class="imgHeader" src="../../assets/png/icono.png" height="20px"></a>
+    <a class="navbar-text" *ngIf="header===1" routerLink="/login">Simulador de Colas</a>
+    <a class="navbar-text" *ngIf="header===0" routerLink="/home">Simulador de Colas</a>
+    <button class="logoutButton btn btn-outline-light" *ngIf="header===0 && router.url !== '/logout'" routerLink="/logout">Cerrar sesión</button>
+
+
+  </nav>
+</header>

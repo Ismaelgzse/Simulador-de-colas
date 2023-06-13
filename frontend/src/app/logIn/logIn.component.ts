@@ -23,12 +23,21 @@ export class LogInComponent implements OnInit{
   loading:boolean;
   visibilityPassword:boolean;
   error:boolean;
+  logOut:boolean
 
 
   constructor(private router:Router,private logInService:LogInService) {
+    if (this.router.url==='/logout'){
+      this.logInService.logOut().subscribe(
+        (success =>{
+          this.logOut=true;
+        })
+      )
+    }
   }
 
   ngOnInit(): void {
+    this.logOut=false;
     this.loading=false
     this.wasValidated=false;
     this.logInForm={

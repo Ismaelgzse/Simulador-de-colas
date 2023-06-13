@@ -10,7 +10,8 @@
       <div class="col-12 align-self-center bodyError">Lo siento, ha ocurrido un error en el servidor. Inténtalo de nuevo más tarde.
       </div>
       <div class=" justify-content-center d-flex">
-        <button class="btn btn-danger" type="button">Volver al inicio</button>
+        <button class="btn btn-danger" type="button" *ngIf="logged===false" routerLink="/login">Volver al inicio</button>
+        <button class="btn btn-danger" type="button" *ngIf="logged===true" routerLink="/home">Volver al inicio</button>
       </div>
     </div>
   </div>

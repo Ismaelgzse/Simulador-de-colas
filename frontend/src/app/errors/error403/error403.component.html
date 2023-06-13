@@ -11,7 +11,8 @@
         página
       </div>
       <div class=" justify-content-center d-flex">
-        <button class="btn btn-danger" type="button">Volver al inicio</button>
+        <button class="btn btn-danger" type="button" *ngIf="logged===false" routerLink="/login">Volver al inicio</button>
+        <button class="btn btn-danger" type="button" *ngIf="logged===true" routerLink="/home">Volver al inicio</button>
       </div>
     </div>
   </div>

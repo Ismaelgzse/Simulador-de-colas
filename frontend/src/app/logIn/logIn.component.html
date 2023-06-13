@@ -1,11 +1,3 @@
-<header class="contentHeader">
-  <nav class="navbar">
-  <span class="navbar-text">
-    Simulador de Colas
-  </span>
-  </nav>
-</header>
-
 <div class="mainContainer">
   <div class="row">
     <div class="container col-12">
@@ -15,6 +7,10 @@
 
           <div *ngIf="error===true" class="alert alert-danger" role="alert">
             Apodo o contraseña erróneos.
+          </div>
+
+          <div *ngIf="logOut===true" class="alert alert-success" role="alert">
+            Se ha cerrado la sesión correctamente.
           </div>
 
           <label class="subHeader" for="nickname">Apodo <span class="asterisk">*</span></label>

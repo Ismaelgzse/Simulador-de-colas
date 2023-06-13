@@ -15,7 +15,8 @@ const routes: Routes = [
   {path: 'forgottenPassword', component: PasswordRecoveryComponent, data: {title: 'Recuperación de contraseña'}},
   {path: 'error403', component: Error403Component, data: {title: 'Error 403'}},
   {path: 'error404', component: Error404Component, data: {title: 'Error 404'}},
-  {path: 'error500', component: Error500Component, data: {title: 'Error 500'}}
+  {path: 'error500', component: Error500Component, data: {title: 'Error 500'}},
+  {path: 'logout' , component:LogInComponent, data: {title: 'Cierre de sesión'}}
 ];
 
 const routerOptions: ExtraOptions = {

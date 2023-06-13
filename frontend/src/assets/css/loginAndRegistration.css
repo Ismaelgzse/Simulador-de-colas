@@ -8,6 +8,20 @@
     color: white;
     font: inherit !important;
     font-weight: bold !important;
+    text-decoration: none;
+}
+
+.imgHeader{
+    margin-left: 20px;
+}
+
+.logoutButton{
+    border-radius: 20px;
+}
+
+.logoutButton:hover{
+    color: black;
+    border-color: black;
 }
 
 /*Container styles*/

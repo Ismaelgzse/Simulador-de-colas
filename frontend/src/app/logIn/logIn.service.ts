@@ -12,4 +12,8 @@ export class LogInService {
     return this.httpClient.post('/api/login', {nickname, password}, {withCredentials: true}) as Observable<boolean>;
   }
 
+  logOut():Observable<any>{
+    return this.httpClient.post('api/logout',{},{withCredentials:true}) as Observable<any>;
+  }
+
 }
