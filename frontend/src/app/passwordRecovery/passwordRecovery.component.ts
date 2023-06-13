@@ -2,6 +2,7 @@ import {Component, ElementRef, OnInit, ViewChild} from "@angular/core";
 import {LogInService} from "../logIn/logIn.service";
 import {PasswordRecoveryService} from "./passwordRecovery.service";
 import {Router} from "@angular/router";
+import {flip} from "@popperjs/core";
 
 export class PasswordFormDTO{
   nickname:String;
@@ -19,6 +20,7 @@ export class PasswordFormDTO{
 
 export class PasswordRecoveryComponent implements OnInit{
   formNum:number;
+  error:number;
   passwordRecoveryForm:PasswordFormDTO;
   preguntaseguridadOpciones: String[];
   visibilidadRespuesta:boolean;
@@ -35,6 +37,7 @@ export class PasswordRecoveryComponent implements OnInit{
   }
 
   ngOnInit(): void {
+    this.error=0;
     this.formNum=1;
     this.passwordRecoveryForm={
       nickname:'',
@@ -80,20 +83,28 @@ export class PasswordRecoveryComponent implements OnInit{
           if (success) {
             this.formNum=2;
             this.loading=false;
+            this.error=0;
+            this.wasValidated=false;
           }
           else {
-            //Control de errores
+            this.error=1;
+            this.loading=false;
           }
         }),
         (error => {
-          this.wasValidated = false;
+          this.router.navigate(['/error500'])
         })
       )
     }
+    else {
+      this.wasValidated=true;
+      this.loading=false;
+    }
   }
 
-  confirmPassword(even:Event):void{
-    even.preventDefault();
+  confirmPassword(event:Event):void{
+    event.preventDefault();
+    this.wasValidated=false;
     if (this.passwordRecoveryForm.password===this.passwordConfirmation){
       if (this.passwordRecoveryFormElement.nativeElement.checkValidity()){
         this.loading=true;
@@ -102,10 +113,17 @@ export class PasswordRecoveryComponent implements OnInit{
             this.router.navigate(["login"])
           }),
           (error => {
-            this.wasValidated = false;
+            this.loading=false;
+            this.error=0;
+            this.router.navigate(['/error500'])
           })
         )
       }
+      else {
+        this.wasValidated=true;
+      }
+    }else {
+      this.error=2;
     }
 
   }

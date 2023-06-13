@@ -52,11 +52,13 @@ export class LogInComponent implements OnInit{
           this.error=true;
         })
       )
+    } else {
+      this.wasValidated=true;
     }
   }
 
   changeVisibility():void{
-    this.visibilityPassword=!this.visibilityPassword
+    this.visibilityPassword=!this.visibilityPassword;
   }
 
 }

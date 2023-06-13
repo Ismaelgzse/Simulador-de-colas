@@ -33,9 +33,9 @@
                     <i class="fa-solid fa-lock"></i>
                 </span>
             <input class="form-control" id="password" name="password" required [(ngModel)]=logInForm.password [type]="visibilityPassword ? 'password' : 'text' "
-                   placeholder="Contraseña">
-            <button (click)="changeVisibility()" class="input-group-text" id="togglePassword" style="cursor: pointer">
-                    <i id="icon" [ngClass]="{'far':true, 'fa-eye':visibilityPassword , 'fa-eye-slash':!visibilityPassword}"></i>
+                   placeholder="Contraseña" autocomplete="off">
+            <button type="button" (click)="changeVisibility()" class="input-group-text" id="togglePassword" style="cursor: pointer">
+                    <i [ngClass]="{'far':true, 'fa-eye':visibilityPassword , 'fa-eye-slash':!visibilityPassword}"></i>
                 </button>
             <div class="invalid-feedback">
               Es obligatorio introducir la contraseña para continuar.
@@ -46,7 +46,7 @@
           </div>
           <div class="container-form-btn">
             <a class="homeLink">
-              <button type="submit" class="btn btn-corporative form-btn">Iniciar sesión<i class="fas fa-spin fa-circle-notch" *ngIf="loading"></i></button>
+              <button type="submit" class="btn btn-corporative form-btn"><span *ngIf="loading===false">Iniciar sesión</span><i class="fas fa-spin fa-circle-notch" *ngIf="loading"></i></button>
             </a>
           </div>
         </form>

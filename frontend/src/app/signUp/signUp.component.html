@@ -22,7 +22,7 @@
                         <span class="input-group-text">
                             <i class="fa-solid fa-user"></i>
                         </span>
-            <input class="form-control" id="email" name="email" required type="text" placeholder="Email" [(ngModel)]="registrationForm.email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+            <input class="form-control" id="email" name="email" required type="email" placeholder="Email" [(ngModel)]="registrationForm.email">
             <div class="invalid-feedback">
               Es obligatorio introducir el email para continuar.
             </div>
@@ -30,9 +30,9 @@
 
           <label class="subHeader" for="apodo">Apodo </label>
           <div class="input-group">
-            <input class="form-control" id="apodo" name="apodo" required placeholder="Apodo" [(ngModel)]="registrationForm.nickname" pattern="[a-z0-9.-]{4,}$">
+            <input class="form-control" id="apodo" name="apodo" required placeholder="Apodo" [(ngModel)]="registrationForm.nickname" pattern="[\w\sñ]{4,}">
             <div class="invalid-feedback">
-              Es obligatorio introducir el apodo para continuar.
+              Debe tener al menos 4 caracteres.
             </div>
           </div>
 
@@ -41,12 +41,12 @@
                         <span class="input-group-text">
                             <i class="fa-solid fa-lock"></i>
                         </span>
-            <input class="form-control" [type]="visibilidadPassword ? 'password' : 'text' " id="password" name="password" required placeholder="Contraseña" [(ngModel)]="registrationForm.password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
+            <input class="form-control" [type]="visibilidadPassword ? 'password' : 'text' " id="password" name="password" required placeholder="Contraseña" [(ngModel)]="registrationForm.password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" autocomplete="off">
             <button type="button" (click)="changeVisibilityPassword()" class="input-group-text d-block" id="togglePassword" >
                             <i id="icon" [ngClass]="{'far':true, 'fa-eye':visibilidadPassword , 'fa-eye-slash':!visibilidadPassword}"></i>
                         </button>
             <div class="invalid-feedback">
-              Es obligatorio introducir la contraseña para continuar.
+              No cumple con los requisitos.
             </div>
             <div class="passwordRequirements">La contraseña tiene que tener al menos 8 caracteres incluyendo al menos una mayúscula, una minúscula y un número.
             </div>
@@ -65,7 +65,7 @@
 
           <label class="subHeader" for="answer">Respuesta <span class="asterisk">*</span></label>
           <div class="input-group finalItem">
-            <input class="form-control" id="answer" name="answer" required [type]="visibilidadRespuesta ? 'password' : 'text' " placeholder="Respuesta" [(ngModel)]="registrationForm.securityAnswer">
+            <input class="form-control" id="answer" name="answer" required [type]="visibilidadRespuesta ? 'password' : 'text' " placeholder="Respuesta" [(ngModel)]="registrationForm.securityAnswer" autocomplete="off">
             <button type="button" (click)="changeVisibilityAnswer()" class="input-group-text d-block">
                             <i [ngClass]="{'far':true, 'fa-eye':visibilidadRespuesta , 'fa-eye-slash':!visibilidadRespuesta}"></i>
                         </button>
@@ -75,7 +75,7 @@
           </div>
 
           <div class="container-form-btn">
-              <button type="submit" class="btn btn-corporative form-btn homeLink">Crear cuenta<i class="fas fa-spin fa-circle-notch" *ngIf="loading"></i></button>
+            <button type="submit" class="btn btn-corporative form-btn homeLink"><span *ngIf="loading===false">Crear cuenta</span><i class="fas fa-spin fa-circle-notch" *ngIf="loading"></i></button>
 
           </div>
         </form>

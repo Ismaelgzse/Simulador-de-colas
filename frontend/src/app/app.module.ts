@@ -11,6 +11,9 @@ import {LogInComponent} from "./logIn/logIn.component";
 import {HomeComponent} from "./home/home.component";
 import {PasswordRecoveryComponent} from "./passwordRecovery/passwordRecovery.component";
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import {Error403Component} from "./errors/error403/error403.component";
+import {Error404Component} from "./errors/error404/error404.component";
+import {Error500Component} from "./errors/error500/error500.component";
 
 
 @NgModule({
@@ -19,7 +22,10 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     SignUpComponent,
     LogInComponent,
     HomeComponent,
-    PasswordRecoveryComponent
+    PasswordRecoveryComponent,
+    Error403Component,
+    Error404Component,
+    Error500Component
   ],
   imports: [
     BrowserModule,
