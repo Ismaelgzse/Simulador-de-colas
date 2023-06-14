@@ -3,6 +3,10 @@
     background-color: #ed1212;
 }
 
+.header{
+    width: 100%;
+}
+
 .navbar-text{
     margin-left: 20px;
     color: white;
