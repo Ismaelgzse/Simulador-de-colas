@@ -6,7 +6,12 @@ import {ModalDismissReasons, NgbDatepickerModule, NgbModal} from '@ng-bootstrap/
 import {Folder} from "./folder.model";
 import {Simulation} from "./simulation.model";
 import {Router} from "@angular/router";
+import {FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators} from "@angular/forms";
 
+
+function validFile() {
+  return undefined;
+}
 
 @Component({
   selector: 'app-home',
@@ -16,7 +21,7 @@ import {Router} from "@angular/router";
 })
 
 export class HomeComponent implements OnInit {
-  image: File;
+  image?: File;
   folder: Folder;
   folderInfo: Folder;
   simulationInfo: Simulation;
@@ -25,12 +30,25 @@ export class HomeComponent implements OnInit {
   i: number;
   newFolderTitleBinding: boolean;
   newSimulationTitleBinding: boolean;
+  validated:boolean;
+
+  newFolderForm= new FormGroup({
+    folderName: new FormControl('',Validators.compose([Validators.required,Validators.minLength(1)]))
+  })
+
+  newSimulationForm= new FormGroup({
+    title:new FormControl('',Validators.compose([Validators.required,Validators.minLength(4),Validators.maxLength(20)])),
+    body:new FormControl('',Validators.compose([Validators.required,Validators.maxLength(100)])),
+    folder:new FormControl(),
+  })
 
 
   constructor(private modalService: NgbModal, private homeService: HomeService, private router:Router) {
   }
 
   ngOnInit(): void {
+    this.image=undefined;
+    this.validated=true;
     this.simulationInfo = {
       title: '',
       body: '',
@@ -64,15 +82,32 @@ export class HomeComponent implements OnInit {
     )
   }
 
+  validFile(control:FormControl){
+    const file= control.value;
+    if (file.name!==null){
+      const extension= file.name.split('.')[1].toLowerCase();
+      if (extension!=='png' || extension!=='jpeg'){
+        return {InvalidTypeFile:true};
+      }
+    }
+    return null;
+  }
+
   openModalFolder(content: any, element: number
   ) {
     if (element != -1) {
       this.folderInfo.nameFolder = this.listFolders[element].nameFolder;
       this.folderInfo.idFolder = this.listFolders[element].idFolder;
-      this.folderInfo.simulations = this.listFolders[element].simulations
+      this.folderInfo.simulations = this.listFolders[element].simulations;
+      this.newFolderForm.patchValue({
+        folderName:this.folderInfo.nameFolder
+      })
     } else {
       this.folderInfo.nameFolder = '';
       this.folderInfo.simulations = []
+      this.newFolderForm.patchValue({
+        folderName:this.folderInfo.nameFolder
+      })
     }
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'})
   }
@@ -85,32 +120,58 @@ export class HomeComponent implements OnInit {
       this.simulationInfo.body = this.listFolders[folder].simulations[simulation].body;
       this.simulationInfo.folderId = this.listFolders[folder].idFolder;
       this.simulationInfo.imageFile=this.listFolders[folder].simulations[simulation].imageFile;
+      this.newSimulationForm.patchValue({
+        title: this.simulationInfo.title,
+        body: this.simulationInfo.body,
+        folder: this.simulationInfo.folderId,
+      })
     } else {
       this.simulationInfo.body = '';
       this.simulationInfo.title = '';
       this.simulationInfo.imageFile='';
+      this.newSimulationForm.patchValue({
+        title: '',
+        body: '',
+        folder: '',
+      })
     }
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'})
   }
 
-  saveFolder(mode: number
-  ) {
-    if (mode == 0) {
-      this.homeService.saveFolder(this.folderInfo).subscribe(
+  prueba():void{
+    if (this.newFolderForm.valid){
+      this.validated=true;
+    }else {
+      this.validated=false;
+
+    }
+  }
+
+  saveFolder() {
+    if (typeof this.newFolderForm.value.folderName === "string") {
+      this.folderInfo.nameFolder = this.newFolderForm.value.folderName;
+    }
+    if (this.folderInfo.idFolder){
+      this.homeService.updateFolder(this.folderInfo).subscribe(
         (folder => this.ngOnInit())
       )
-    } else {
-      this.homeService.updateFolder(this.folderInfo).subscribe(
+    }
+    else {
+      this.homeService.saveFolder(this.folderInfo).subscribe(
         (folder => this.ngOnInit())
       )
     }
   }
 
-  saveSimulation(mode: number) {
-    if (mode == 0) {
-      this.homeService.saveSimulation(this.simulationInfo).subscribe(
+  saveSimulation() {
+    this.simulationInfo.title= <string>this.newSimulationForm.value.title;
+    this.simulationInfo.body=<string>this.newSimulationForm.value.body;
+    this.simulationInfo.folderId=this.newSimulationForm.value.folder;
+
+    if (this.simulationInfo.idSimulation){
+      this.homeService.updateSimulation(this.simulationInfo).subscribe(
         (simulation => {
-          if (this.image !== null && simulation.idSimulation) {
+          if (this.image != null && simulation.idSimulation) {
             const form = new FormData();
             form.append('file', this.image, this.image.name);
             this.homeService.updateImage(simulation.idSimulation, form).subscribe(
@@ -122,10 +183,11 @@ export class HomeComponent implements OnInit {
           this.ngOnInit();
         })
       )
-    } else {
-      this.homeService.updateSimulation(this.simulationInfo).subscribe(
+    }
+    else {
+      this.homeService.saveSimulation(this.simulationInfo).subscribe(
         (simulation => {
-          if (this.image !== null && simulation.idSimulation) {
+          if (this.image != null && simulation.idSimulation) {
             const form = new FormData();
             form.append('file', this.image, this.image.name);
             this.homeService.updateImage(simulation.idSimulation, form).subscribe(
@@ -202,6 +264,22 @@ export class HomeComponent implements OnInit {
 
   save(): void {
     this.modalService.dismissAll();
+  }
+
+  get folderName(){
+    return this.newFolderForm.get('folderName')
+  }
+
+  get title(){
+    return this.newSimulationForm.get('title')
+  }
+
+  get body(){
+    return this.newSimulationForm.get('body')
+  }
+
+  get folderSimulation(){
+    return this.newSimulationForm.get('folder')
   }
 
 }

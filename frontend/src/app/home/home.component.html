@@ -15,7 +15,8 @@
             </li>
             <div class="dropdown-divider"></div>
             <li>
-              <button [disabled]="listFolders.length===0" (click)="[newSimulationTitle(),openModalSimulation(newSimulation,-1,-1)]" class="btnElem">
+              <button [disabled]="listFolders.length===0"
+                      (click)="[newSimulationTitle(),openModalSimulation(newSimulation,-1,-1)]" class="btnElem">
                 <i class="fa-solid fa-pencil elementdropMenu2"></i>Simulación
               </button>
             </li>
@@ -36,25 +37,30 @@
         <div class="folder-title">
           <i class="fa-solid fa-folder folderIconTitle"></i>
           <span class="titleText">{{folderElem.nameFolder}}</span>
-          <i type='button' (click)="[modifyFolderTitle(),openModalFolder(newFolder,f)]" class='editButton actionButton fa-regular fa-pen-to-square'></i>
-          <i type='button' (click)="openModalFolder(deleteFolder,f)" class='deleteButton actionButton fa-regular fa-trash-can'></i>
+          <i type='button' (click)="[modifyFolderTitle(),openModalFolder(newFolder,f)]"
+             class='editButton actionButton fa-regular fa-pen-to-square'></i>
+          <i type='button' (click)="openModalFolder(deleteFolder,f)"
+             class='deleteButton actionButton fa-regular fa-trash-can'></i>
         </div>
 
         <div class="alert alert-info" role="alert" *ngIf="folderElem.simulations.length===0">
           No Hay simulaciones.
         </div>
 
-        <div class="row card-image" >
+        <div class="row card-image">
 
-          <div class="card col-3" style="width: 25rem;" *ngFor="let simulationElem of folderElem.simulations; let s=index">
+          <div class="card col-3" style="width: 25rem;"
+               *ngFor="let simulationElem of folderElem.simulations; let s=index">
             <a class="simulationLink">
 
               <img class="card-img-top" style="height: 13rem;"
                    *ngIf="simulationElem.imageFile" src="{{simulationElem.imageFile}}">
               <div class="card-body">
                 <h5 class="card-title">{{simulationElem.title}}
-                  <i type='button' (click)="[modifyFolderTitle(),openModalSimulation(newSimulation,f,s)]" class='editButton2 actionButton2 fa-regular fa-pen-to-square'></i>
-                  <i type='button' (click)="openModalSimulation(deleteSimulation,f,s)" class='deleteButton2 actionButton2 fa-regular fa-trash-can'></i>
+                  <i type='button' (click)="[modifyFolderTitle(),openModalSimulation(newSimulation,f,s)]"
+                     class='editButton2 actionButton2 fa-regular fa-pen-to-square'></i>
+                  <i type='button' (click)="openModalSimulation(deleteSimulation,f,s)"
+                     class='deleteButton2 actionButton2 fa-regular fa-trash-can'></i>
                 </h5>
                 <p class="card-text"></p>{{simulationElem.body}}
               </div>
@@ -62,8 +68,13 @@
           </div>
         </div>
         <div class=" justify-content-center d-flex showMoreEnc">
-          <button *ngIf="folderElem.isLastPage===false" class="btn btn-danger showMore" (click)="loadNewPageSimulations(f)">Ver más</button>
-          <button [disabled]="folderElem.isLastPage" *ngIf="folderElem.isLastPage===true && folderElem.simulations.length!=0" type="button" class="btn btn-outline-danger ">No hay más simulaciones</button>
+          <button *ngIf="folderElem.isLastPage===false" class="btn btn-danger showMore"
+                  (click)="loadNewPageSimulations(f)">Ver más
+          </button>
+          <button [disabled]="folderElem.isLastPage"
+                  *ngIf="folderElem.isLastPage===true && folderElem.simulations.length!=0" type="button"
+                  class="btn btn-outline-danger ">No hay más simulaciones
+          </button>
         </div>
       </div>
     </div>
@@ -78,30 +89,42 @@
     <h5 class="modal-title" *ngIf="newSimulationTitleBinding===false">Edita la simulación</h5>
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
   </div>
-  <div class="modal-body">
-    <label for="input-name">Nombre</label>
-    <input type="text" class="form-control" id="input-name" [(ngModel)]="simulationInfo.title">
-    <div class="form-group mt-3">
-      <label for="message-text" class="col-form-label">Descripción</label>
-      <textarea class="form-control" id="message-text" [(ngModel)]="simulationInfo.body"></textarea>
+  <form [formGroup]="newSimulationForm" (ngSubmit)="saveSimulation()">
+    <div class="modal-body">
+      <label for="input-name">Nombre</label>
+      <input type="text" class="form-control" id="input-name" formControlName="title">
+      <span *ngIf="title && title.invalid" class="errorMessage">Debe de tener entre 4 y 20 caracteres el título.</span>
+      <div class="form-group mt-3">
+        <label for="message-text" class="col-form-label">Descripción</label>
+        <textarea class="form-control" id="message-text" formControlName="body"></textarea>
+        <span *ngIf="body && body.invalid" class="errorMessage">Debe de tener entre 1 y 100 caracteres la descripción.</span>
+      </div>
+      <div class="form-group mt-3">
+        <label for="message-text" class="col-form-label">Carpeta</label>
+        <select class="form-control" required formControlName="folder">
+          <ng-container *ngFor="let folder of listFolders">
+            <option [selected]="folder.idFolder===simulationInfo.folderId"
+                    [ngValue]="folder.idFolder">{{ folder.nameFolder }}</option>
+          </ng-container>
+        </select>
+        <span *ngIf="folderSimulation && folderSimulation.invalid" class="errorMessage">Debe estar seleccionada una carpeta.</span>
+      </div>
+      <div class="form-group mt-3">
+        <label for="message-text" class="col-form-label">Imagen</label>
+        <input (change)="selectImage($event)" value={image} accept="image/jpeg, image/png"
+               class="form-control form-control-sm" name="image" type="file"/>
+      </div>
     </div>
-    <div class="form-group mt-3">
-      <label for="message-text" class="col-form-label">Carpeta</label>
-      <select class="form-select" required [(ngModel)]="simulationInfo.folderId">
-        <ng-container *ngFor="let folder of listFolders">
-          <option [selected]="folder.idFolder===simulationInfo.folderId" [ngValue]="folder.idFolder">{{ folder.nameFolder }}</option>
-        </ng-container>
-      </select>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
+      <button [disabled]="newSimulationForm.invalid" type="submit" class="btn btn-danger" *ngIf="newSimulationTitleBinding===true" (click)="modal.dismiss()">
+        Crear
+      </button>
+      <button [disabled]="newSimulationForm.invalid" type="submit" class="btn btn-danger" *ngIf="newSimulationTitleBinding===false" (click)="modal.dismiss()">
+        Guardar
+      </button>
     </div>
-    <div class="form-group mt-3">
-    <input (change)="selectImage($event)" [(ngModel)]="image" accept="image/jpeg, image/png" class="custom-file-input" name="image" type="file">
-    </div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="modal.close('Close click')">Cancelar</button>
-    <button type="button" class="btn btn-danger" *ngIf="newSimulationTitleBinding===true" (click)="[modal.dismiss(),saveSimulation(0)]">Crear</button>
-    <button type="button" class="btn btn-danger" *ngIf="newSimulationTitleBinding===false" (click)="[modal.dismiss(),saveSimulation(1)]">Guardar</button>
-  </div>
+  </form>
 
 </ng-template>
 
@@ -112,14 +135,22 @@
     <h5 class="modal-title" *ngIf="newFolderTitleBinding===false">Elige nuevo nombre para la carpeta</h5>
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
-  <div class="modal-body">
-    <input type="text" class="form-control" [(ngModel)]="folderInfo.nameFolder">
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancelar</button>
-    <button type="button" class="btn btn-danger" *ngIf="newFolderTitleBinding===true" (click)="[modal.dismiss(),saveFolder(0)]">Crear</button>
-    <button type="button" class="btn btn-danger" *ngIf="newFolderTitleBinding===false" (click)="[modal.dismiss(),saveFolder(1)]">Guardar</button>
-  </div>
+  <form [formGroup]="newFolderForm" (ngSubmit)="saveFolder()">
+    <div class="modal-body">
+      <input type="text" class="form-control" name="folderName" formControlName="folderName">
+      <span *ngIf="folderName && folderName.invalid" class="errorMessage">Debe de tener al menos un caracter de logitud mínima.</span>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancelar</button>
+      <button [disabled]="newFolderForm.invalid" type="submit" class="btn btn-danger"
+              *ngIf="newFolderTitleBinding===true" (click)="modal.dismiss()">Crear
+      </button>
+      <button [disabled]="newFolderForm.invalid" type="submit" class="btn btn-danger"
+              *ngIf="newFolderTitleBinding===false" (click)="modal.dismiss()">Guardar
+      </button>
+    </div>
+  </form>
 </ng-template>
 
 <ng-template #deleteFolder let-modal class="modal fade">
