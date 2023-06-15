@@ -9,10 +9,6 @@ import {Router} from "@angular/router";
 import {FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators} from "@angular/forms";
 
 
-function validFile() {
-  return undefined;
-}
-
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -22,15 +18,13 @@ function validFile() {
 
 export class HomeComponent implements OnInit {
   image?: File;
-  folder: Folder;
   folderInfo: Folder;
   simulationInfo: Simulation;
   listFolders: Folder[];
   numFoldersEmpty: boolean;
-  i: number;
   newFolderTitleBinding: boolean;
   newSimulationTitleBinding: boolean;
-  validated:boolean;
+  loading:boolean;
 
   newFolderForm= new FormGroup({
     folderName: new FormControl('',Validators.compose([Validators.required,Validators.minLength(1)]))
@@ -47,8 +41,8 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loading=true;
     this.image=undefined;
-    this.validated=true;
     this.simulationInfo = {
       title: '',
       body: '',
@@ -68,29 +62,18 @@ export class HomeComponent implements OnInit {
         this.listFolders = folders;
         if (this.listFolders.length > 0) {
           this.numFoldersEmpty = false;
-          for (this.i = 0; this.i < this.listFolders.length; this.i++) {
-            this.listFolders[this.i].page = 0;
+          for (let i = 0; i < this.listFolders.length; i++) {
+            this.listFolders[i].page = 0;
           }
         } else {
           this.numFoldersEmpty = true;
         }
-
+        this.loading=false;
       }),
       (error => {
         this.router.navigate(['error403'])
       })
     )
-  }
-
-  validFile(control:FormControl){
-    const file= control.value;
-    if (file.name!==null){
-      const extension= file.name.split('.')[1].toLowerCase();
-      if (extension!=='png' || extension!=='jpeg'){
-        return {InvalidTypeFile:true};
-      }
-    }
-    return null;
   }
 
   openModalFolder(content: any, element: number
@@ -138,32 +121,31 @@ export class HomeComponent implements OnInit {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'})
   }
 
-  prueba():void{
-    if (this.newFolderForm.valid){
-      this.validated=true;
-    }else {
-      this.validated=false;
-
-    }
-  }
-
   saveFolder() {
+    this.loading=true;
     if (typeof this.newFolderForm.value.folderName === "string") {
       this.folderInfo.nameFolder = this.newFolderForm.value.folderName;
     }
     if (this.folderInfo.idFolder){
       this.homeService.updateFolder(this.folderInfo).subscribe(
-        (folder => this.ngOnInit())
+        (folder => {
+          this.loading=false;
+          this.ngOnInit();
+        })
       )
     }
     else {
       this.homeService.saveFolder(this.folderInfo).subscribe(
-        (folder => this.ngOnInit())
+        (folder => {
+          this.loading=false;
+          this.ngOnInit();
+        })
       )
     }
   }
 
   saveSimulation() {
+    this.loading=true;
     this.simulationInfo.title= <string>this.newSimulationForm.value.title;
     this.simulationInfo.body=<string>this.newSimulationForm.value.body;
     this.simulationInfo.folderId=this.newSimulationForm.value.folder;
@@ -180,6 +162,7 @@ export class HomeComponent implements OnInit {
               })
             )
           }
+          this.loading=false;
           this.ngOnInit();
         })
       )
@@ -196,6 +179,7 @@ export class HomeComponent implements OnInit {
               })
             )
           }
+          this.loading=false;
           this.ngOnInit();
         })
       )
@@ -203,24 +187,33 @@ export class HomeComponent implements OnInit {
   }
 
   deleteFolderFunction() {
+    this.loading=true;
     this.modalService.dismissAll();
     if (this.folderInfo.idFolder != undefined) {
       this.homeService.deleteFolder(this.folderInfo.idFolder).subscribe(
-        (folder => this.ngOnInit())
+        (folder => {
+          this.loading=false;
+          this.ngOnInit();
+        })
       )
     }
   }
 
   deleteSimulationFunction() {
+    this.loading=true;
     this.modalService.dismissAll();
     if (this.simulationInfo.folderId != undefined && this.simulationInfo.idSimulation != undefined) {
       this.homeService.deleteSimulation(this.simulationInfo.folderId, this.simulationInfo.idSimulation).subscribe(
-        (simulation => this.ngOnInit())
+        (simulation => {
+          this.loading=false;
+          this.ngOnInit();
+        })
       )
     }
   }
 
   loadNewPageSimulations(folder: number) {
+    this.loading=true;
     let idFolder = this.listFolders[folder].idFolder;
     let page = this.listFolders[folder].page
     if (idFolder && page != undefined) {
@@ -230,6 +223,7 @@ export class HomeComponent implements OnInit {
           this.listFolders[folder].page = page + 1;
           this.listFolders[folder].simulations = this.listFolders[folder].simulations.concat(simulations.content);
           this.listFolders[folder].isLastPage = simulations.last;
+          this.loading=false;
         })
       )
     }
@@ -239,11 +233,6 @@ export class HomeComponent implements OnInit {
   selectImage(event: Event): void {
     // @ts-ignore
     this.image = event.target.files[0];
-  }
-
-  open(content: any
-  ) {
-    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'})
   }
 
   newFolderTitle() {
@@ -260,10 +249,6 @@ export class HomeComponent implements OnInit {
 
   modifySimulationTilte() {
     this.newSimulationTitleBinding = false;
-  }
-
-  save(): void {
-    this.modalService.dismissAll();
   }
 
   get folderName(){
