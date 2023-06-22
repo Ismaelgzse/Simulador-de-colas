@@ -45,4 +45,12 @@ public class Source {
     public void setNumberProducts(String numberProducts) {
         this.numberProducts = numberProducts;
     }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public Integer getIdSource() {
+        return idSource;
+    }
 }

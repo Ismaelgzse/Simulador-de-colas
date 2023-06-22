@@ -56,4 +56,12 @@ public class Queue {
     public void setDisciplineQueue(String disciplineQueue) {
         this.disciplineQueue = disciplineQueue;
     }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public Integer getIdQueue() {
+        return idQueue;
+    }
 }

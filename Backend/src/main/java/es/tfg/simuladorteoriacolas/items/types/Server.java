@@ -46,4 +46,12 @@ public class Server {
     public void setOutServer(Integer outServer) {
         this.outServer = outServer;
     }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public Integer getIdServer() {
+        return idServer;
+    }
 }

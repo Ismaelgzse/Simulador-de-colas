@@ -26,4 +26,12 @@ public class Sink {
     public void setIdSink(Integer idSink) {
         this.idSink = idSink;
     }
+
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public Integer getIdSink() {
+        return idSink;
+    }
 }

@@ -26,9 +26,9 @@ public class Item {
     @ManyToMany
     private List<Item> connectedItem;
 
-    private Integer connectedPossitionX;
+    private Integer connectedPositionX;
 
-    private Integer connectedPossitionY;
+    private Integer connectedPositionY;
 
     public Item(){
 
@@ -50,20 +50,20 @@ public class Item {
         this.description = description;
     }
 
-    public Integer getConnectedPossitionX() {
-        return connectedPossitionX;
+    public Integer getConnectedPositionX() {
+        return connectedPositionX;
     }
 
-    public Integer getConnectedPossitionY() {
-        return connectedPossitionY;
+    public Integer getConnectedPositionY() {
+        return connectedPositionY;
     }
 
-    public void setConnectedPossitionX(Integer connectedPossitionX) {
-        this.connectedPossitionX = connectedPossitionX;
+    public void setConnectedPositionX(Integer connectedPossitionX) {
+        this.connectedPositionX = connectedPossitionX;
     }
 
-    public void setConnectedPossitionY(Integer connectedPossitionY) {
-        this.connectedPossitionY = connectedPossitionY;
+    public void setConnectedPositionY(Integer connectedPossitionY) {
+        this.connectedPositionY = connectedPossitionY;
     }
 
     public Integer getPositionX() {
@@ -80,5 +80,21 @@ public class Item {
 
     public void setPositionY(Integer positionY) {
         this.positionY = positionY;
+    }
+
+    public void setIdSimulation(Simulation idSimulation) {
+        this.idSimulation = idSimulation;
+    }
+
+    public void setIdItem(Integer idItem) {
+        this.idItem = idItem;
+    }
+
+    public List<Item> getConnectedItem() {
+        return connectedItem;
+    }
+
+    public void setConnectedItem(List<Item> connectedItem) {
+        this.connectedItem = connectedItem;
     }
 }
