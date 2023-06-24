@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -65,6 +67,64 @@ public class ItemAPIController {
                 itemDTOList.add(itemDTO);
             }
             return ResponseEntity.ok(itemDTOList);
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @PutMapping("/simulations/{idSimulation}/item/all")
+    public ResponseEntity<List<ItemDTO>> updateAll(@PathVariable Integer idSimulation,
+                                                   HttpServletRequest request,
+                                                   @RequestBody List<ItemDTO> listItemDTO){
+        var userName= request.getUserPrincipal().getName();
+        var simulation= simulationService.findById(idSimulation).orElseThrow();
+        if (userName.equals(simulation.getUserCreator().getNickname())){
+            List<ItemDTO> savedListItems= new ArrayList<>();
+            for (ItemDTO itemDTO: listItemDTO) {
+                ItemDTO savedItemDTO= new ItemDTO();
+                var itemFromRequest= itemDTO.getItem();
+                var savedItem= itemService.save(itemFromRequest.getIdItem(),
+                        itemFromRequest.getName(),
+                        itemFromRequest.getPositionX(),
+                        itemFromRequest.getPositionY(),
+                        itemFromRequest.getDescription(),
+                        simulation,itemFromRequest.getConnectedItem(),
+                        itemFromRequest.getConnectedPositionX(),
+                        itemFromRequest.getConnectedPositionY());
+                savedItemDTO.setItem(savedItem);
+                switch (savedItem.getDescription()) {
+                    case "Queue":
+                        var queueFromRequest = itemDTO.getQueue();
+                        Queue savedQueue= itemTypesService.save(savedItem,
+                                queueFromRequest.getIdQueue(),
+                                queueFromRequest);
+                        savedItemDTO.setQueue(savedQueue);
+                        break;
+                    case "Server":
+                        var serverFromRequest=itemDTO.getServer();
+                        Server savedServer=itemTypesService.save(savedItem,
+                                serverFromRequest.getIdServer(),
+                                serverFromRequest);
+                        savedItemDTO.setServer(savedServer);
+                        break;
+                    case "Sink":
+                        var sinkFromRequest= itemDTO.getSink();
+                        Sink savedSink= itemTypesService.save(savedItem,
+                                sinkFromRequest.getIdSink(),
+                                sinkFromRequest);
+                        savedItemDTO.setSink(savedSink);
+                        break;
+                    case "Source":
+                        var sourceFromRequest= itemDTO.getSource();
+                        Source savedSource= itemTypesService.save(savedItem,
+                                sourceFromRequest.getIdSource(),
+                                sourceFromRequest);
+                        savedItemDTO.setSource(savedSource);
+                        break;
+                }
+                savedListItems.add(savedItemDTO);
+            }
+            Collections.reverse(savedListItems);
+            return ResponseEntity.ok(savedListItems);
         }
         return ResponseEntity.badRequest().build();
     }
@@ -173,6 +233,7 @@ public class ItemAPIController {
                     var sinkFormRequest= itemDTO.getSink();
                     Sink sink= new Sink();
                     sink.setItem(savedItem);
+                    sink.setInSink(sinkFormRequest.getInSink());
                     var savedSink= itemTypesService.save(sink);
                     savedItemDTO.setSink(savedSink);
                     break;

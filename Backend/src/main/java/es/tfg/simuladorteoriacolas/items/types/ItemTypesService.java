@@ -119,7 +119,7 @@ public class ItemTypesService {
             sink= new Sink();
         }
         sink.setItem(item);
-        sink.setIdSink(sinkAux.getInSink());
+        sink.setInSink(sinkAux.getInSink());
         return sinkRepository.save(sink);
     }
 

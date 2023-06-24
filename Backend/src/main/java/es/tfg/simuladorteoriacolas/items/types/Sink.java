@@ -23,6 +23,10 @@ public class Sink {
         return inSink;
     }
 
+    public void setInSink(Integer inSink) {
+        this.inSink = inSink;
+    }
+
     public void setIdSink(Integer idSink) {
         this.idSink = idSink;
     }
