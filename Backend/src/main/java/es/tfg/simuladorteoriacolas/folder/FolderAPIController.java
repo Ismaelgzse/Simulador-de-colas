@@ -1,5 +1,7 @@
 package es.tfg.simuladorteoriacolas.folder;
 
+import es.tfg.simuladorteoriacolas.items.ItemService;
+import es.tfg.simuladorteoriacolas.simulation.Simulation;
 import es.tfg.simuladorteoriacolas.simulation.SimulationService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,9 @@ public class FolderAPIController {
 
     @Autowired
     private SimulationService simulationService;
+
+    @Autowired
+    private ItemService itemService;
 
     @GetMapping("/folder")
     public ResponseEntity<Integer> getFolderId(@RequestParam String name){
@@ -79,6 +84,10 @@ public class FolderAPIController {
         var folder= folderService.findById(idFolder);
         if (folder.isPresent()){
             if (creator.equals(folder.get().getUserCreator().getNickname())){
+                List<Simulation> simulationList= simulationService.findAllSimulations(folder.get());
+                for (Simulation simulationAux: simulationList) {
+                    itemService.deleteAllItemsBySimulation(simulationAux);
+                }
                 folderService.deleteById(idFolder);
                 return ResponseEntity.ok(folder.get());
             }

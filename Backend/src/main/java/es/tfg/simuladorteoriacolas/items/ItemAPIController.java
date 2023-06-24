@@ -141,6 +141,10 @@ public class ItemAPIController {
             item.setDescription(itemFromRequest.getDescription());
             item.setIdSimulation(simulation);
             var savedItem=itemService.save(item);
+            if (savedItem.getName()==""){
+                savedItem.setName(savedItem.getDescription()+" "+savedItem.getIdItem().toString());
+                savedItem= itemService.save(savedItem);
+            }
             var savedItemDTO= new ItemDTO();
             savedItemDTO.setItem(savedItem);
             switch (itemFromRequest.getDescription()){

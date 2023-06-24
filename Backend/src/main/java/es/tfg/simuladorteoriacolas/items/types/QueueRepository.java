@@ -7,4 +7,6 @@ public interface QueueRepository extends JpaRepository<Queue,Integer> {
     Queue findByItem(Item item);
 
     Queue findByIdQueue(Integer idQueue);
+
+    Queue deleteByItem(Item item);
 }

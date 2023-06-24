@@ -97,4 +97,8 @@ public class Item {
     public void setConnectedItem(List<Item> connectedItem) {
         this.connectedItem = connectedItem;
     }
+
+    public Integer getIdItem() {
+        return idItem;
+    }
 }

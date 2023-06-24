@@ -1,5 +1,6 @@
 package es.tfg.simuladorteoriacolas.items;
 
+import es.tfg.simuladorteoriacolas.items.types.ItemTypesService;
 import es.tfg.simuladorteoriacolas.simulation.Simulation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,19 @@ public class ItemService {
 
     @Autowired
     private ItemRepository itemRepository;
+
+    @Autowired
+    private ItemTypesService itemTypesService;
+
+    public void deleteAllItemsBySimulation(Simulation simulation){
+        List<Item> itemList= itemRepository.findAllByIdSimulation(simulation);
+        Item item;
+        for (var i=0; i<itemList.size();i++){
+            itemTypesService.deleteByItem(itemList.get(i));
+            itemList.get(i).setIdSimulation(null);
+            itemRepository.delete(itemList.get(i));
+        }
+    }
 
     public Optional<Item> findById(Integer idItem){
         return itemRepository.findById(idItem);

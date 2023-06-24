@@ -7,4 +7,6 @@ public interface SourceRepository extends JpaRepository<Source,Integer> {
     Source findByItem(Item item);
 
     Source findByIdSource(Integer idSource);
+
+    Source deleteByItem(Item item);
 }

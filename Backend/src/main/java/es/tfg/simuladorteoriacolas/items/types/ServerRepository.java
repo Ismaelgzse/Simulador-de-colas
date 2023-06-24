@@ -8,4 +8,5 @@ public interface ServerRepository extends JpaRepository<Server,Integer> {
 
     Server findByIdServer(Integer idServer);
 
+    Server deleteByItem(Item item);
 }

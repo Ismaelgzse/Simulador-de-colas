@@ -7,4 +7,6 @@ public interface SinkRepository extends JpaRepository<Sink,Integer> {
     Sink findByItem(Item item);
 
     Sink findByIdSink(Integer idSink);
+
+    Sink deleteByItem(Item item);
 }

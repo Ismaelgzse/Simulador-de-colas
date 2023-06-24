@@ -1,6 +1,8 @@
 package es.tfg.simuladorteoriacolas.simulation;
 
 import es.tfg.simuladorteoriacolas.folder.FolderService;
+import es.tfg.simuladorteoriacolas.items.Item;
+import es.tfg.simuladorteoriacolas.items.ItemService;
 import jakarta.annotation.Resource;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +31,9 @@ public class SimulationAPIController {
     @Autowired
     private SimulationService simulationService;
 
+    @Autowired
+    private ItemService itemService;
+
     @GetMapping("/folders/{idFolder}/simulations")
     public ResponseEntity<Page<Simulation>> getSimulations(@PathVariable Integer idFolder,@RequestParam(required = false) Integer page) {
         var folder = folderService.findById(idFolder);
@@ -56,12 +61,13 @@ public class SimulationAPIController {
     @DeleteMapping("/folders/{idFolder}/simulations/{idSimulation}")
     public ResponseEntity<Simulation> deleteSimulation(@PathVariable Integer idFolder,
                                                        @PathVariable Integer idSimulation) {
-        var simulation = simulationService.findById(idSimulation);
+        var simulation = simulationService.findById(idSimulation).orElseThrow();
         if (simulation == null) {
             return ResponseEntity.notFound().build();
         }
+        itemService.deleteAllItemsBySimulation(simulation);
         simulationService.delete(idSimulation);
-        return ResponseEntity.ok(simulation.get());
+        return ResponseEntity.ok(simulation);
     }
 
     @PutMapping("/folders/{idFolder}/simulations/{idSimulation}")
@@ -117,6 +123,17 @@ public class SimulationAPIController {
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
+    }
+
+    @GetMapping("/simulation/{idSimulation}")
+    public ResponseEntity<Simulation> getSimulation(@PathVariable Integer idSimulation,
+                                                    HttpServletRequest request){
+        var requestUser= request.getUserPrincipal().getName();
+        var simulation=simulationService.findById(idSimulation).orElseThrow();
+        if (requestUser.equals(simulation.getUserCreator().getNickname())){
+            return ResponseEntity.ok(simulation);
+        }
+        return ResponseEntity.badRequest().build();
     }
 
 }

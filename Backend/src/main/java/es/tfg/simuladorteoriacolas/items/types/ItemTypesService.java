@@ -18,6 +18,35 @@ public class ItemTypesService {
     @Autowired
     private SourceRepository sourceRepository;
 
+    public void deleteByItem(Item item){
+        switch (item.getDescription()){
+            case "Sink":
+                Sink sink= sinkRepository.findByItem(item);
+                sink.setItem(null);
+                sinkRepository.save(sink);
+                sinkRepository.delete(sink);
+                break;
+            case "Server":
+                Server server=serverRepository.findByItem(item);
+                server.setItem(null);
+                serverRepository.save(server);
+                serverRepository.delete(server);
+                break;
+            case "Source":
+                Source source= sourceRepository.findByItem(item);
+                source.setItem(null);
+                sourceRepository.save(source);
+                sourceRepository.delete(source);
+                break;
+            case "Queue":
+                Queue queue=queueRepository.findByItem(item);
+                queue.setItem(null);
+                queueRepository.save(queue);
+                queueRepository.delete(queue);
+                break;
+        }
+    }
+
     public Queue findQueueByItem(Item item){
         return queueRepository.findByItem(item);
     }
