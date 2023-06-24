@@ -53,14 +53,14 @@
 
           <div class="card col-3" style="width: 25rem;"
                *ngFor="let simulationElem of folderElem.simulations; let s=index">
-            <a class="simulationLink">
+            <a class="simulationLink" routerLink="/simulation/{{simulationElem.idSimulation}}">
               <i class="fas fa-spin fa-circle-notch" *ngIf="loading"></i>
               <img class="card-img-top" style="height: 13rem;" *ngIf="simulationElem.imageFile && loading===false" src="{{simulationElem.imageFile}}">
               <div class="card-body">
                 <h5 class="card-title">{{simulationElem.title}}
-                  <i type='button' (click)="[modifyFolderTitle(),openModalSimulation(newSimulation,f,s)]"
+                  <i type='button' (click)="[$event.preventDefault(),$event.stopPropagation(),modifyFolderTitle(),openModalSimulation(newSimulation,f,s)]"
                      class='editButton2 actionButton2 fa-regular fa-pen-to-square'></i>
-                  <i type='button' (click)="openModalSimulation(deleteSimulation,f,s)"
+                  <i type='button' (click)="[$event.preventDefault(),$event.stopPropagation(),openModalSimulation(deleteSimulation,f,s)]"
                      class='deleteButton2 actionButton2 fa-regular fa-trash-can'></i>
                 </h5>
                 <p class="card-text"></p>{{simulationElem.body}}

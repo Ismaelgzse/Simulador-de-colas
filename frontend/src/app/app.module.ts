@@ -15,6 +15,7 @@ import {Error403Component} from "./errors/error403/error403.component";
 import {Error404Component} from "./errors/error404/error404.component";
 import {Error500Component} from "./errors/error500/error500.component";
 import {HeaderComponent} from "./header/header.component";
+import {SimulationComponent} from "./simulation/simulation.component";
 
 
 @NgModule({
@@ -27,7 +28,8 @@ import {HeaderComponent} from "./header/header.component";
     Error403Component,
     Error404Component,
     Error500Component,
-    HeaderComponent
+    HeaderComponent,
+    SimulationComponent
   ],
   imports: [
     BrowserModule,

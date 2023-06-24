@@ -7,6 +7,7 @@ import {PasswordRecoveryComponent} from "./passwordRecovery/passwordRecovery.com
 import {Error403Component} from "./errors/error403/error403.component";
 import {Error404Component} from "./errors/error404/error404.component";
 import {Error500Component} from "./errors/error500/error500.component";
+import {SimulationComponent} from "./simulation/simulation.component";
 
 const routes: Routes = [
   {path: 'sign-up', component: SignUpComponent, data: {title: 'Registrarse'}},
@@ -16,7 +17,9 @@ const routes: Routes = [
   {path: 'error403', component: Error403Component, data: {title: 'Error 403'}},
   {path: 'logout' , component:LogInComponent, data: {title: 'Cierre de sesión'}},
   {path: 'error500', component: Error500Component, data: {title: 'Error 500'}},
+  {path: 'simulation/:id', component:SimulationComponent,data:{title: 'Simulación'}},
   {path: '**', component: Error404Component, data: {title: 'Error 404'}}
+
 ];
 
 const routerOptions: ExtraOptions = {

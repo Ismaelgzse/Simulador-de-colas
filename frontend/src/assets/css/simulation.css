@@ -29,7 +29,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 40px;
+    top: 55px;
     height: 115px;
     border-width: 2px;
     border-color: black;
@@ -62,7 +62,7 @@
     left: 0;
     z-index: 2;
     overflow: visible;
-    top: 152px;
+    top: 167px;
     width: 209px;
     bottom: 0;
     position: absolute;
@@ -134,6 +134,22 @@
     bottom: 50px;
     left: calc(100% - 100px);
     box-sizing: border-box;
+}
+
+.reset{
+  z-index: 3;
+  position: absolute;
+  top:200px;
+  left: calc(100% - 230px);
+  box-sizing: border-box;
+}
+
+.btnReset{
+  background-color: #730099;
+}
+
+.btnReset:hover {
+  background-color: #4d0066;
 }
 
 .btnForward {
@@ -261,6 +277,7 @@
     display: flex;
     margin-right: 27px;
     margin-bottom: 7px;
+    /*display: none;*/
 }
 
 .titleDragContainer {
@@ -282,9 +299,9 @@
     position: absolute;
     z-index: 1;
     touch-action: none;
-    top: 152px;
+    top: 167px;
     left: 209px;
-    width: 100%;
+    width: 91.2%;
     bottom: 0;
     overflow-x: auto;
     background-color: #fbfbfb;
