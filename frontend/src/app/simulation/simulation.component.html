@@ -41,7 +41,8 @@
         </div>
       </div>
       <div class="col-1">
-        <button type="button" class="btn btnForward" data-toggle="modal" data-target="#modalSimulation">
+        <button type="button" (click)="openModalQuickSimulation(quickSimulation)" class="btn btnForward"
+                data-toggle="modal" data-target="#modalSimulation">
           <i class="fa-solid fa-forward"></i>
           Simulación rápida
         </button>
@@ -63,7 +64,7 @@
     <div class="dragItemContainer">
       <div class="titleDragContainer">Fuente</div>
       <div id="Fuen" class="image" draggable="true">
-        <svg width="200" height="100">
+        <svg width="200" height="100" cursor="grab">
           <g stroke="black" stroke-width="1px" fill="white">
             <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
                   stroke="rgb(0, 0, 0)"
@@ -87,7 +88,7 @@
     <div class="dragItemContainer">
       <div class="titleDragContainer">Cola</div>
       <div id="Cola" class="image" draggable="true">
-        <svg width="200" height="100">
+        <svg width="200" height="100" cursor="grab">
           <g stroke="black" stroke-width="1px" fill="white">
             <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
                   stroke="rgb(0, 0, 0)"
@@ -111,7 +112,7 @@
     <div class="dragItemContainer">
       <div class="titleDragContainer">Procesador</div>
       <div id="Proc" class="image" draggable="true">
-        <svg width="200" height="100">
+        <svg width="200" height="100" cursor="grab">
           <g stroke="black" stroke-width="1px" fill="white">
             <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
                   stroke="rgb(0, 0, 0)"
@@ -136,7 +137,7 @@
     <div class="dragItemContainer">
       <div class="titleDragContainer">Sumidero</div>
       <div id="Sumi" class="image" draggable="true">
-        <svg width="200" height="100">
+        <svg width="200" height="100" cursor="grab">
           <g stroke="black" stroke-width="1px" fill="white">
             <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
                   stroke="rgb(0, 0, 0)"
@@ -160,23 +161,27 @@
     </div>
   </div>
 </div>
-<!--
-<div class="rightMenuContainer">
-    <div class="leftMenu">
 
-    </div>
-</div>
--->
 <div id="canvas" class="canvas">
 
 
-  <div *ngFor="let itemContainer of listItems; let i=index" id="{{itemContainer.item.name}}" (dragstart)="this.drag($event)" (dragend)="this.moveElement($event)" class="image" draggable="true" style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px">
+  <div *ngFor="let itemContainer of listItems; let i=index" id="{{itemContainer.item.name}}"
+       (dragstart)="this.drag($event)" class="image" draggable="true"
+       style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px">
     <div id="actionButtons" class="buttons">
-      <i type='button' class='actionButton fa-regular fa-pen-to-square'></i>
-      <i type='button' class='actionButton fa-regular fa-trash-can'></i>
+      <i *ngIf="itemContainer.item.description==='Source'" type='button'
+         class='actionButton fa-regular fa-pen-to-square' (click)="openModalEdit(editSource,itemContainer)"></i>
+      <i *ngIf="itemContainer.item.description==='Sink'" type='button' class='actionButton fa-regular fa-pen-to-square'
+         (click)="openModalEdit(editSink,itemContainer)"></i>
+      <i *ngIf="itemContainer.item.description==='Server'" type='button'
+         class='actionButton fa-regular fa-pen-to-square' (click)="openModalEdit(editServer,itemContainer)"></i>
+      <i *ngIf="itemContainer.item.description==='Queue'" type='button'
+         class='actionButton fa-regular fa-pen-to-square' (click)="openModalEdit(editQueue,itemContainer)"></i>
+      <i type='button' class='actionButton fa-regular fa-trash-can'
+         (click)="openModalDeleteItem(deleteItem,itemContainer)"></i>
     </div>
 
-    <svg *ngIf="itemContainer.item.description==='Sink'" width="200" height="100">
+    <svg *ngIf="itemContainer.item.description==='Sink'" width="200" height="100" cursor="all-scroll">
       <g stroke="black" stroke-width="1px" fill="white">
         <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
               stroke="rgb(0, 0, 0)"
@@ -195,7 +200,7 @@
       </g>
     </svg>
 
-    <svg *ngIf="itemContainer.item.description==='Source'" width="200" height="100">
+    <svg *ngIf="itemContainer.item.description==='Source'" width="200" height="100" cursor="all-scroll">
       <g stroke="black" stroke-width="1px" fill="white">
         <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
               stroke="rgb(0, 0, 0)"
@@ -214,7 +219,7 @@
       </g>
     </svg>
 
-    <svg *ngIf="itemContainer.item.description==='Queue'" width="200" height="100">
+    <svg *ngIf="itemContainer.item.description==='Queue'" width="200" height="100" cursor="all-scroll">
       <g stroke="black" stroke-width="1px" fill="white">
         <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
               stroke="rgb(0, 0, 0)"
@@ -233,7 +238,7 @@
       </g>
     </svg>
 
-    <svg *ngIf="itemContainer.item.description==='Server'" width="200" height="100">
+    <svg *ngIf="itemContainer.item.description==='Server'" width="200" height="100" cursor="all-scroll">
       <g stroke="black" stroke-width="1px" fill="white">
         <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
               stroke="rgb(0, 0, 0)"
@@ -257,8 +262,9 @@
 </div>
 
 <i id="trash" class="fa-solid fa-trash-can trash fa-4x"></i>
-<button class="reset btn btnReset" (click)="resetPositions()"><i class="fa-solid fa-arrows-rotate"></i>  Reiniciar posiciones </button>
-
+<button class="reset btn btnReset" (click)="resetPositions()"><i class="fa-solid fa-arrows-rotate"></i> Reiniciar
+  posiciones
+</button>
 
 
 <div class="modal fade" id="modalNewFolder" tabindex="-1" role="dialog" aria-labelledby="modalSave"
@@ -293,78 +299,120 @@
   </div>
 </div>
 
-<div class="modal fade" id="modalSimulation" tabindex="-1" role="dialog" aria-labelledby="modalSimulation"
-     aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Simulación rápida</h5>
-      </div>
-      <div class="modal-body">
-        <label for="timeSimulation" class="col-form-label">Tiempo de observación [horas]<span
+<ng-template #quickSimulation let-modal class="modal fade">
+  <div class="modal-header">
+    <h5 class="modal-title">Simulación rápida</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+
+  </div>
+  <form [formGroup]="quickSimulationForm" (ngSubmit)="simulate()">
+    <div class="modal-body">
+      <label for="timeSimulation" class="col-form-label">Tiempo de observación [horas]<span
+        class="asterisk">*</span></label>
+      <input type="number" class="form-control" id="timeSimulation" formControlName="timeSimulation">
+      <span *ngIf="timeSimulation && timeSimulation.invalid" class="errorMessage">Debe tener un valor entero mayor que 0 y menor que 20.</span>
+      <div class="form-group mt-3">
+        <label for="numberSimulations" class="col-form-label">Número de simulaciones<span
           class="asterisk">*</span></label>
-        <input type="number" class="form-control" id="timeSimulation">
-        <div class="form-group mt-3">
-          <label for="numberSimulations" class="col-form-label">Número de simulaciones<span
-            class="asterisk">*</span></label>
-          <input type="number" class="form-control" id="numberSimulations">
-        </div>
-        <div class="form-group mt-3">
-          <label class="col-form-label">Formato de exportación de resultados<span
-            class="asterisk">*</span></label>
-          <div>
-            <input class="checkboxInput" type="checkbox" id="pdf" name="pdf" value="pdf">
-            <label class="checkboxLabel" for="pdf">PDF</label>
-            <input type="checkbox" id="csv" name="csv" value="csv">
-            <label for="csv">CSV</label>
-          </div>
-        </div>
+        <input type="number" class="form-control" id="numberSimulations" formControlName="numberSimulations">
+        <span *ngIf="numberSimulations && numberSimulations.invalid" class="errorMessage">Debe tener un valor entero entre 1 y 5.</span>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger">Simular</button>
+      <div class="form-group mt-3">
+        <label class="col-form-label">Formato de exportación de resultados<span
+          class="asterisk">*</span></label>
+        <div>
+          <input class="checkboxInput" type="checkbox" id="pdf" name="pdf" value="pdf" formControlName="pdfFormat">
+          <label class="checkboxLabel" for="pdf">PDF</label>
+          <input class="checkboxInput" type="checkbox" id="csv" name="csv" value="csv" formControlName="csvFormat">
+          <label for="csv">CSV</label>
+        </div>
+        <span *ngIf="quickSimulationForm.value.pdfFormat===false && quickSimulationForm.value.csvFormat===false"
+              class="errorMessage">Se debe seleccionar al menos un formato.</span>
       </div>
     </div>
-  </div>
-</div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="modal.dismiss()">Cancelar</button>
+      <button
+        [disabled]="quickSimulationForm.invalid || (quickSimulationForm.value.pdfFormat===false && quickSimulationForm.value.csvFormat===false)"
+        type="submit" class="btn btn-danger">Simular
+      </button>
+    </div>
+  </form>
+</ng-template>
 
-<div class="modal fade" id="modalEditFuente" tabindex="-1" role="dialog" aria-labelledby="modalEditFuente"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Editar Fuente</h5>
-      </div>
+<ng-template #deleteItem let-modal class="modal fade">
+  <div class="modal-header">
+    <h5 *ngIf="itemContainerModal.item.description==='Source'" class="modal-title">Eliminar fuente</h5>
+    <h5 *ngIf="itemContainerModal.item.description==='Sink'" class="modal-title">Eliminar desagüe</h5>
+    <h5 *ngIf="itemContainerModal.item.description==='Queue'" class="modal-title">Eliminar cola</h5>
+    <h5 *ngIf="itemContainerModal.item.description==='Server'" class="modal-title">Eliminar procesador</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>¿Deseas borrar este item de todas formas?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancelar</button>
+    <button type="button" class="btn btn-danger" (click)="[modal.dismiss(),deleteItemFunction()]">Confirmar</button>
+  </div>
+</ng-template>
+
+<ng-template class="modal fade" #editSource let-modal>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Editar Fuente</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="[resetListNames(),modal.dismiss()]"></button>
+    </div>
+    <form [formGroup]="editSourceForm" (ngSubmit)="editSourceFunc()">
       <div class="modal-body">
         <label for="nameSource" class="col-form-label">Nombre<span
           class="asterisk">*</span></label>
-        <input type="text" class="form-control" id="nameSource">
+        <input type="text" class="form-control" id="nameSource" formControlName="nameSource">
+        <span *ngIf="nameSource && nameSource.invalid && !editSourceForm.controls.nameSource.hasError('invalidFormat')"
+              class="errorMessage">Debe tener una longitud de entre 1 y 10 caracteres.</span>
+        <span *ngIf="editSourceForm.controls.nameSource.hasError('invalidFormat')" class="errorMessage">Ya existe un item con este nombre.</span>
         <div class="form-group mt-3">
+
           <label for="interArrivalTime" class="col-form-label">Tiempo entre llegadas<span
             class="asterisk">*</span></label>
-          <input type="number" class="form-control" id="interArrivalTime">
+          <div ngbDropdown class="dropdown menuDropdown selectMenu">
+            <input class="form-control" id="interArrivalTime" formControlName="interArrivalTimeSource">
+            <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
+            <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+              <div *ngFor="let probFunc of listProbFunc; let i=index">
+                <li ngbDropdownItem>
+                  <button class="btnElem" (click)="setinterArrivalTime(probFunc)">
+                    <div>
+                      {{probFunc}}
+                    </div>
+                  </button>
+                </li>
+                <div *ngIf="i!=listProbFunc.length-1" class="dropdown-divider"></div>
+              </div>
+            </ul>
+          </div>
+          <span *ngIf="interArrivalTimeSource && interArrivalTimeSource.invalid" class="errorMessage">Debe tener un valor entero entre 1 y 5.</span>
         </div>
         <div class="form-group mt-3">
           <label for="numberProducts" class="col-form-label">
             Número de productos<span class="asterisk">*</span>
           </label>
-          <div class="dropdown menuDropdown selectMenu">
+          <div ngbDropdown class="dropdown menuDropdown selectMenu">
             <input type="text" class="form-control customizeInput" id="numberProducts"
-                   placeholder="Selecciona o introduce una cantidad">
-            <button class="btn ddbutton" type="button" data-toggle="dropdown">
-              <i class="fa-solid fa-chevron-down"></i>
+                   placeholder="Selecciona o introduce una cantidad" formControlName="numberProductsSource">
+            <button class="btn ddbutton" type="button" ngbDropdownToggle>
             </button>
-            <ul class="dropdown-menu ">
-              <li>
-                <button class="btnElem" id="limitedSource">
+            <ul class="dropdown-menu" ngbDropdownMenu>
+              <li ngbDropdownItem>
+                <button class="btnElem" id="limitedSource" (click)="setNumberProducts('Limitados')">
                   <div>
                     <i class="fa-solid fa-x"></i>Limitados
                   </div>
                 </button>
               </li>
               <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="unlimitedSource">
+              <li ngbDropdownItem>
+                <button class="btnElem" id="unlimitedSource" (click)="setNumberProducts('Ilimitados')">
                   <div>
                     <i class="fa-solid fa-infinity"></i>Ilimitados
                   </div>
@@ -372,49 +420,56 @@
               </li>
             </ul>
           </div>
-
+          <span *ngIf="numberProductsSource && numberProductsSource.invalid" class="errorMessage">Debe ser un número o ser Ilimitados</span>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger">Guardar</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                (click)="[resetListNames(),modal.dismiss()]">Cancelar
+        </button>
+        <button [disabled]="editSourceForm.invalid" type="submit" class="btn btn-danger"
+                (click)="[resetListNames(),modal.dismiss()]">
+          Guardar
+        </button>
       </div>
-    </div>
+    </form>
   </div>
-</div>
+</ng-template>
 
-<div class="modal fade" id="modalEditCola" tabindex="-1" role="dialog" aria-labelledby="modalEditCola"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Editar Cola</h5>
-      </div>
+<ng-template class="modal fade" #editQueue let-modal>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Editar Cola</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="[resetListNames(),modal.dismiss()]"></button>
+    </div>
+    <form [formGroup]="editQueueForm" (ngSubmit)="editQueueFunc()">
       <div class="modal-body">
         <label for="nameQueue" class="col-form-label">Nombre<span
           class="asterisk">*</span></label>
-        <input type="text" class="form-control" id="nameQueue">
+        <input type="text" class="form-control" id="nameQueue" formControlName="nameQueue">
+      <span *ngIf="nameQueue && nameQueue.invalid && !editQueueForm.controls.nameQueue.hasError('invalidFormat')"
+              class="errorMessage">Debe tener una longitud de entre 1 y 10 caracteres.</span>
+        <span *ngIf="editQueueForm.controls.nameQueue.hasError('invalidFormat')" class="errorMessage">Ya existe un item con este nombre.</span>
         <div class="form-group mt-3">
           <label for="capacityQueue" class="col-form-label">
             Capacidad<span class="asterisk">*</span>
           </label>
-          <div class="dropdown menuDropdown selectMenu">
+          <div ngbDropdown class="dropdown menuDropdown selectMenu">
             <input type="text" class="form-control customizeInput" id="capacityQueue"
-                   placeholder="Selecciona o introduce una cantidad">
-            <button class="btn ddbutton" type="button" data-toggle="dropdown">
-              <i class="fa-solid fa-chevron-down"></i>
+                   placeholder="Selecciona o introduce una cantidad" formControlName="capacityQueue">
+            <button ngbDropdownToggle class="btn ddbutton" type="button">
             </button>
-            <ul class="dropdown-menu ">
-              <li>
-                <button class="btnElem" id="limitedCapacityQueue">
+            <ul ngbDropdownMenu class="dropdown-menu ">
+              <li ngbDropdownItem>
+                <button class="btnElem" id="limitedCapacityQueue" (click)="setCapacityQueue('Limitados')">
                   <div>
                     <i class="fa-solid fa-x"></i>Limitados
                   </div>
                 </button>
               </li>
               <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="unlimitedCapacityQueue">
+              <li ngbDropdownItem>
+                <button class="btnElem" id="unlimitedCapacityQueue" (click)="setCapacityQueue('Ilimitados')">
                   <div>
                     <i class="fa-solid fa-infinity"></i>Ilimitados
                   </div>
@@ -422,36 +477,36 @@
               </li>
             </ul>
           </div>
+          <span *ngIf="capacityQueue && capacityQueue.invalid" class="errorMessage">Debe ser un número o ser Ilimitados.</span>
         </div>
         <div class="form-group mt-3">
           <label for="queueDiscipline" class="col-form-label">
             Disciplina de la cola<span class="asterisk">*</span>
           </label>
-          <div class="dropdown menuDropdown selectMenu">
+          <div ngbDropdown class="dropdown menuDropdown selectMenu">
             <input type="text" class="form-control customizeInput" id="queueDiscipline"
-                   placeholder="Selecciona o introduce una disciplina">
-            <button class="btn ddbutton" type="button" data-toggle="dropdown">
-              <i class="fa-solid fa-chevron-down"></i>
+                   placeholder="Selecciona o introduce una disciplina" formControlName="queueDiscipline">
+            <button ngbDropdownToggle class="btn ddbutton" type="button">
             </button>
-            <ul class="dropdown-menu ">
-              <li>
-                <button class="btnElem" id="fifoQueue">
+            <ul ngbDropdownMenu class="dropdown-menu ">
+              <li ngbDropdownItem>
+                <button class="btnElem" id="fifoQueue" (click)="setQueueDiscipline('Fifo')">
                   <div>
                     Fifo (First In First Out)
                   </div>
                 </button>
               </li>
               <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="lifoQueue">
+              <li ngbDropdownItem>
+                <button class="btnElem" id="lifoQueue" (click)="setQueueDiscipline('Lifo')">
                   <div>
                     Lifo (Last In First Out)
                   </div>
                 </button>
               </li>
               <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="randomQueue">
+              <li ngbDropdownItem>
+                <button class="btnElem" id="randomQueue" (click)="setQueueDiscipline('Random')">
                   <div>
                     Random
                   </div>
@@ -459,175 +514,101 @@
               </li>
             </ul>
           </div>
+          <span *ngIf="queueDiscipline && queueDiscipline.invalid" class="errorMessage">Debe ser Fifo, Lifo o Random.</span>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger">Guardar</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                (click)="[resetListNames(),modal.dismiss()]">Cancelar
+        </button>
+        <button [disabled]="editQueueForm.invalid" type="button" class="btn btn-danger" (click)="[resetListNames(),modal.dismiss()]">Guardar</button>
       </div>
-    </div>
+    </form>
   </div>
-</div>
+</ng-template>
 
-<div class="modal fade" id="modalEditProc" tabindex="-1" role="dialog" aria-labelledby="modalEditCola"
-     aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Editar Procesador</h5>
-      </div>
+<ng-template class="modal fade" #editServer let-modal>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Editar Procesador</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="[resetListNames(),modal.dismiss()]"></button>
+    </div>
+    <form [formGroup]="editServerForm" (ngSubmit)="editServerFunc()">
       <div class="modal-body">
         <label for="nameProcesador" class="col-form-label">Nombre<span
           class="asterisk">*</span></label>
-        <input type="text" class="form-control" id="nameProcesador">
+        <input type="text" class="form-control" id="nameProcesador" formControlName="nameServer">
+        <span *ngIf="nameServer && nameServer.invalid && !editServerForm.controls.nameServer.hasError('invalidFormat')"
+              class="errorMessage">Debe tener una longitud de entre 1 y 10 caracteres.</span>
+        <span *ngIf="editServerForm.controls.nameServer.hasError('invalidFormat')" class="errorMessage">Ya existe un item con este nombre.</span>
         <div class="form-group mt-3">
           <label for="setUpTimeServer" class="col-form-label">Tiempo de establecimiento<span
             class="asterisk">*</span></label>
-          <input type="number" class="form-control" id="setUpTimeServer">
+          <input type="number" class="form-control" id="setUpTimeServer" formControlName="setUpTimeServer">
+          <span *ngIf="setUpTimeServer && setUpTimeServer.invalid"
+                class="errorMessage">Debe tener un valor entero.</span>
+
         </div>
         <div class="form-group mt-3 ">
           <label for="cycletimeServer" class="col-form-label">
             Duración del ciclo<span class="asterisk">*</span>
           </label>
-          <div class="dropdown menuDropdown selectMenu">
+          <div ngbDropdown class="dropdown menuDropdown selectMenu">
             <input type="text" class="form-control customizeInput" id="cycletimeServer"
-                   placeholder="Selecciona o introduce una distribución del ciclo">
-            <button class="btn ddbutton" type="button" data-toggle="dropdown">
-              <i class="fa-solid fa-chevron-down"></i>
+                   placeholder="Selecciona o introduce una distribución del ciclo" formControlName="cycletimeServer">
+            <button class="btn ddbutton" type="button" ngbDropdownToggle>
             </button>
-            <ul class="dropdown-menu pre-scrollable">
-              <li>
-                <button class="btnElem" id="negExpServer">
-                  <div>
-                    NegExp(10)
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="erlangServer">
-                  <div>
-                    Erlang(10,2)
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="logNormalServer">
-                  <div>
-                    LogNormal(10,2)
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="bernouilliServer">
-                  <div>
-                    Bernouilli(50,5,15)
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="maxNormalServer">
-                  <div>
-                    Max(0,Normal(10,1))
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="betaServer">
-                  <div>
-                    Beta(10,1,1)
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="gammaServer">
-                  <div>
-                    Gamma(10,2)
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="maxLogisticServer">
-                  <div>
-                    Max(0,Logistic(10,1))
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="uniformServer">
-                  <div>
-                    Uniform(5,15)
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="weibullServer">
-                  <div>
-                    Weibull(10,2)
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="segServer">
-                  <div>
-                    10
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="minsServer">
-                  <div>
-                    mins(10)
-                  </div>
-                </button>
-              </li>
-              <div class="dropdown-divider"></div>
-              <li>
-                <button class="btnElem" id="hrServer">
-                  <div>
-                    hr(0.5)
-                  </div>
-                </button>
-              </li>
+            <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+              <div *ngFor="let probFunc of listProbFunc; let i=index">
+                <li ngbDropdownItem>
+                  <button class="btnElem" (click)="setcycletimeServer(probFunc)">
+                    <div>
+                      {{probFunc}}
+                    </div>
+                  </button>
+                </li>
+                <div *ngIf="i!=listProbFunc.length-1" class="dropdown-divider"></div>
+              </div>
             </ul>
           </div>
+          <span *ngIf="cycletimeServer && cycletimeServer.invalid" class="errorMessage">D.</span>
 
         </div>
       </div>
       <div class="modal-footer mt-3">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger">Guardar</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                (click)="[resetListNames(),modal.dismiss()]">Cancelar
+        </button>
+        <button type="submit" class="btn btn-danger" (click)="[resetListNames(),modal.dismiss()]">Guardar</button>
       </div>
-    </div>
+    </form>
   </div>
-</div>
+</ng-template>
 
-<div class="modal fade" id="modalEditSumidero" tabindex="-1" role="dialog" aria-labelledby="modalEditFuente"
-     aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Editar Sumidero</h5>
-      </div>
+<ng-template #editSink let-modal class="modal fade">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Editar Sumidero</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="[resetListNames(),modal.dismiss()]"></button>
+    </div>
+    <form [formGroup]="editSinkForm" (ngSubmit)="editSinkFunc()">
       <div class="modal-body">
         <label for="nameSink" class="col-form-label">Nombre<span
           class="asterisk">*</span></label>
-        <input type="text" class="form-control" id="nameSink">
+        <input type="text" class="form-control" id="nameSink" formControlName="nameSink">
+        <span *ngIf="nameSink && nameSink.invalid && !editSinkForm.controls.nameSink.hasError('invalidFormat')"
+              class="errorMessage">Debe tener una longitud de entre 1 y 10 caracteres.</span>
+        <span *ngIf="editSinkForm.controls.nameSink.hasError('invalidFormat')" class="errorMessage">Ya existe un item con este nombre.</span>
+
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger">Guardar</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                (click)="[resetListNames(),modal.dismiss()]">Cancelar
+        </button>
+        <button [disabled]="editSinkForm.invalid" type="submit" class="btn btn-danger"
+                (click)="[resetListNames(),modal.dismiss()]">Guardar
+        </button>
       </div>
-    </div>
+    </form>
   </div>
-</div>
+</ng-template>

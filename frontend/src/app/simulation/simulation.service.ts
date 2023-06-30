@@ -27,4 +27,9 @@ export class SimulationService {
   updateAllItems(idSimulation: number, lista: ItemContainerModel[]): Observable<any> {
     return this.httpClient.put('/api/simulations/' + idSimulation + '/item/all', lista, {withCredentials: true}) as Observable<any>;
   }
+
+  deleteItem(idSimulation:number,idItem:number):Observable<any>{
+    return this.httpClient.delete('/api/simulations/' + idSimulation + '/item/'+idItem,{withCredentials: true}) as Observable<any>;
+  }
+
 }

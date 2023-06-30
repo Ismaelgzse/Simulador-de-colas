@@ -2,6 +2,6 @@
 export interface SourceModel{
   idSource?:number,
   interArrivalTime:string,
-  numberProducts:String,
+  numberProducts:string,
   outSource:number
 }

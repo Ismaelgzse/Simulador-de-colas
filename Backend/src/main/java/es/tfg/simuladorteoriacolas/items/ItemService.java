@@ -22,9 +22,14 @@ public class ItemService {
         Item item;
         for (var i=0; i<itemList.size();i++){
             itemTypesService.deleteByItem(itemList.get(i));
-            itemList.get(i).setIdSimulation(null);
-            itemRepository.delete(itemList.get(i));
+            itemRepository.deleteById(itemList.get(i).getIdItem());
         }
+    }
+
+    public void deleteById(Integer idItem){
+        Item item=itemRepository.findById(idItem).orElseThrow();
+        itemTypesService.deleteByItem(item);
+        itemRepository.deleteById(idItem);
     }
 
     public Optional<Item> findById(Integer idItem){

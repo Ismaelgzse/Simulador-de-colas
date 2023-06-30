@@ -9,6 +9,9 @@ import {SinkModel} from "./Items/sink.model";
 import {SourceModel} from "./Items/source.model";
 import {ServerModel} from "./Items/server.model";
 import {ItemModel} from "./Items/item.model";
+import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {isNumber} from "@ng-bootstrap/ng-bootstrap/util/util";
 
 @Component({
   selector: 'app-simulation',
@@ -27,9 +30,43 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   serverInfo: ServerModel;
   itemInfo: ItemModel;
   itemContainerInfo: ItemContainerModel;
+  itemContainerModal: ItemContainerModel;
+  listNames: string[];
+  listProbFunc = ["Erlang(10,2)", "LogNormal(10,2)", "Bernouilli(50,5,15)", "Max(0,Normal(10,1))",
+    "Beta(10,1,1)", "Gamma(10,2)", "Max(0,Logistic(10,1))", "Uniform(5,15)", "Weibull(10,2)",
+    "10", "mins(10)", "hr(0.5)"]
+
+  quickSimulationForm = new FormGroup({
+    timeSimulation: new FormControl('', Validators.compose([Validators.required, Validators.min(0.1), Validators.max(20)])),
+    numberSimulations: new FormControl('', Validators.compose([Validators.required, Validators.min(1), Validators.max(5)])),
+    pdfFormat: new FormControl(false),
+    csvFormat: new FormControl(false)
+  })
+
+  editSourceForm = new FormGroup({
+    nameSource: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), (control) => this.validateName(control, this.listNames)])),
+    interArrivalTimeSource: new FormControl('', Validators.compose([Validators.required, (control) => this.validateProbFunc(control, this)])),
+    numberProductsSource: new FormControl('', Validators.compose([Validators.required, this.validateFormatNumberProducts]))
+  })
+
+  editServerForm = new FormGroup({
+    nameServer: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), (control) => this.validateName(control, this.listNames)])),
+    setUpTimeServer: new FormControl('', Validators.compose([Validators.required, Validators.min(0)])),
+    cycletimeServer: new FormControl('', Validators.compose([Validators.required, (control) => this.validateProbFunc(control, this)]))
+  })
+
+  editQueueForm = new FormGroup({
+    nameQueue: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), (control) => this.validateName(control, this.listNames)])),
+    capacityQueue: new FormControl('', Validators.compose([Validators.required, this.validateFormatNumberProducts])),
+    queueDiscipline: new FormControl('', Validators.compose([Validators.required, this.validateQueueDiscipline]))
+  })
+
+  editSinkForm = new FormGroup({
+    nameSink: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), , (control) => this.validateName(control, this.listNames)]))
+  })
 
 
-  constructor(@Inject(DOCUMENT) document: Document, private simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
+  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, private simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
     document.getElementById("canvas")
   }
 
@@ -62,6 +99,10 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     this.itemContainerInfo = {
       item: this.itemInfo
     };
+    this.itemContainerModal = {
+      item: this.itemInfo
+    }
+    this.listNames = []
     this.listItems = [];
     this.route.params.subscribe(
       (params => {
@@ -105,8 +146,6 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     for (var i = 0; i < imagenes.length; i++) {
       // @ts-ignore
       imagenes[i].addEventListener("dragstart", this.drag);
-      // @ts-ignore
-      imagenes[i].addEventListener("dragend", this.moveElement);
     }
   }
 
@@ -115,21 +154,8 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     event.dataTransfer.setData("text", event.target.id);
   }
 
-  moveElement(event: DragEvent) {
-    var element = event.target;
-    if (element instanceof Element) {
-      element.setAttribute("style", "left:" + event.pageX + "px");
-      console.log(event.pageX)
-      element.setAttribute("style", "top:" + event.pageY + "px");
-    }
-  }
-
   dragOver(event: DragEvent) {
     event.preventDefault()
-  }
-
-  getRoute() {
-    return this.id
   }
 
   newElement(event: DragEvent, simulationComponent: any) {
@@ -210,55 +236,76 @@ export class SimulationComponent implements AfterViewInit, OnInit {
             );
           }
         }
-
       }
-      /*var parentClass = document.getElementById(data).parentNode.className;
-      //console.log(parentClass)
-      var element = document.getElementById(data)
-      if (parentClass === "dragItemContainer") {
-        let type= data.substring(0,4)
-        let strModal=null
-        switch (type) {
-          case "Fuen": strModal= "data-target=\"#modalEditFuente\""
-            break
-          case "Cola": strModal= "data-target=\"#modalEditCola\""
-            break
-          case "Proc": strModal= "data-target=\"#modalEditProc\""
-            break
-          case "Sumi": strModal= "data-target=\"#modalEditSumidero\""
-            break
-        }
-        element = document.getElementById(data).cloneNode(true)
-        element.draggable = true;
-        element.addEventListener("dragstart", drag);
-        element.style.position = "absolute";
-        element.style.left = event.pageX - document.getElementById(data).offsetWidth*1.5 + "px";
-        element.style.top = event.pageY - document.getElementById(data).offsetHeight*1.5 + "px";
-        element.id = "Elemento" + contador
-        contador = contador + 1
-        var headerButtons= document.createElement("div")
-        headerButtons.innerHTML="<div class='buttons'>"+
-          "<i type='button' class='actionButton fa-regular fa-pen-to-square' data-toggle=\"modal\""+strModal+"></i>"+
-          "<i type='button' class='actionButton fa-regular fa-trash-can' onclick=\"deleteElement2(\'"+element.id+"\')\"></i>"+
-          "</div>"
-        element.insertBefore(headerButtons,element.firstChild)
-        event.target.appendChild(element);
-
-       */
-      /*var nuevoElemento = document.createElement();
-      nuevoElemento.innerHTML = element2;
-      event.target.replaceChild(nuevoElemento,element)*/
-      /*
-          } else {
-            element.draggable = true;
-            element.addEventListener("dragstart", drag);
-            element.style.position = "absolute";
-            element.style.left = event.pageX - document.getElementById(data).offsetWidth*1.5 + "px";
-            element.style.top = event.pageY - document.getElementById(data).offsetHeight*1.5  + "px";
-          }
-
-       */
     }
+  }
+
+  simulate() {
+    console.log(this.quickSimulationForm)
+  }
+
+  deleteItemFunction() {
+    if (this.itemContainerModal.item.idItem) {
+      this.simulationService.deleteItem(this.id, this.itemContainerModal.item.idItem).subscribe(
+        (item => {
+          this.ngOnInit();
+        }),
+        (error => this.router.navigate(['error500']))
+      )
+    }
+  }
+
+  openModalDeleteItem(content: any, itemContainer: ItemContainerModel) {
+    this.itemContainerModal = itemContainer;
+    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
+  }
+
+  openModalQuickSimulation(content: any) {
+    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
+  }
+
+  openModalEdit(content: any, itemContainer: ItemContainerModel) {
+    this.itemContainerModal = itemContainer;
+    for (let i = 0; i < this.listItems.length; i++) {
+      if (this.listItems[i].item.name != this.itemContainerModal.item.name) {
+        this.listNames.push(this.listItems[i].item.name)
+      }
+    }
+    switch (this.itemContainerModal.item.description) {
+      case "Source":
+        this.editSourceForm.patchValue({
+          nameSource: this.itemContainerModal.item.name,
+          // @ts-ignore
+          numberProductsSource: this.itemContainerModal.source?.numberProducts,
+          interArrivalTimeSource: this.itemContainerModal.source?.interArrivalTime
+        });
+        break;
+      case "Sink":
+        this.editSinkForm.patchValue({
+          nameSink: this.itemContainerModal.item.name
+        });
+        break;
+      case "Server":
+        this.editServerForm.patchValue({
+          nameServer: this.itemContainerModal.item.name,
+          setUpTimeServer: this.itemContainerModal.server?.setupTime,
+          cycletimeServer: this.itemContainerModal.server?.cicleTime
+        })
+        break;
+      case "Queue":
+        this.editQueueForm.patchValue({
+          nameQueue: this.itemContainerModal.item.name,
+          capacityQueue: this.itemContainerModal.queue?.capacityQueue,
+          queueDiscipline: this.itemContainerModal.queue?.disciplineQueue
+        })
+    }
+
+
+    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
+  }
+
+  resetListNames() {
+    this.listNames = []
   }
 
   resetPositions() {
@@ -272,16 +319,374 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       }
       this.listItems[i].item.positionX = x;
       this.listItems[i].item.positionY = y;
-      x=x+200
+      x = x + 200
     }
-    this.simulationService.updateAllItems(this.id,this.listItems).subscribe(
-      (listaItems=>{
-        this.listItems=listaItems;
+    this.simulationService.updateAllItems(this.id, this.listItems).subscribe(
+      (listaItems => {
+        this.listItems = listaItems;
       }),
       (error => {
         this.router.navigate(['error500']);
       })
     )
+  }
+
+  get timeSimulation() {
+    return this.quickSimulationForm.get('timeSimulation');
+  }
+
+  get numberSimulations() {
+    return this.quickSimulationForm.get('numberSimulations');
+  }
+
+  get pdfFormat() {
+    return this.quickSimulationForm.get('pdfFormat');
+  }
+
+  get csvFormat() {
+    return this.quickSimulationForm.get('csvFormat');
+  }
+
+  //Form edit source
+  get nameSource() {
+    return this.editSourceForm.get('nameSource');
+  }
+
+  get numberProductsSource() {
+    return this.editSourceForm.get('numberProductsSource');
+  }
+
+  get interArrivalTimeSource() {
+    return this.editSourceForm.get('interArrivalTimeSource');
+  }
+
+  //Form edit sink
+  get nameSink() {
+    return this.editSinkForm.get('nameSink');
+  }
+
+  //Form edit server
+  get nameServer() {
+    return this.editServerForm.get('nameServer');
+  }
+
+  get setUpTimeServer() {
+    return this.editServerForm.get('setUpTimeServer');
+  }
+
+  get cycletimeServer() {
+    return this.editServerForm.get('cycletimeServer');
+  }
+
+  //Form edit queue
+  get nameQueue() {
+    return this.editQueueForm.get('nameQueue');
+  }
+
+  get capacityQueue() {
+    return this.editQueueForm.get('capacityQueue');
+  }
+
+  get queueDiscipline() {
+    return this.editQueueForm.get('queueDiscipline');
+  }
+
+  setNumberProducts(option: string) {
+    if (option == "Ilimitados") {
+      this.editSourceForm.patchValue({
+        numberProductsSource: "Ilimitados"
+      })
+    } else {
+      this.editSourceForm.patchValue({
+        numberProductsSource: "1"
+      })
+    }
+  }
+
+  setinterArrivalTime(option: string) {
+    this.editSourceForm.patchValue({
+      interArrivalTimeSource: option
+    });
+  }
+
+  //Form edit Server
+  setcycletimeServer(option: string) {
+    this.editServerForm.patchValue({
+      cycletimeServer: option
+    })
+  }
+
+  setCapacityQueue(option: string) {
+    if (option == "Ilimitados") {
+      this.editQueueForm.patchValue({
+        capacityQueue: "Ilimitados"
+      })
+    } else {
+      this.editQueueForm.patchValue({
+        capacityQueue: "1"
+      })
+    }
+  }
+
+  validateQueueDiscipline(control: AbstractControl) {
+    let opt = control.value.substring(0, 6).toLowerCase();
+    switch (opt) {
+      case "fifo":
+        return null;
+      case "lifo":
+        return null;
+      case "random":
+        return null;
+      default:
+        return {invalidFormat: true}
+    }
+  }
+
+  setQueueDiscipline(option: string) {
+    switch (option) {
+      case "Fifo":
+        this.editQueueForm.patchValue({
+          queueDiscipline: "Fifo"
+        });
+        break;
+      case "Lifo":
+        this.editQueueForm.patchValue({
+          queueDiscipline: "Lifo"
+        });
+        break;
+      case "Random":
+        this.editQueueForm.patchValue({
+          queueDiscipline: "Random"
+        })
+        break;
+    }
+  }
+
+
+  validateFormatNumberProducts(control: AbstractControl) {
+    let numberProducts = control.value;
+    if (numberProducts === "Ilimitados" || !isNaN(numberProducts)) {
+      if (numberProducts === "Ilimitados") {
+        return null
+      } else {
+        if (Number(numberProducts)) {
+          let number = Number(numberProducts)
+          if (Number.isInteger(number) && number > 0)
+            return null
+        }
+      }
+    }
+    return {invalidFormat: true}
+  }
+
+  validateName(control: AbstractControl, listNames: string[]) {
+    let name = control.value;
+    if (name != '' && name != undefined && this.listNames.length != 0) {
+      if (this.listNames.includes(name)) {
+        return {invalidFormat: true}
+      }
+    }
+    return null
+  }
+
+  validateNumbers(numbers: string): boolean {
+    let posComa = 0;
+    for (let i = 0; i < numbers.length; i++) {
+      if (numbers.charAt(i) === ',') {
+        posComa = i;
+        break;
+      }
+    }
+    let firstNumber = numbers.substring(0, posComa);
+    let secondNumber = numbers.substring(posComa + 1);
+    let firstNumberInt = Number(firstNumber)
+    let secondNumberInt = Number(secondNumber);
+    if (Number.isInteger(firstNumberInt) && Number.isInteger(secondNumberInt) && firstNumberInt > 0 && secondNumberInt > 0) {
+      return true;
+    }
+    return false;
+  }
+
+  validateProbFunc(control: AbstractControl, component: any) {
+    let input = control.value;
+    if (input.substring(0, 6) === "Erlang") {
+      if (input.substring(6, 7) === "(" && input.substring(input.length - 1) === ")") {
+        let numbers = input.substring(7, input.length - 1)
+        if (component.validateNumbers(numbers)) {
+          return null;
+        } else {
+          return {invalidFormat: true};
+        }
+      }
+    }
+    if (input.substring(0, 9) === "LogNormal") {
+      if (input.substring(9, 10) === "(" && input.substring(input.length - 1) === ")") {
+        let numbers = input.substring(10, input.length - 1)
+        if (component.validateNumbers(numbers)) {
+          return null;
+        } else {
+          return {invalidFormat: true};
+        }
+      }
+    }
+    if (input.substring(0, 10) === "Bernouilli") {
+      if (input.substring(10, 11) === "(" && input.substring(input.length - 1) === ")") {
+        let numbers = input.substring(11, input.length - 1)
+        let posComa1 = -1;
+        let posComa2 = -1;
+        for (let i = 0; i < numbers.length; i++) {
+          if (numbers.charAt(i) === ',') {
+            if (posComa1 === -1) {
+              posComa1 = i;
+            } else {
+              posComa2 = i;
+              break;
+            }
+          }
+        }
+        let firstNumber = numbers.substring(0, posComa1);
+        let secondNumber = numbers.substring(posComa1 + 1, posComa2);
+        let thirdNumber = numbers.substring(posComa2 + 1);
+        let firstNumberInt = Number(firstNumber);
+        let secondNumberInt = Number(secondNumber);
+        let thirdNumberInt = Number(thirdNumber)
+        if (Number.isInteger(firstNumberInt) && Number.isInteger(secondNumberInt) && Number.isInteger(thirdNumberInt) && firstNumberInt > 0 && secondNumberInt > 0 && thirdNumberInt > 0) {
+          return null;
+        }
+        return {invalidFormat: true};
+      }
+    }
+    if (input.substring(0, 3) === "Max") {
+      if (input.substring(3,4)=== "(" && input.substring(input.length -1)=== ")"){
+        let subInput= input.substring(4,input.length-1)
+        let posComa = -1;
+        for (let i = 0; i < subInput.length; i++) {
+          if (subInput.charAt(i) === ',') {
+            posComa=i;
+            break;
+          }
+        }
+        let firstNumber = subInput.substring(0, posComa);
+        let secondSubInput=subInput.substring(posComa+1);
+        let firstNumberInt = Number(firstNumber);
+        if (Number.isInteger(firstNumberInt) && firstNumberInt >= 0){
+          if (secondSubInput.substring(0,6)==="Normal"  && secondSubInput.substring(6, 7) === "(" && secondSubInput.substring(secondSubInput.length - 1) === ")"){
+            let numbers = secondSubInput.substring(7, secondSubInput.length - 1)
+            if (component.validateNumbers(numbers)) {
+              return null;
+            } else {
+              return {invalidFormat: true};
+            }
+          }
+          if (secondSubInput.substring(0,8)==="Logistic" && secondSubInput.substring(8, 9) === "(" && secondSubInput.substring(secondSubInput.length - 1) === ")"){
+              let numbers = secondSubInput.substring(9, secondSubInput.length - 1)
+            if (component.validateNumbers(numbers)) {
+              return null;
+            } else {
+              return {invalidFormat: true};
+            }
+          }
+        }
+
+      }
+    }
+    if (input.substring(0, 4) === "Beta") {
+      if (input.substring(4, 5) === "(" && input.substring(input.length - 1) === ")") {
+        let numbers = input.substring(5, input.length - 1)
+        let posComa1 = -1;
+        let posComa2 = -1;
+        for (let i = 0; i < numbers.length; i++) {
+          if (numbers.charAt(i) === ',') {
+            if (posComa1 === -1) {
+              posComa1 = i;
+            } else {
+              posComa2 = i;
+              break;
+            }
+          }
+        }
+        let firstNumber = numbers.substring(0, posComa1);
+        let secondNumber = numbers.substring(posComa1 + 1, posComa2);
+        let thirdNumber = numbers.substring(posComa2 + 1);
+        let firstNumberInt = Number(firstNumber);
+        let secondNumberInt = Number(secondNumber);
+        let thirdNumberInt = Number(thirdNumber)
+        if (Number.isInteger(firstNumberInt) && Number.isInteger(secondNumberInt) && Number.isInteger(thirdNumberInt) && firstNumberInt > 0 && secondNumberInt > 0 && thirdNumberInt > 0) {
+          return null;
+        }
+        return {invalidFormat: true};
+      }
+    }
+    if (input.substring(0, 5) === "Gamma") {
+      if (input.substring(5, 6) === "(" && input.substring(input.length - 1) === ")") {
+        let numbers = input.substring(6, input.length - 1)
+        if (component.validateNumbers(numbers)) {
+          return null;
+        } else {
+          return {invalidFormat: true};
+        }
+      }
+    }
+    if (input.substring(0, 7) === "Uniform") {
+      if (input.substring(7, 8) === "(" && input.substring(input.length - 1) === ")") {
+        let numbers = input.substring(8, input.length - 1)
+        if (component.validateNumbers(numbers)) {
+          return null;
+        } else {
+          return {invalidFormat: true};
+        }
+      }
+    }
+    if (input.substring(0, 7) === "Weibull") {
+      if (input.substring(7, 8) === "(" && input.substring(input.length - 1) === ")") {
+        let numbers = input.substring(8, input.length - 1)
+        if (component.validateNumbers(numbers)) {
+          return null;
+        } else {
+          return {invalidFormat: true};
+        }
+      }
+    }
+    if (input.substring(0, 4) === "mins") {
+      if (input.substring(4, 5) === "(" && input.substring(input.length - 1) === ")") {
+        if (Number(input.substring(5, input.length - 1))) {
+          return null;
+        }
+      }
+      return {invalidFormat: true};
+    }
+    if (input.substring(0, 2) === "hr") {
+      if (input.slice(2, 3) === "(" && input.substring(input.length - 1) === ")") {
+        if (Number(input.slice(3, input.length - 1))) {
+          return null;
+        }
+      }
+      return {invalidFormat: true};
+    }
+    if (Number(input.substring(0)) || input === "0") {
+      if (!Number(input) && input != "0") {
+        return {invalidFormat: true};
+      }
+      return null;
+    }
+    return {invalidFormat: true};
+  }
+
+
+  editSourceFunc() {
+
+  }
+
+  editSinkFunc() {
+
+  }
+
+  editServerFunc() {
+
+  }
+
+  editQueueFunc() {
+
   }
 
 
