@@ -10,6 +10,7 @@ import {Error500Component} from "./errors/error500/error500.component";
 import {SimulationComponent} from "./simulation/simulation.component";
 
 const routes: Routes = [
+  {path: '',redirectTo:'login',pathMatch:'full'},
   {path: 'sign-up', component: SignUpComponent, data: {title: 'Registrarse'}},
   {path: 'login', component: LogInComponent, data: {title: 'Iniciar sesion'}},
   {path: 'home', component: HomeComponent, data: {title: 'Inicio'}},
