@@ -1,6 +1,7 @@
-import {Component, ElementRef, Injectable, OnInit, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, ElementRef, Injectable, OnInit, ViewChild} from "@angular/core";
 import {LogInService} from "./logIn.service";
 import {Router} from "@angular/router";
+import {HomeService} from "../home/home.service";
 
 
 export class LoginForm {
@@ -12,7 +13,7 @@ export class LoginForm {
   selector:'app-login',
   templateUrl:'./logIn.component.html',
   styleUrls: ['../../assets/css/loginAndRegistration.css', '../../assets/vendor/fontawesome-free-6.4.0-web/css/all.css'],
-  providers: [LogInService]
+  providers: [LogInService,HomeService]
 })
 
 export class LogInComponent implements OnInit{
@@ -26,12 +27,16 @@ export class LogInComponent implements OnInit{
   logOut:boolean
 
 
-  constructor(private router:Router,private logInService:LogInService) {
+  constructor(private router:Router,private logInService:LogInService,private homeService:HomeService) {
     if (this.router.url==='/logout'){
       this.logInService.logOut().subscribe(
         (success =>{
           this.logOut=true;
         })
+      )
+    }else {
+      this.homeService.getFolders().subscribe(
+        (success=> this.router.navigate(['home']))
       )
     }
   }
@@ -46,6 +51,7 @@ export class LogInComponent implements OnInit{
     }
     this.visibilityPassword=true;
     this.error=false;
+
   }
 
   logIn(event:Event):void{
@@ -69,5 +75,6 @@ export class LogInComponent implements OnInit{
   changeVisibility():void{
     this.visibilityPassword=!this.visibilityPassword;
   }
+
 
 }
