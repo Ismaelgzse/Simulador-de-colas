@@ -363,7 +363,7 @@
       <h5 class="modal-title">Editar Fuente</h5>
       <button type="button" class="btn-close" aria-label="Close" (click)="[resetListNames(),modal.dismiss()]"></button>
     </div>
-    <form [formGroup]="editSourceForm" (ngSubmit)="editSourceFunc()">
+    <form [formGroup]="editSourceForm" (ngSubmit)="editItem()">
       <div class="modal-body">
         <label for="nameSource" class="col-form-label">Nombre<span
           class="asterisk">*</span></label>
@@ -381,7 +381,7 @@
             <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
               <div *ngFor="let probFunc of listProbFunc; let i=index">
                 <li ngbDropdownItem>
-                  <button class="btnElem" (click)="setinterArrivalTime(probFunc)">
+                  <button class="btnElem" type="button" (click)="setinterArrivalTime(probFunc)">
                     <div>
                       {{probFunc}}
                     </div>
@@ -391,7 +391,7 @@
               </div>
             </ul>
           </div>
-          <span *ngIf="interArrivalTimeSource && interArrivalTimeSource.invalid" class="errorMessage">Debe tener un valor entero entre 1 y 5.</span>
+          <span *ngIf="interArrivalTimeSource && interArrivalTimeSource.invalid" class="errorMessage">No coincide con ninguna opción.</span>
         </div>
         <div class="form-group mt-3">
           <label for="numberProducts" class="col-form-label">
@@ -404,7 +404,7 @@
             </button>
             <ul class="dropdown-menu" ngbDropdownMenu>
               <li ngbDropdownItem>
-                <button class="btnElem" id="limitedSource" (click)="setNumberProducts('Limitados')">
+                <button class="btnElem" id="limitedSource" type="button" (click)="setNumberProducts('Limitados')">
                   <div>
                     <i class="fa-solid fa-x"></i>Limitados
                   </div>
@@ -412,7 +412,7 @@
               </li>
               <div class="dropdown-divider"></div>
               <li ngbDropdownItem>
-                <button class="btnElem" id="unlimitedSource" (click)="setNumberProducts('Ilimitados')">
+                <button class="btnElem" id="unlimitedSource" type="button" (click)="setNumberProducts('Ilimitados')">
                   <div>
                     <i class="fa-solid fa-infinity"></i>Ilimitados
                   </div>
@@ -442,7 +442,7 @@
       <h5 class="modal-title">Editar Cola</h5>
       <button type="button" class="btn-close" aria-label="Close" (click)="[resetListNames(),modal.dismiss()]"></button>
     </div>
-    <form [formGroup]="editQueueForm" (ngSubmit)="editQueueFunc()">
+    <form [formGroup]="editQueueForm" (ngSubmit)="editItem()">
       <div class="modal-body">
         <label for="nameQueue" class="col-form-label">Nombre<span
           class="asterisk">*</span></label>
@@ -461,7 +461,7 @@
             </button>
             <ul ngbDropdownMenu class="dropdown-menu ">
               <li ngbDropdownItem>
-                <button class="btnElem" id="limitedCapacityQueue" (click)="setCapacityQueue('Limitados')">
+                <button class="btnElem" id="limitedCapacityQueue" type="button" (click)="setCapacityQueue('Limitados')">
                   <div>
                     <i class="fa-solid fa-x"></i>Limitados
                   </div>
@@ -469,7 +469,7 @@
               </li>
               <div class="dropdown-divider"></div>
               <li ngbDropdownItem>
-                <button class="btnElem" id="unlimitedCapacityQueue" (click)="setCapacityQueue('Ilimitados')">
+                <button class="btnElem" id="unlimitedCapacityQueue" type="button" (click)="setCapacityQueue('Ilimitados')">
                   <div>
                     <i class="fa-solid fa-infinity"></i>Ilimitados
                   </div>
@@ -490,7 +490,7 @@
             </button>
             <ul ngbDropdownMenu class="dropdown-menu ">
               <li ngbDropdownItem>
-                <button class="btnElem" id="fifoQueue" (click)="setQueueDiscipline('Fifo')">
+                <button class="btnElem" id="fifoQueue" type="button" (click)="setQueueDiscipline('Fifo')">
                   <div>
                     Fifo (First In First Out)
                   </div>
@@ -498,7 +498,7 @@
               </li>
               <div class="dropdown-divider"></div>
               <li ngbDropdownItem>
-                <button class="btnElem" id="lifoQueue" (click)="setQueueDiscipline('Lifo')">
+                <button class="btnElem" id="lifoQueue" type="button" (click)="setQueueDiscipline('Lifo')">
                   <div>
                     Lifo (Last In First Out)
                   </div>
@@ -506,7 +506,7 @@
               </li>
               <div class="dropdown-divider"></div>
               <li ngbDropdownItem>
-                <button class="btnElem" id="randomQueue" (click)="setQueueDiscipline('Random')">
+                <button class="btnElem" id="randomQueue" type="button" (click)="setQueueDiscipline('Random')">
                   <div>
                     Random
                   </div>
@@ -521,7 +521,7 @@
         <button type="button" class="btn btn-secondary" data-dismiss="modal"
                 (click)="[resetListNames(),modal.dismiss()]">Cancelar
         </button>
-        <button [disabled]="editQueueForm.invalid" type="button" class="btn btn-danger" (click)="[resetListNames(),modal.dismiss()]">Guardar</button>
+        <button [disabled]="editQueueForm.invalid" type="submit" class="btn btn-danger" (click)="[resetListNames(),modal.dismiss()]">Guardar</button>
       </div>
     </form>
   </div>
@@ -533,7 +533,7 @@
       <h5 class="modal-title">Editar Procesador</h5>
       <button type="button" class="btn-close" aria-label="Close" (click)="[resetListNames(),modal.dismiss()]"></button>
     </div>
-    <form [formGroup]="editServerForm" (ngSubmit)="editServerFunc()">
+    <form [formGroup]="editServerForm" (ngSubmit)="editItem()">
       <div class="modal-body">
         <label for="nameProcesador" class="col-form-label">Nombre<span
           class="asterisk">*</span></label>
@@ -561,7 +561,7 @@
             <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
               <div *ngFor="let probFunc of listProbFunc; let i=index">
                 <li ngbDropdownItem>
-                  <button class="btnElem" (click)="setcycletimeServer(probFunc)">
+                  <button class="btnElem" type="button" (click)="setcycletimeServer(probFunc)">
                     <div>
                       {{probFunc}}
                     </div>
@@ -571,7 +571,7 @@
               </div>
             </ul>
           </div>
-          <span *ngIf="cycletimeServer && cycletimeServer.invalid" class="errorMessage">D.</span>
+          <span *ngIf="cycletimeServer && cycletimeServer.invalid" class="errorMessage">No coincide con ninguna opción.</span>
 
         </div>
       </div>
@@ -591,7 +591,7 @@
       <h5 class="modal-title">Editar Sumidero</h5>
       <button type="button" class="btn-close" aria-label="Close" (click)="[resetListNames(),modal.dismiss()]"></button>
     </div>
-    <form [formGroup]="editSinkForm" (ngSubmit)="editSinkFunc()">
+    <form [formGroup]="editSinkForm" (ngSubmit)="editItem()">
       <div class="modal-body">
         <label for="nameSink" class="col-form-label">Nombre<span
           class="asterisk">*</span></label>

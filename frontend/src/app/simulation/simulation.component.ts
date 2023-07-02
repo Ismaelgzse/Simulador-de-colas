@@ -100,7 +100,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       item: this.itemInfo
     };
     this.itemContainerModal = {
-      item: this.itemInfo
+      item: this.itemInfo,
+      queue:this.queueInfo,
+      server:this.serverInfo,
+      sink:this.sinkInfo,
+      source:this.sourceInfo
     }
     this.listNames = []
     this.listItems = [];
@@ -298,6 +302,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           capacityQueue: this.itemContainerModal.queue?.capacityQueue,
           queueDiscipline: this.itemContainerModal.queue?.disciplineQueue
         })
+        break;
     }
 
 
@@ -673,20 +678,46 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   }
 
 
-  editSourceFunc() {
+  editItem() {
+    if (this.itemContainerModal.item.idItem){
+      switch (this.itemContainerModal.item.description){
+        case "Source":
+          this.itemContainerModal.item.name=<string>this.editSourceForm.value.nameSource;
+          // @ts-ignore
+          this.itemContainerModal.source.numberProducts=this.editSourceForm.value.numberProductsSource;
+          // @ts-ignore
+          this.itemContainerModal.source.interArrivalTime=this.editSourceForm.value.interArrivalTimeSource;
+          break;
+        case "Sink":
+          // @ts-ignore
+          this.itemContainerModal.item.name=this.editSinkForm.value.nameSink;
+          break;
+        case "Server":
+          // @ts-ignore
+          this.itemContainerModal.item.name=this.editServerForm.value.nameServer;
+          // @ts-ignore
+          this.itemContainerModal.server.setupTime=this.editServerForm.value.setUpTimeServer;
+          // @ts-ignore
+          this.itemContainerModal.server.cicleTime=this.editServerForm.value.cycletimeServer;
+          break;
+        case "Queue":
+          // @ts-ignore
+          this.itemContainerModal.item.name=this.editQueueForm.value.nameQueue;
+          // @ts-ignore
+          this.itemContainerModal.queue.disciplineQueue=this.editQueueForm.value.queueDiscipline;
+          // @ts-ignore
+          this.itemContainerModal.queue.capacityQueue=this.editQueueForm.value.capacityQueue
+      }
+      this.simulationService.updateItem(this.id,this.itemContainerModal.item.idItem,this.itemContainerModal).subscribe(
+        (itemContainer=>{
+          this.ngOnInit();
+        }),
+        (error => {
+          this.router.navigate(['error500']);
+        })
+      )
 
-  }
-
-  editSinkFunc() {
-
-  }
-
-  editServerFunc() {
-
-  }
-
-  editQueueFunc() {
-
+    }
   }
 
 
