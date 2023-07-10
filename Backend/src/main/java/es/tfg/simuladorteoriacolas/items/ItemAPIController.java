@@ -85,9 +85,7 @@ public class ItemAPIController {
                         itemFromRequest.getPositionX(),
                         itemFromRequest.getPositionY(),
                         itemFromRequest.getDescription(),
-                        simulation, itemFromRequest.getConnectedItem(),
-                        itemFromRequest.getConnectedPositionX(),
-                        itemFromRequest.getConnectedPositionY());
+                        simulation);
                 savedItemDTO.setItem(savedItem);
                 switch (savedItem.getDescription()) {
                     case "Queue":
@@ -143,9 +141,7 @@ public class ItemAPIController {
                         itemFromRequest.getPositionX(),
                         itemFromRequest.getPositionY(),
                         itemFromRequest.getDescription(),
-                        simulation, itemFromRequest.getConnectedItem(),
-                        itemFromRequest.getConnectedPositionX(),
-                        itemFromRequest.getConnectedPositionY());
+                        simulation);
                 savedItemDTO.setItem(savedItem);
                 switch (savedItem.getDescription()) {
                     case "Queue":
@@ -195,7 +191,6 @@ public class ItemAPIController {
             if (item.isPresent()){
                 ItemDTO itemDTO=new ItemDTO();
                 itemDTO.setItem(item.get());
-                itemDTO.getItem().setConnectedItem(null);
                 switch (item.get().getDescription()) {
                     case "Queue":
                         itemDTO.setQueue(itemTypesService.findQueueByItem(item.get()));

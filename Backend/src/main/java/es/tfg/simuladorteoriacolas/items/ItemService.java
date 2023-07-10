@@ -44,7 +44,7 @@ public class ItemService {
         return itemRepository.findAllByIdSimulation(simulation);
     }
 
-    public Item save(Integer id, String name,Integer positionX,Integer positionY,String description,Simulation simulation,List<Item> connectedItems, Integer connectedPositionX, Integer connectedPositionY){
+    public Item save(Integer id, String name,Integer positionX,Integer positionY,String description,Simulation simulation){
         Item item;
         if (id!=null){
             item= findById(id).orElseThrow();
@@ -57,9 +57,6 @@ public class ItemService {
         item.setPositionX(positionX);
         item.setPositionY(positionY);
         item.setIdSimulation(simulation);
-        item.setConnectedItem(connectedItems);
-        item.setConnectedPositionX(connectedPositionX);
-        item.setConnectedPositionY(connectedPositionY);
         return itemRepository.save(item);
 
     }
