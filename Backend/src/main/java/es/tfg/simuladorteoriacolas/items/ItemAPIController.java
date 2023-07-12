@@ -1,5 +1,7 @@
 package es.tfg.simuladorteoriacolas.items;
 
+import es.tfg.simuladorteoriacolas.items.connections.Connection;
+import es.tfg.simuladorteoriacolas.items.connections.ConnectionService;
 import es.tfg.simuladorteoriacolas.items.types.*;
 import es.tfg.simuladorteoriacolas.items.types.Queue;
 import es.tfg.simuladorteoriacolas.simulation.SimulationService;
@@ -23,6 +25,9 @@ public class ItemAPIController {
 
     @Autowired
     private ItemTypesService itemTypesService;
+
+    @Autowired
+    private ConnectionService connectionService;
 
     @GetMapping("/simulations/{idSimulation}/item/{idItem}")
     public ResponseEntity<ItemDTO> getItem(@PathVariable Integer idSimulation,
@@ -61,6 +66,9 @@ public class ItemAPIController {
                     case "Sink" -> itemDTO.setSink(itemTypesService.findSinkByItem(itemList.get(i)));
                     case "Source" -> itemDTO.setSource(itemTypesService.findSourceByItem(itemList.get(i)));
                 }
+                //
+                List<Connection> connections= connectionService.findAllByOriginItem(itemList.get(i));
+                itemDTO.setConnections(connections);
                 itemDTO.setItem(itemList.get(i));
                 itemDTOList.add(itemDTO);
             }

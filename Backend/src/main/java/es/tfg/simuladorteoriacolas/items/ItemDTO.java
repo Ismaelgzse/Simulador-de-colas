@@ -1,5 +1,6 @@
 package es.tfg.simuladorteoriacolas.items;
 
+import es.tfg.simuladorteoriacolas.items.connections.Connection;
 import es.tfg.simuladorteoriacolas.items.types.Queue;
 import es.tfg.simuladorteoriacolas.items.types.Server;
 import es.tfg.simuladorteoriacolas.items.types.Sink;
@@ -39,6 +40,8 @@ public class ItemDTO {
     private Sink sink;
 
     private Source source;
+
+    private List<Connection> connections;
 /*
     public String getName() {
         return name;
@@ -151,5 +154,13 @@ public class ItemDTO {
 
     public void setSource(Source source) {
         this.source = source;
+    }
+
+    public List<Connection> getConnections() {
+        return connections;
+    }
+
+    public void setConnections(List<Connection> connections) {
+        this.connections = connections;
     }
 }
