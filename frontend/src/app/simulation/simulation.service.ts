@@ -2,6 +2,7 @@ import {Injectable} from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {ItemContainerModel} from "./Items/itemContainer.model";
+import {ConnectionModel} from "./Connection/connection.model";
 
 @Injectable()
 export class SimulationService {
@@ -30,6 +31,10 @@ export class SimulationService {
 
   deleteItem(idSimulation:number,idItem:number):Observable<any>{
     return this.httpClient.delete('/api/simulations/' + idSimulation + '/item/'+idItem,{withCredentials: true}) as Observable<any>;
+  }
+
+  newConnection(connection:ConnectionModel):Observable<any>{
+    return this.httpClient.post('/api/connection',connection,{withCredentials: true}) as Observable<any>;
   }
 
 }

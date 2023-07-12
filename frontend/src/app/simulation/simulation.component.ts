@@ -12,6 +12,7 @@ import {ItemModel} from "./Items/item.model";
 import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {isNumber} from "@ng-bootstrap/ng-bootstrap/util/util";
+import {ConnectionModel} from "./Connection/connection.model";
 
 @Component({
   selector: 'app-simulation',
@@ -21,6 +22,15 @@ import {isNumber} from "@ng-bootstrap/ng-bootstrap/util/util";
 })
 
 export class SimulationComponent implements AfterViewInit, OnInit {
+  listConnections:ConnectionModel[]
+  connectionInfo:ConnectionModel;
+  correctSinkShown:boolean;
+  correctSourceSown:boolean;
+  correctServerShown:boolean;
+  correctQueueShown:boolean;
+  sameElement:string
+  blackScreen:boolean;
+  listItemConnection: ItemModel[];
   listItems: ItemContainerModel[]
   id: number;
   simulationTitle: string;
@@ -67,10 +77,17 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
 
   constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, private simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
-    document.getElementById("canvas")
   }
 
   ngOnInit(): void {
+    this.correctSinkShown=false;
+    this.correctSourceSown=false;
+    this.correctServerShown=false;
+    this.correctQueueShown=false;
+    this.sameElement='';
+    this.blackScreen=false;
+    this.listItemConnection=[];
+    this.listConnections=[]
     this.queueInfo = {
       outQueue: 0,
       capacityQueue: "",
@@ -96,15 +113,20 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       positionX: 0,
       positionY: 0
     };
+    this.connectionInfo={
+      originItem:this.itemInfo,
+      destinationItem:this.itemInfo,
+      percentage:0
+    }
     this.itemContainerInfo = {
       item: this.itemInfo
     };
     this.itemContainerModal = {
       item: this.itemInfo,
-      queue:this.queueInfo,
-      server:this.serverInfo,
-      sink:this.sinkInfo,
-      source:this.sourceInfo
+      queue: this.queueInfo,
+      server: this.serverInfo,
+      sink: this.sinkInfo,
+      source: this.sourceInfo
     }
     this.listNames = []
     this.listItems = [];
@@ -117,6 +139,13 @@ export class SimulationComponent implements AfterViewInit, OnInit {
             this.simulationService.getItems(this.id).subscribe(
               (items => {
                 this.listItems = items;
+                for (let i=0;i<this.listItems.length;i++){
+                  // @ts-ignore
+                  for (let j=0;j<this.listItems[i].connections.length;j++){
+                    // @ts-ignore
+                    this.listConnections.push(this.listItems[i].connections[j])
+                  }
+                }
               }),
               (error => this.router.navigate(['error403']))
             )
@@ -135,6 +164,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
      */
 
+  }
+
+  inicializeConnections(itemContainer:ItemContainerModel){
+    // @ts-ignore
+    this.listConnections.concat(itemContainer.connections)
   }
 
 
@@ -246,6 +280,102 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
   simulate() {
     console.log(this.quickSimulationForm)
+  }
+
+
+  newConnection(event:Event,itemContainer: ItemContainerModel) {
+    //cuando se pulsa por primera vez solo quedan las conexiones de las existentes con las posibles
+    this.blackScreen=true;
+    // @ts-ignore
+    if (event.currentTarget.nodeName!="DIV"){
+      // @ts-ignore
+      let currentNameElement= event.currentTarget.offsetParent.offsetParent.id;
+      this.sameElement=currentNameElement;
+    }
+
+    if (this.listItemConnection.length!=0){
+      if (itemContainer.item.name===this.listItemConnection[0].name && itemContainer.item.idItem===this.listItemConnection[0].idItem){
+        //Mostrar error de que no es posible unirse a si mismo
+      }
+      else {
+        this.listItemConnection.push(itemContainer.item)
+        this.connectionInfo.originItem=this.listItemConnection[0];
+        this.connectionInfo.destinationItem=this.listItemConnection[1];
+        this.simulationService.newConnection(this.connectionInfo).subscribe(
+          (connectio=>{
+            let blackCanvas = document.getElementById('blackScreen')
+            // @ts-ignore
+            blackCanvas.classList.toggle("showScreen")
+            this.ngOnInit();
+          }),
+          (error => this.router.navigate(['error500']))
+        )
+      }
+    }
+    else {
+      let typeElement= itemContainer.item.description;
+      switch (typeElement){
+        case "Source":
+          this.correctQueueShown=true;
+          break;
+        case "Queue":
+          this.correctServerShown=true;
+          this.correctQueueShown=true;
+          break;
+        case "Server":
+          this.correctQueueShown=true;
+          this.correctSinkShown=true;
+          break;
+      }
+      this.listItemConnection.push(itemContainer.item)
+      // @ts-ignore
+      /*let father= event.currentTarget.offsetParent.offsetParent;
+      let childRect=father.children[1].children[0].children[0]
+      childRect.classList.toggle("rectAlt")
+
+       */
+      let blackCanvas = document.getElementById('blackScreen')
+      // @ts-ignore
+      blackCanvas.classList.toggle("showScreen")
+    }
+
+
+
+    /*
+        let canvas=document.getElementById('canvas')
+        // @ts-ignore
+        canvas.classList.add('show')
+        // @ts-ignore
+        let childrenCanvas= canvas.children;
+        for (let i=1;i<childrenCanvas.length;i++){
+          childrenCanvas[i].classList.add('show')
+        }
+
+
+     */
+
+    //blackCanvas.setAttribute("style","visibility:visible")
+    //let a = document.getElementsByClassName("images");
+    //if (itemContainer.item.idItem) {
+    //let itemSelected = document.getElementById(itemContainer.item.name)
+    // @ts-ignore
+    //let kk= itemSelected.children[1]
+    // @ts-ignore
+    //canvas.setAttribute("style","z-index:5;visibility:hidden")
+    // @ts-ignore
+    //itemSelected.setAttribute("style","visibility:visible")
+    // @ts-ignore
+    //let children1=itemSelected.children[1].children[0].children[0]
+    // @ts-ignore
+    //let children2=itemSelected.children[1].children[1].children[0]
+    // @ts-ignore
+    //children1.classList.add("selected")
+    //children2.classList.add("selected")
+    // @ts-ignore
+    //itemSelected.classList.add("selected")
+
+    //}
+
   }
 
   deleteItemFunction() {
@@ -562,20 +692,20 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       }
     }
     if (input.substring(0, 3) === "Max") {
-      if (input.substring(3,4)=== "(" && input.substring(input.length -1)=== ")"){
-        let subInput= input.substring(4,input.length-1)
+      if (input.substring(3, 4) === "(" && input.substring(input.length - 1) === ")") {
+        let subInput = input.substring(4, input.length - 1)
         let posComa = -1;
         for (let i = 0; i < subInput.length; i++) {
           if (subInput.charAt(i) === ',') {
-            posComa=i;
+            posComa = i;
             break;
           }
         }
         let firstNumber = subInput.substring(0, posComa);
-        let secondSubInput=subInput.substring(posComa+1);
+        let secondSubInput = subInput.substring(posComa + 1);
         let firstNumberInt = Number(firstNumber);
-        if (Number.isInteger(firstNumberInt) && firstNumberInt >= 0){
-          if (secondSubInput.substring(0,6)==="Normal"  && secondSubInput.substring(6, 7) === "(" && secondSubInput.substring(secondSubInput.length - 1) === ")"){
+        if (Number.isInteger(firstNumberInt) && firstNumberInt >= 0) {
+          if (secondSubInput.substring(0, 6) === "Normal" && secondSubInput.substring(6, 7) === "(" && secondSubInput.substring(secondSubInput.length - 1) === ")") {
             let numbers = secondSubInput.substring(7, secondSubInput.length - 1)
             if (component.validateNumbers(numbers)) {
               return null;
@@ -583,8 +713,8 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               return {invalidFormat: true};
             }
           }
-          if (secondSubInput.substring(0,8)==="Logistic" && secondSubInput.substring(8, 9) === "(" && secondSubInput.substring(secondSubInput.length - 1) === ")"){
-              let numbers = secondSubInput.substring(9, secondSubInput.length - 1)
+          if (secondSubInput.substring(0, 8) === "Logistic" && secondSubInput.substring(8, 9) === "(" && secondSubInput.substring(secondSubInput.length - 1) === ")") {
+            let numbers = secondSubInput.substring(9, secondSubInput.length - 1)
             if (component.validateNumbers(numbers)) {
               return null;
             } else {
@@ -679,37 +809,37 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
 
   editItem() {
-    if (this.itemContainerModal.item.idItem){
-      switch (this.itemContainerModal.item.description){
+    if (this.itemContainerModal.item.idItem) {
+      switch (this.itemContainerModal.item.description) {
         case "Source":
-          this.itemContainerModal.item.name=<string>this.editSourceForm.value.nameSource;
+          this.itemContainerModal.item.name = <string>this.editSourceForm.value.nameSource;
           // @ts-ignore
-          this.itemContainerModal.source.numberProducts=this.editSourceForm.value.numberProductsSource;
+          this.itemContainerModal.source.numberProducts = this.editSourceForm.value.numberProductsSource;
           // @ts-ignore
-          this.itemContainerModal.source.interArrivalTime=this.editSourceForm.value.interArrivalTimeSource;
+          this.itemContainerModal.source.interArrivalTime = this.editSourceForm.value.interArrivalTimeSource;
           break;
         case "Sink":
           // @ts-ignore
-          this.itemContainerModal.item.name=this.editSinkForm.value.nameSink;
+          this.itemContainerModal.item.name = this.editSinkForm.value.nameSink;
           break;
         case "Server":
           // @ts-ignore
-          this.itemContainerModal.item.name=this.editServerForm.value.nameServer;
+          this.itemContainerModal.item.name = this.editServerForm.value.nameServer;
           // @ts-ignore
-          this.itemContainerModal.server.setupTime=this.editServerForm.value.setUpTimeServer;
+          this.itemContainerModal.server.setupTime = this.editServerForm.value.setUpTimeServer;
           // @ts-ignore
-          this.itemContainerModal.server.cicleTime=this.editServerForm.value.cycletimeServer;
+          this.itemContainerModal.server.cicleTime = this.editServerForm.value.cycletimeServer;
           break;
         case "Queue":
           // @ts-ignore
-          this.itemContainerModal.item.name=this.editQueueForm.value.nameQueue;
+          this.itemContainerModal.item.name = this.editQueueForm.value.nameQueue;
           // @ts-ignore
-          this.itemContainerModal.queue.disciplineQueue=this.editQueueForm.value.queueDiscipline;
+          this.itemContainerModal.queue.disciplineQueue = this.editQueueForm.value.queueDiscipline;
           // @ts-ignore
-          this.itemContainerModal.queue.capacityQueue=this.editQueueForm.value.capacityQueue
+          this.itemContainerModal.queue.capacityQueue = this.editQueueForm.value.capacityQueue
       }
-      this.simulationService.updateItem(this.id,this.itemContainerModal.item.idItem,this.itemContainerModal).subscribe(
-        (itemContainer=>{
+      this.simulationService.updateItem(this.id, this.itemContainerModal.item.idItem, this.itemContainerModal).subscribe(
+        (itemContainer => {
           this.ngOnInit();
         }),
         (error => {

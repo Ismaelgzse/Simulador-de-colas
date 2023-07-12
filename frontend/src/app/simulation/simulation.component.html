@@ -163,102 +163,219 @@
 </div>
 
 <div id="canvas" class="canvas">
+  <div class="blackScreen" id="blackScreen"></div>
+
+  <svg height="100%" width="100%" style="position: absolute;" *ngFor="let connection of listConnections;let i=index">
+    <!--
+    <line [attr.x1]="connection.originItem.positionX+100" [attr.y1]="connection.originItem.positionY+75" [attr.x2]="connection.destinationItem.positionX+25" [attr.y2]="connection.destinationItem.positionY+75" style="stroke:rgb(255,0,0);stroke-width:2" />
+ -->
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L9,3 z" fill="black" />
+      </marker>
+    </defs>
+<!--
+    <path
+      id='arrow-line'
+      marker-end='url(#head)'
+      stroke-width='3'
+      fill='none' stroke='black'
+      [attr.d]="'M '+(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+' '+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)"/>
+-->
+    <polyline [attr.points]="(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+','+(connection.originItem.positionX+100)+','+(connection.destinationItem.positionY+75)+','+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)" fill="none" stroke="black" style="stroke-width: 2" marker-end="url(#arrow)" />
+
+  </svg>
 
 
-  <div *ngFor="let itemContainer of listItems; let i=index" id="{{itemContainer.item.name}}"
-       (dragstart)="this.drag($event)" class="image" draggable="true"
-       style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px">
-    <div id="actionButtons" class="buttons">
-      <i *ngIf="itemContainer.item.description==='Source'" type='button'
-         class='actionButton fa-regular fa-pen-to-square' (click)="openModalEdit(editSource,itemContainer)"></i>
-      <i *ngIf="itemContainer.item.description==='Sink'" type='button' class='actionButton fa-regular fa-pen-to-square'
-         (click)="openModalEdit(editSink,itemContainer)"></i>
-      <i *ngIf="itemContainer.item.description==='Server'" type='button'
-         class='actionButton fa-regular fa-pen-to-square' (click)="openModalEdit(editServer,itemContainer)"></i>
-      <i *ngIf="itemContainer.item.description==='Queue'" type='button'
-         class='actionButton fa-regular fa-pen-to-square' (click)="openModalEdit(editQueue,itemContainer)"></i>
-      <i type='button' class='actionButton fa-regular fa-trash-can'
-         (click)="openModalDeleteItem(deleteItem,itemContainer)"></i>
+
+
+  <div *ngIf="blackScreen">
+    <div *ngFor="let itemContainer of listItems; let i=index" id="{{itemContainer.item.name}}"
+         style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px"
+         (click)="newConnection($event,itemContainer)">
+      <svg *ngIf="itemContainer.item.description==='Sink' && (correctSinkShown || sameElement==itemContainer.item.name)"
+           width="200" height="100">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">In:
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ff6699"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+      <svg
+        *ngIf="itemContainer.item.description==='Source' && (correctSourceSown || sameElement==itemContainer.item.name)"
+        width="200" height="100">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">Out:
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#3399ff"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+      <svg
+        *ngIf="itemContainer.item.description==='Queue' && (correctQueueShown|| sameElement==itemContainer.item.name)"
+        width="200" height="100">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">In:
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#00ff99"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+      <svg
+        *ngIf="itemContainer.item.description==='Server' && (correctServerShown || sameElement==itemContainer.item.name)"
+        width="200" height="100">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">Util:
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ffcc00"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
     </div>
-
-    <svg *ngIf="itemContainer.item.description==='Sink'" width="200" height="100" cursor="all-scroll">
-      <g stroke="black" stroke-width="1px" fill="white">
-        <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
-              stroke="rgb(0, 0, 0)"
-              stroke-width="2.1"></rect>
-        <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-              stroke="none">In:
-        </text>
-      </g>
-      <g stroke="black" stroke-width="1px" fill="white">
-        <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ff6699"
-              stroke="rgb(0, 0, 0)"
-              stroke-width="2.1"></rect>
-        <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
-              stroke="none">{{itemContainer.item.name}}
-        </text>
-      </g>
-    </svg>
-
-    <svg *ngIf="itemContainer.item.description==='Source'" width="200" height="100" cursor="all-scroll">
-      <g stroke="black" stroke-width="1px" fill="white">
-        <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
-              stroke="rgb(0, 0, 0)"
-              stroke-width="2.1"></rect>
-        <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-              stroke="none">Out:
-        </text>
-      </g>
-      <g stroke="black" stroke-width="1px" fill="white">
-        <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#3399ff"
-              stroke="rgb(0, 0, 0)"
-              stroke-width="2.1"></rect>
-        <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
-              stroke="none">{{itemContainer.item.name}}
-        </text>
-      </g>
-    </svg>
-
-    <svg *ngIf="itemContainer.item.description==='Queue'" width="200" height="100" cursor="all-scroll">
-      <g stroke="black" stroke-width="1px" fill="white">
-        <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
-              stroke="rgb(0, 0, 0)"
-              stroke-width="2.1"></rect>
-        <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-              stroke="none">In:
-        </text>
-      </g>
-      <g stroke="black" stroke-width="1px" fill="white">
-        <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#00ff99"
-              stroke="rgb(0, 0, 0)"
-              stroke-width="2.1"></rect>
-        <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
-              stroke="none">{{itemContainer.item.name}}
-        </text>
-      </g>
-    </svg>
-
-    <svg *ngIf="itemContainer.item.description==='Server'" width="200" height="100" cursor="all-scroll">
-      <g stroke="black" stroke-width="1px" fill="white">
-        <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
-              stroke="rgb(0, 0, 0)"
-              stroke-width="2.1"></rect>
-        <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-              stroke="none">Util:
-        </text>
-      </g>
-      <g stroke="black" stroke-width="1px" fill="white">
-        <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ffcc00"
-              stroke="rgb(0, 0, 0)"
-              stroke-width="2.1"></rect>
-        <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
-              stroke="none">{{itemContainer.item.name}}
-        </text>
-      </g>
-    </svg>
-
   </div>
 
+  <div *ngIf="!blackScreen">
+    <div *ngFor="let itemContainer of listItems; let i=index" id="{{itemContainer.item.name}}"
+         (dragstart)="this.drag($event)" class="images" draggable="true"
+         style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px">
+      <div id="actionButtons" class="buttons">
+        <i class=" actionButton fa-solid fa-arrow-trend-up" type="button" *ngIf="itemContainer.item.description!='Sink'"
+           (click)="newConnection($event,itemContainer)"></i>
+        <i *ngIf="itemContainer.item.description==='Source'" type='button'
+           class='actionButton fa-regular fa-pen-to-square' (click)="openModalEdit(editSource,itemContainer)"></i>
+        <i *ngIf="itemContainer.item.description==='Sink'" type='button'
+           class='actionButton fa-regular fa-pen-to-square'
+           (click)="openModalEdit(editSink,itemContainer)"></i>
+        <i *ngIf="itemContainer.item.description==='Server'" type='button'
+           class='actionButton fa-regular fa-pen-to-square' (click)="openModalEdit(editServer,itemContainer)"></i>
+        <i *ngIf="itemContainer.item.description==='Queue'" type='button'
+           class='actionButton fa-regular fa-pen-to-square' (click)="openModalEdit(editQueue,itemContainer)"></i>
+        <i type='button' class='actionButton fa-regular fa-trash-can'
+           (click)="openModalDeleteItem(deleteItem,itemContainer)"></i>
+      </div>
+
+      <svg *ngIf="itemContainer.item.description==='Sink'" width="200" height="100" cursor="all-scroll">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">In:
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ff6699"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+      <svg *ngIf="itemContainer.item.description==='Source'" width="200" height="100" cursor="all-scroll">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">Out:
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#3399ff"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+      <svg *ngIf="itemContainer.item.description==='Queue'" width="200" height="100" cursor="all-scroll">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">In:
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#00ff99"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+      <svg *ngIf="itemContainer.item.description==='Server'" width="200" height="100" cursor="all-scroll">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">Util:
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ffcc00"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+    </div>
+  </div>
 </div>
 
 <i id="trash" class="fa-solid fa-trash-can trash fa-4x"></i>
@@ -447,7 +564,7 @@
         <label for="nameQueue" class="col-form-label">Nombre<span
           class="asterisk">*</span></label>
         <input type="text" class="form-control" id="nameQueue" formControlName="nameQueue">
-      <span *ngIf="nameQueue && nameQueue.invalid && !editQueueForm.controls.nameQueue.hasError('invalidFormat')"
+        <span *ngIf="nameQueue && nameQueue.invalid && !editQueueForm.controls.nameQueue.hasError('invalidFormat')"
               class="errorMessage">Debe tener una longitud de entre 1 y 10 caracteres.</span>
         <span *ngIf="editQueueForm.controls.nameQueue.hasError('invalidFormat')" class="errorMessage">Ya existe un item con este nombre.</span>
         <div class="form-group mt-3">
@@ -469,7 +586,8 @@
               </li>
               <div class="dropdown-divider"></div>
               <li ngbDropdownItem>
-                <button class="btnElem" id="unlimitedCapacityQueue" type="button" (click)="setCapacityQueue('Ilimitados')">
+                <button class="btnElem" id="unlimitedCapacityQueue" type="button"
+                        (click)="setCapacityQueue('Ilimitados')">
                   <div>
                     <i class="fa-solid fa-infinity"></i>Ilimitados
                   </div>
@@ -477,7 +595,8 @@
               </li>
             </ul>
           </div>
-          <span *ngIf="capacityQueue && capacityQueue.invalid" class="errorMessage">Debe ser un número o ser Ilimitados.</span>
+          <span *ngIf="capacityQueue && capacityQueue.invalid"
+                class="errorMessage">Debe ser un número o ser Ilimitados.</span>
         </div>
         <div class="form-group mt-3">
           <label for="queueDiscipline" class="col-form-label">
@@ -514,14 +633,17 @@
               </li>
             </ul>
           </div>
-          <span *ngIf="queueDiscipline && queueDiscipline.invalid" class="errorMessage">Debe ser Fifo, Lifo o Random.</span>
+          <span *ngIf="queueDiscipline && queueDiscipline.invalid"
+                class="errorMessage">Debe ser Fifo, Lifo o Random.</span>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal"
                 (click)="[resetListNames(),modal.dismiss()]">Cancelar
         </button>
-        <button [disabled]="editQueueForm.invalid" type="submit" class="btn btn-danger" (click)="[resetListNames(),modal.dismiss()]">Guardar</button>
+        <button [disabled]="editQueueForm.invalid" type="submit" class="btn btn-danger"
+                (click)="[resetListNames(),modal.dismiss()]">Guardar
+        </button>
       </div>
     </form>
   </div>
@@ -571,7 +693,8 @@
               </div>
             </ul>
           </div>
-          <span *ngIf="cycletimeServer && cycletimeServer.invalid" class="errorMessage">No coincide con ninguna opción.</span>
+          <span *ngIf="cycletimeServer && cycletimeServer.invalid"
+                class="errorMessage">No coincide con ninguna opción.</span>
 
         </div>
       </div>

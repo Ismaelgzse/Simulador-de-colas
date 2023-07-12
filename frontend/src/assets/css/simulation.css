@@ -103,6 +103,10 @@
     margin-bottom: 15px;
 }
 
+.selected{
+  stroke: rgba(255, 191, 128,0.7);
+}
+
 @media screen and (max-width: 900px) {
     .simulationTitle{
         font-size: 15px;
@@ -302,10 +306,64 @@
     touch-action: none;
     top: 167px;
     left: 209px;
-    width: 91.2%;
+    width: 91.3%;
     bottom: 0;
     overflow-x: auto;
     background-color: #fbfbfb;
+}
+
+.blackScreen {
+  position: absolute;
+  /*z-index: 4;
+
+   */
+  touch-action: none;
+  /*top: 169px;
+  left: 209px;
+  width: 91.3%;
+  bottom: 0;
+   */
+  transition: all 2s;
+
+  width: 100%;
+  height: 100%;
+  background-color: rgba(102, 102, 102,0.8);
+  visibility: hidden;
+  opacity: 0;
+}
+
+.blackScreen.showScreen {
+  position: absolute;
+  /*z-index: 4;
+
+   */
+  touch-action: none;
+  /*top: 169px;
+  left: 209px;
+  width: 91.3%;
+  bottom: 0;
+   */
+  transition: all .5s;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  background-color: rgba(102, 102, 102,0.8);
+  visibility: visible;
+}
+
+.rectAlt{
+  stroke: goldenrod;
+}
+
+
+
+
+.hide{
+  visibility: hidden;
+}
+
+.show{
+  visibility: visible;
 }
 
 body {
