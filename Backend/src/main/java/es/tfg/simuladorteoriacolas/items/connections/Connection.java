@@ -8,7 +8,7 @@ public class Connection {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer idConnection;
+    private Integer idConnect;
 
     private Integer percentage;
 
@@ -44,5 +44,9 @@ public class Connection {
 
     public void setDestinationItem(Item destinationItem) {
         this.destinationItem = destinationItem;
+    }
+
+    public Integer getIdConnect() {
+        return idConnect;
     }
 }

@@ -10,7 +10,7 @@ export class SimulationService {
   }
 
   getItems(idSimulation: number): Observable<any> {
-    return this.httpClient.get('/api/simulations/' + idSimulation + '/items', {withCredentials: true}) as Observable<any>;
+    return this.httpClient.get('/api/simulations/' + idSimulation + '/items', {withCredentials: true}) as Observable<ItemContainerModel[]>;
   }
 
   getSimulationInfo(idSimulation: number): Observable<any> {
@@ -35,6 +35,11 @@ export class SimulationService {
 
   newConnection(connection:ConnectionModel):Observable<any>{
     return this.httpClient.post('/api/connection',connection,{withCredentials: true}) as Observable<any>;
+  }
+
+  deleteConnection(idConnection:number):Observable<any>{
+    return this.httpClient.delete('/api/connection/'+idConnection,{withCredentials: true}) as Observable<any>;
+
   }
 
 }

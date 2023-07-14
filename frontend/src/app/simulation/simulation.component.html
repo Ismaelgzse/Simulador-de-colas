@@ -162,10 +162,19 @@
   </div>
 </div>
 
+
+<div id="newConnect" class="alertNewConnection">Nueva conexión <i (click)="cancelNewConnection()" type="button" class="fa-solid fa-xmark"></i></div>
+<div id="cancelConnect" class="alertCancelConnection">
+  <span *ngIf="errorConnection===1">No se puede unir a sí mismo, selecciona otro item.</span>
+  <span *ngIf="errorConnection===2">Ya existe una conexión entre ambos items.</span>
+</div>
+
+
 <div id="canvas" class="canvas">
   <div class="blackScreen" id="blackScreen"></div>
 
-  <svg height="100%" width="100%" style="position: absolute;" *ngFor="let connection of listConnections;let i=index">
+
+  <svg height="100%" width="100%" style="position: absolute;">
     <!--
     <line [attr.x1]="connection.originItem.positionX+100" [attr.y1]="connection.originItem.positionY+75" [attr.x2]="connection.destinationItem.positionX+25" [attr.y2]="connection.destinationItem.positionY+75" style="stroke:rgb(255,0,0);stroke-width:2" />
  -->
@@ -182,7 +191,10 @@
       fill='none' stroke='black'
       [attr.d]="'M '+(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+' '+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)"/>
 -->
-    <polyline [attr.points]="(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+','+(connection.originItem.positionX+100)+','+(connection.destinationItem.positionY+75)+','+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)" fill="none" stroke="black" style="stroke-width: 2" marker-end="url(#arrow)" />
+    <polyline *ngFor="let connection of listConnections;let i=index" [attr.points]="(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+','+(connection.originItem.positionX+100)+','+(connection.destinationItem.positionY+75)+','+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)" style="stroke:black;fill:transparent;stroke-width: 3"  marker-end="url(#arrow)"/>
+
+    <polyline *ngFor="let connection of listConnections;let i=index" (click)="openModalDeleteConnection(deleteConnection,connection)" [attr.points]="(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+','+(connection.originItem.positionX+100)+','+(connection.destinationItem.positionY+75)+','+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)" style="stroke:transparent;fill:transparent;stroke-width: 37; cursor: pointer"/>
+
 
   </svg>
 
@@ -415,6 +427,20 @@
     </div>
   </div>
 </div>
+
+<ng-template #deleteConnection let-modal class="modal fade">
+  <div class="modal-header">
+    <h5>Eliminar conexión</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>¿Deseas borrar esta conexión de todas formas?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancelar</button>
+    <button type="button" class="btn btn-danger" (click)="[modal.dismiss(),deleteConnectionFunction()]">Confirmar</button>
+  </div>
+</ng-template>
 
 <ng-template #quickSimulation let-modal class="modal fade">
   <div class="modal-header">

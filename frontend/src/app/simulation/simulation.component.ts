@@ -22,14 +22,19 @@ import {ConnectionModel} from "./Connection/connection.model";
 })
 
 export class SimulationComponent implements AfterViewInit, OnInit {
-  listConnections:ConnectionModel[]
-  connectionInfo:ConnectionModel;
-  correctSinkShown:boolean;
-  correctSourceSown:boolean;
-  correctServerShown:boolean;
-  correctQueueShown:boolean;
-  sameElement:string
-  blackScreen:boolean;
+  //0: no error
+  //1: itself
+  errorConnection: number;
+  connectionModal:ConnectionModel;
+  listConnections: ConnectionModel[]
+  listConnectionsBackUp: ConnectionModel[]
+  connectionInfo: ConnectionModel;
+  correctSinkShown: boolean;
+  correctSourceSown: boolean;
+  correctServerShown: boolean;
+  correctQueueShown: boolean;
+  sameElement: string
+  blackScreen: boolean;
   listItemConnection: ItemModel[];
   listItems: ItemContainerModel[]
   id: number;
@@ -80,14 +85,15 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit(): void {
-    this.correctSinkShown=false;
-    this.correctSourceSown=false;
-    this.correctServerShown=false;
-    this.correctQueueShown=false;
-    this.sameElement='';
-    this.blackScreen=false;
-    this.listItemConnection=[];
-    this.listConnections=[]
+    this.errorConnection = 0;
+    this.correctSinkShown = false;
+    this.correctSourceSown = false;
+    this.correctServerShown = false;
+    this.correctQueueShown = false;
+    this.sameElement = '';
+    this.blackScreen = false;
+    this.listItemConnection = [];
+    this.listConnections = []
     this.queueInfo = {
       outQueue: 0,
       capacityQueue: "",
@@ -113,11 +119,12 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       positionX: 0,
       positionY: 0
     };
-    this.connectionInfo={
-      originItem:this.itemInfo,
-      destinationItem:this.itemInfo,
-      percentage:0
+    this.connectionInfo = {
+      originItem: this.itemInfo,
+      destinationItem: this.itemInfo,
+      percentage: 0
     }
+    this.connectionModal=this.connectionInfo
     this.itemContainerInfo = {
       item: this.itemInfo
     };
@@ -139,13 +146,14 @@ export class SimulationComponent implements AfterViewInit, OnInit {
             this.simulationService.getItems(this.id).subscribe(
               (items => {
                 this.listItems = items;
-                for (let i=0;i<this.listItems.length;i++){
+                for (let i = 0; i < this.listItems.length; i++) {
                   // @ts-ignore
-                  for (let j=0;j<this.listItems[i].connections.length;j++){
+                  for (let j = 0; j < this.listItems[i].connections.length; j++) {
                     // @ts-ignore
-                    this.listConnections.push(this.listItems[i].connections[j])
+                    this.listConnections.push(this.listItems[i].connections[j]);
                   }
                 }
+                this.listConnectionsBackUp = this.listConnections;
               }),
               (error => this.router.navigate(['error403']))
             )
@@ -166,7 +174,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
   }
 
-  inicializeConnections(itemContainer:ItemContainerModel){
+  inicializeConnections(itemContainer: ItemContainerModel) {
     // @ts-ignore
     this.listConnections.concat(itemContainer.connections)
   }
@@ -282,49 +290,135 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     console.log(this.quickSimulationForm)
   }
 
-
-  newConnection(event:Event,itemContainer: ItemContainerModel) {
-    //cuando se pulsa por primera vez solo quedan las conexiones de las existentes con las posibles
-    this.blackScreen=true;
-    // @ts-ignore
-    if (event.currentTarget.nodeName!="DIV"){
+  cancelNewConnection() {
+    if (this.blackScreen === true) {
+      this.listConnections = this.listConnectionsBackUp;
+      this.blackScreen = false;
+      this.listItemConnection = [];
+      let blackCanvas = document.getElementById('blackScreen')
       // @ts-ignore
-      let currentNameElement= event.currentTarget.offsetParent.offsetParent.id;
-      this.sameElement=currentNameElement;
+      blackCanvas.classList.toggle("showScreen")
+      let alertMessage = document.getElementById("newConnect");
+      // @ts-ignore
+      alertMessage.classList.toggle('alertNewConnectionAlt')
+      let alertErrorMessage = document.getElementById("cancelConnect");
+      // @ts-ignore
+      let listClasses=alertErrorMessage.classList;
+      if (listClasses.length>1){
+        // @ts-ignore
+        alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+      }
+
+    }
+  }
+
+  connectionsOfSelectedItem(itemContainer: ItemContainerModel) {
+    for (let i = 0; i < this.listItems.length; i++) {
+      if (this.listItems[i].item.idItem === itemContainer.item.idItem && this.listItems[i].item.name === itemContainer.item.name) {
+        return this.listItems[i].connections;
+      }
+    }
+    return []
+  }
+
+  alreadyConnected(origin: ItemModel, destination: ItemContainerModel) {
+    let originItem: ItemContainerModel;
+    for (let i = 0; i < this.listItems.length; i++) {
+      // @ts-ignore
+      if (this.listItems[i].item.idItem === origin.idItem && this.listItems[i].item.name === origin.name) {
+        originItem = this.listItems[i];
+        break;
+      }
+    }
+    // @ts-ignore
+    let connections = this.connectionsOfSelectedItem(originItem)
+    // @ts-ignore
+    for (let i = 0; i < connections.length; i++) {
+      // @ts-ignore
+      if (connections[i].destinationItem.idItem === destination.item.idItem && connections[i].destinationItem.name === destination.item.name) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  newConnection(event: Event, itemContainer: ItemContainerModel) {
+    //cuando se pulsa por primera vez solo quedan las conexiones de las existentes con las posibles
+    this.blackScreen = true;
+    // @ts-ignore
+    if (event.currentTarget.nodeName != "DIV") {
+      // @ts-ignore
+      this.listConnections = this.connectionsOfSelectedItem(itemContainer);
+      let alertMessage = document.getElementById("newConnect");
+      // @ts-ignore
+      alertMessage.classList.toggle('alertNewConnectionAlt')
+      // @ts-ignore
+      let currentNameElement = event.currentTarget.offsetParent.offsetParent.id;
+      this.sameElement = currentNameElement;
     }
 
-    if (this.listItemConnection.length!=0){
-      if (itemContainer.item.name===this.listItemConnection[0].name && itemContainer.item.idItem===this.listItemConnection[0].idItem){
-        //Mostrar error de que no es posible unirse a si mismo
-      }
-      else {
+    if (this.listItemConnection.length != 0) {
+      if (itemContainer.item.name === this.listItemConnection[0].name && itemContainer.item.idItem === this.listItemConnection[0].idItem) {
+        // @ts-ignore
+        if (this.errorConnection!=1 || this.errorConnection!=2){
+          //Mostrar error de que no es posible unirse a si mismo
+          this.errorConnection = 1;
+          let alertErrorMessage = document.getElementById("cancelConnect");
+          // @ts-ignore
+          alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+        }
+        else if (this.errorConnection===2){
+          this.errorConnection=1;
+        }
+      } else if (this.alreadyConnected(this.listItemConnection[0], itemContainer)) {
+        // @ts-ignore
+        if (this.errorConnection!=1 || this.errorConnection!=2){
+          //Mostrar error de que no es posible unirse a si mismo
+          this.errorConnection = 1;
+          let alertErrorMessage = document.getElementById("cancelConnect");
+          // @ts-ignore
+          alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+        }
+        else if (this.errorConnection===1){
+          this.errorConnection=2;
+        }
+      } else {
         this.listItemConnection.push(itemContainer.item)
-        this.connectionInfo.originItem=this.listItemConnection[0];
-        this.connectionInfo.destinationItem=this.listItemConnection[1];
+        this.connectionInfo.originItem = this.listItemConnection[0];
+        this.connectionInfo.destinationItem = this.listItemConnection[1];
         this.simulationService.newConnection(this.connectionInfo).subscribe(
-          (connectio=>{
+          (connection => {
             let blackCanvas = document.getElementById('blackScreen')
             // @ts-ignore
             blackCanvas.classList.toggle("showScreen")
+            let alertMessage = document.getElementById("newConnect");
+            // @ts-ignore
+            alertMessage.classList.toggle('alertNewConnectionAlt');
+            let alertErrorMessage = document.getElementById("cancelConnect");
+            // @ts-ignore
+            let listClasses=alertErrorMessage.classList;
+            if (listClasses.length>1){
+              // @ts-ignore
+              alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+            }
             this.ngOnInit();
           }),
           (error => this.router.navigate(['error500']))
         )
       }
-    }
-    else {
-      let typeElement= itemContainer.item.description;
-      switch (typeElement){
+    } else {
+      let typeElement = itemContainer.item.description;
+      switch (typeElement) {
         case "Source":
-          this.correctQueueShown=true;
+          this.correctQueueShown = true;
           break;
         case "Queue":
-          this.correctServerShown=true;
-          this.correctQueueShown=true;
+          this.correctServerShown = true;
+          this.correctQueueShown = true;
           break;
         case "Server":
-          this.correctQueueShown=true;
-          this.correctSinkShown=true;
+          this.correctQueueShown = true;
+          this.correctSinkShown = true;
           break;
       }
       this.listItemConnection.push(itemContainer.item)
@@ -338,7 +432,6 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       // @ts-ignore
       blackCanvas.classList.toggle("showScreen")
     }
-
 
 
     /*
@@ -387,6 +480,22 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         (error => this.router.navigate(['error500']))
       )
     }
+  }
+
+  deleteConnectionFunction(){
+    if (this.connectionModal.idConnect){
+      this.simulationService.deleteConnection(this.connectionModal.idConnect).subscribe(
+        (connection=>{
+          this.ngOnInit();
+        }),
+        (error => this.router.navigate(['error500']))
+      )
+    }
+  }
+
+  openModalDeleteConnection(content:any,connection:ConnectionModel){
+    this.connectionModal = connection;
+    this.modalService.open(content,{ariaLabelledBy: 'modal-basic-title'});
   }
 
   openModalDeleteItem(content: any, itemContainer: ItemContainerModel) {
