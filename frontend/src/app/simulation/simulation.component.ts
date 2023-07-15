@@ -567,7 +567,17 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
     this.simulationService.updateAllItems(this.id, this.listItems).subscribe(
       (listaItems => {
+        this.listConnections=[];
         this.listItems = listaItems;
+        for (let i = 0; i < this.listItems.length; i++) {
+          // @ts-ignore
+          for (let j = 0; j < this.listItems[i].connections.length; j++) {
+            // @ts-ignore
+            this.listConnections.push(this.listItems[i].connections[j]);
+          }
+        }
+        this.listConnectionsBackUp = this.listConnections;
+
       }),
       (error => {
         this.router.navigate(['error500']);

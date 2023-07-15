@@ -95,6 +95,8 @@ public class ItemAPIController {
                         itemFromRequest.getDescription(),
                         simulation);
                 savedItemDTO.setItem(savedItem);
+                List<Connection> connections= connectionService.findAllByOriginItem(savedItem);
+                savedItemDTO.setConnections(connections);
                 switch (savedItem.getDescription()) {
                     case "Queue":
                         var queueFromRequest = itemDTO.getQueue();
@@ -213,6 +215,7 @@ public class ItemAPIController {
                         itemDTO.setSource(itemTypesService.findSourceByItem(item.get()));
                         break;
                 }
+                connectionService.deleteAllConnectionsRelatedToAnItem(item.get());
                 itemService.deleteById(idItem);
                 return ResponseEntity.ok(itemDTO);
             }

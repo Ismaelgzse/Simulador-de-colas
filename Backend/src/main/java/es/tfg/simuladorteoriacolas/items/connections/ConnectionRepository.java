@@ -8,4 +8,6 @@ import java.util.List;
 public interface ConnectionRepository extends JpaRepository<Connection,Integer> {
 
     List<Connection> findAllByOriginItem(Item item);
+
+    List<Connection> findAllByDestinationItem(Item item);
 }

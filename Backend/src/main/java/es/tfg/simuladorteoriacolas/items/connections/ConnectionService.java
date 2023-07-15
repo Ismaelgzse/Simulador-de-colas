@@ -38,4 +38,26 @@ public class ConnectionService {
         return connectionRepository.findAllByOriginItem(item);
     }
 
+    public List<Connection> findAllByDestinationItem(Item item){
+        return connectionRepository.findAllByDestinationItem(item);
+    }
+
+
+    public void deleteAllConnectionsRelatedToAnItem(Item item){
+        List<Connection> connectionListOrigin= findAllByOriginItem(item);
+        for (Connection connection:connectionListOrigin) {
+            connection.setOriginItem(null);
+            connection.setDestinationItem(null);
+            var savedConnection=connectionRepository.save(connection);
+            connectionRepository.delete(savedConnection);
+        }
+        List<Connection> connectionListDestination= findAllByDestinationItem(item);
+        for (Connection connection:connectionListDestination) {
+            connection.setOriginItem(null);
+            connection.setDestinationItem(null);
+            var savedConnection=connectionRepository.save(connection);
+            connectionRepository.delete(savedConnection);
+        }
+    }
+
 }
