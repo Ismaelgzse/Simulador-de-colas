@@ -93,7 +93,8 @@ public class ItemAPIController {
                         itemFromRequest.getPositionX(),
                         itemFromRequest.getPositionY(),
                         itemFromRequest.getDescription(),
-                        simulation);
+                        simulation,
+                        itemFromRequest.getSendToStrategy());
                 savedItemDTO.setItem(savedItem);
                 List<Connection> connections= connectionService.findAllByOriginItem(savedItem);
                 savedItemDTO.setConnections(connections);
@@ -151,7 +152,8 @@ public class ItemAPIController {
                         itemFromRequest.getPositionX(),
                         itemFromRequest.getPositionY(),
                         itemFromRequest.getDescription(),
-                        simulation);
+                        simulation,
+                        itemFromRequest.getSendToStrategy());
                 savedItemDTO.setItem(savedItem);
                 switch (savedItem.getDescription()) {
                     case "Queue":
@@ -239,6 +241,7 @@ public class ItemAPIController {
             item.setPositionX(itemFromRequest.getPositionX());
             item.setPositionY(itemFromRequest.getPositionY());
             item.setDescription(itemFromRequest.getDescription());
+            item.setSendToStrategy(itemFromRequest.getSendToStrategy());
             item.setIdSimulation(simulation);
             var savedItem = itemService.save(item);
             if (savedItem.getName().equals("")) {

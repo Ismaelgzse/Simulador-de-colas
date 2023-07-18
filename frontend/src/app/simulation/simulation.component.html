@@ -163,7 +163,8 @@
 </div>
 
 
-<div id="newConnect" class="alertNewConnection">Nueva conexión <i (click)="cancelNewConnection()" type="button" class="fa-solid fa-xmark"></i></div>
+<div id="newConnect" class="alertNewConnection">Nueva conexión <i (click)="cancelNewConnection()" type="button"
+                                                                  class="fa-solid fa-xmark"></i></div>
 <div id="cancelConnect" class="alertCancelConnection">
   <span *ngIf="errorConnection===1">No se puede unir a sí mismo, selecciona otro item.</span>
   <span *ngIf="errorConnection===2">Ya existe una conexión entre ambos items.</span>
@@ -180,25 +181,28 @@
  -->
     <defs>
       <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-        <path d="M0,0 L0,6 L9,3 z" fill="black" />
+        <path d="M0,0 L0,6 L9,3 z" fill="black"/>
       </marker>
     </defs>
-<!--
-    <path
-      id='arrow-line'
-      marker-end='url(#head)'
-      stroke-width='3'
-      fill='none' stroke='black'
-      [attr.d]="'M '+(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+' '+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)"/>
--->
-    <polyline *ngFor="let connection of listConnections;let i=index" [attr.points]="(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+','+(connection.originItem.positionX+100)+','+(connection.destinationItem.positionY+75)+','+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)" style="stroke:black;fill:transparent;stroke-width: 3"  marker-end="url(#arrow)"/>
+    <!--
+        <path
+          id='arrow-line'
+          marker-end='url(#head)'
+          stroke-width='3'
+          fill='none' stroke='black'
+          [attr.d]="'M '+(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+' '+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)"/>
+    -->
+    <polyline *ngFor="let connection of listConnections;let i=index"
+              [attr.points]="(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+','+(connection.originItem.positionX+100)+','+(connection.destinationItem.positionY+75)+','+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)"
+              style="stroke:black;fill:transparent;stroke-width: 3" marker-end="url(#arrow)"/>
 
-    <polyline *ngFor="let connection of listConnections;let i=index" (click)="openModalDeleteConnection(deleteConnection,connection)" [attr.points]="(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+','+(connection.originItem.positionX+100)+','+(connection.destinationItem.positionY+75)+','+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)" style="stroke:transparent;fill:transparent;stroke-width: 37; cursor: pointer"/>
+    <polyline *ngFor="let connection of listConnections;let i=index"
+              (click)="openModalDeleteConnection(deleteConnection,connection)"
+              [attr.points]="(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+','+(connection.originItem.positionX+100)+','+(connection.destinationItem.positionY+75)+','+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)"
+              style="stroke:transparent;fill:transparent;stroke-width: 37; cursor: pointer"/>
 
 
   </svg>
-
-
 
 
   <div *ngIf="blackScreen">
@@ -438,7 +442,8 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancelar</button>
-    <button type="button" class="btn btn-danger" (click)="[modal.dismiss(),deleteConnectionFunction()]">Confirmar</button>
+    <button type="button" class="btn btn-danger" (click)="[modal.dismiss(),deleteConnectionFunction()]">Confirmar
+    </button>
   </div>
 </ng-template>
 
@@ -564,6 +569,28 @@
             </ul>
           </div>
           <span *ngIf="numberProductsSource && numberProductsSource.invalid" class="errorMessage">Debe ser un número o ser Ilimitados</span>
+        </div>
+        <div class="form-group mt-3">
+          <div>
+            <label for="sendToStrategySource" class="col-form-label"></label>
+            Enviar a <span class="asterisk">*</span>
+            <div class="input-group mt-2">
+              <span class="strategy">Strategia:</span>
+              <select id="sendToStrategySource" class="form-select strategySelect"
+                      formControlName="sendToStrategySource">
+                <option selected disabled value="">Selecciona una estrategia</option>
+                <option [value]="strategy" *ngFor="let strategy of listSendToStrategies">{{strategy}}</option>
+              </select>
+            </div>
+            <div *ngIf="showConnections" formGroupName="percentagesSource" class="connections">
+              <div class="connectionsTitle">Conexiones:</div>
+              <div class="interPercenteges" *ngFor="let connection of itemContainerModal.connections; let i= index;">
+                <span class="strategy">{{connection.destinationItem.name}}: </span>
+                <input type="number" class="form-control inputPercentage" [formControlName]="i"> %
+              </div>
+              <span *ngIf="(percentagesSource && percentagesSource.invalid) || (sendToStrategySource && sendToStrategySource.invalid)" class="errorMessage">La suma total de todos los porcentajes debe ser 100%</span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">

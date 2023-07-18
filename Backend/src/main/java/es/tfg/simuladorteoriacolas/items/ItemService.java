@@ -50,7 +50,7 @@ public class ItemService {
         return itemRepository.findAllByIdSimulation(simulation);
     }
 
-    public Item save(Integer id, String name,Integer positionX,Integer positionY,String description,Simulation simulation){
+    public Item save(Integer id, String name,Integer positionX,Integer positionY,String description,Simulation simulation,String strategy){
         Item item;
         if (id!=null){
             item= findById(id).orElseThrow();
@@ -63,6 +63,7 @@ public class ItemService {
         item.setPositionX(positionX);
         item.setPositionY(positionY);
         item.setIdSimulation(simulation);
+        item.setSendToStrategy(strategy);
         return itemRepository.save(item);
 
     }

@@ -14,6 +14,84 @@ import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {isNumber} from "@ng-bootstrap/ng-bootstrap/util/util";
 import {ConnectionModel} from "./Connection/connection.model";
 
+function totalAmount(max: number, component: any): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    if (component) {
+      if (component.editSourceForm) {
+        if (component.editSourceForm.controls) {
+          if (component.editSourceForm.controls.sendToStrategySource.value === "Porcentaje") {
+            let total = 0;
+            let lengthControl = Object.keys(control.value)
+              .map(key => 0)
+              .reduce((a, b) => a + 1, 0);
+
+            for (let i = 0; i < lengthControl; i++) {
+              if (Number(control.value[i])) {
+                if (parseFloat(control.value[i]) > 100 || parseFloat(control.value[i]) < 0) {
+                  return {'invalid': true};
+                }
+              } else {
+                return {'invalid': true};
+              }
+            }
+            const totalAmount = Object.keys(control.value)
+              .map(key => parseFloat(control.value[key]) || 0)
+              .reduce((a, b) => a + b, 0);
+
+            if (totalAmount < 100 && lengthControl > 1) {
+              let final = control.value[lengthControl - 1]
+              final = totalAmount - final
+              component.editSourceForm.controls['percentagesSource'].controls[lengthControl - 1].setValue(max - final)
+            }
+            if (totalAmount > 100) {
+              let final = control.value[lengthControl - 1]
+              final = totalAmount - final
+              component.editSourceForm.controls['percentagesSource'].controls[lengthControl - 1].setValue(max - final)
+            }
+            component.editSourceForm.controls['sendToStrategySource'].setErrors(null);
+            return null;
+          }
+        }
+      }
+    }
+    return null;
+  };
+}
+
+function totalAmountStrategy(max: number, component: any): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    let input = control.value;
+    if (input === "Porcentaje") {
+      component.showConnections = true;
+      if (component) {
+        if (component.editSourceForm) {
+          if (component.editSourceForm.controls) {
+            if (component.editSourceForm.controls.percentagesSource.value) {
+              const totalAmount = Object.keys(component.editSourceForm.controls.percentagesSource.value)
+                .map(key => parseFloat(component.editSourceForm.controls.percentagesSource.value[key]) || 0)
+                .reduce((a, b) => a + b, 0);
+
+              return totalAmount != max ? {'invalid': true} : null;
+            }
+          }
+        }
+      }
+    } else {
+      component.showConnections = false;
+      if (component) {
+        if (component.editSourceForm) {
+          if (component.editSourceForm.controls) {
+            if (component.editSourceForm.controls.percentagesSource.value) {
+              component.editSourceForm.controls['percentagesSource'].setErrors(null);
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+}
+
 @Component({
   selector: 'app-simulation',
   templateUrl: './simulation.component.html',
@@ -22,10 +100,13 @@ import {ConnectionModel} from "./Connection/connection.model";
 })
 
 export class SimulationComponent implements AfterViewInit, OnInit {
+  showConnections: boolean;
+  inputControls: FormControl[] = [];
+  listSendToStrategies = ["Aleatorio", "Primera conexión disponible", "Porcentaje"];
   //0: no error
   //1: itself
   errorConnection: number;
-  connectionModal:ConnectionModel;
+  connectionModal: ConnectionModel;
   listConnections: ConnectionModel[]
   listConnectionsBackUp: ConnectionModel[]
   connectionInfo: ConnectionModel;
@@ -61,7 +142,10 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   editSourceForm = new FormGroup({
     nameSource: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), (control) => this.validateName(control, this.listNames)])),
     interArrivalTimeSource: new FormControl('', Validators.compose([Validators.required, (control) => this.validateProbFunc(control, this)])),
-    numberProductsSource: new FormControl('', Validators.compose([Validators.required, this.validateFormatNumberProducts]))
+    numberProductsSource: new FormControl('', Validators.compose([Validators.required, this.validateFormatNumberProducts])),
+    sendToStrategySource: new FormControl('', Validators.compose([Validators.required, totalAmountStrategy(100, this)])),
+    percentagesSource: new FormGroup({}, totalAmount(100, this))
+    //new FormControl('',Validators.compose([Validators.required, (control) => this.validatePercentages(control, this.itemContainerModal)]))
   })
 
   editServerForm = new FormGroup({
@@ -85,6 +169,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit(): void {
+    this.showConnections = true
     this.errorConnection = 0;
     this.correctSinkShown = false;
     this.correctSourceSown = false;
@@ -117,14 +202,15 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       description: "",
       name: "",
       positionX: 0,
-      positionY: 0
+      positionY: 0,
+      sendToStrategy: "Random"
     };
     this.connectionInfo = {
       originItem: this.itemInfo,
       destinationItem: this.itemInfo,
       percentage: 0
     }
-    this.connectionModal=this.connectionInfo
+    this.connectionModal = this.connectionInfo
     this.itemContainerInfo = {
       item: this.itemInfo
     };
@@ -251,6 +337,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               this.itemContainerInfo.sink = this.sinkInfo;
               break;
           }
+          this.itemContainerInfo.item.sendToStrategy = "Aleatorio"
           // @ts-ignore
           this.itemContainerInfo.item.positionX = event.pageX - document.getElementById(data).offsetWidth * 1.7;
           // @ts-ignore
@@ -303,8 +390,8 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       alertMessage.classList.toggle('alertNewConnectionAlt')
       let alertErrorMessage = document.getElementById("cancelConnect");
       // @ts-ignore
-      let listClasses=alertErrorMessage.classList;
-      if (listClasses.length>1){
+      let listClasses = alertErrorMessage.classList;
+      if (listClasses.length > 1) {
         // @ts-ignore
         alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
       }
@@ -360,27 +447,25 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     if (this.listItemConnection.length != 0) {
       if (itemContainer.item.name === this.listItemConnection[0].name && itemContainer.item.idItem === this.listItemConnection[0].idItem) {
         // @ts-ignore
-        if (this.errorConnection!=1 || this.errorConnection!=2){
+        if (this.errorConnection != 1 || this.errorConnection != 2) {
           //Mostrar error de que no es posible unirse a si mismo
           this.errorConnection = 1;
           let alertErrorMessage = document.getElementById("cancelConnect");
           // @ts-ignore
           alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
-        }
-        else if (this.errorConnection===2){
-          this.errorConnection=1;
+        } else if (this.errorConnection === 2) {
+          this.errorConnection = 1;
         }
       } else if (this.alreadyConnected(this.listItemConnection[0], itemContainer)) {
         // @ts-ignore
-        if (this.errorConnection!=1 || this.errorConnection!=2){
+        if (this.errorConnection != 1 || this.errorConnection != 2) {
           //Mostrar error de que no es posible unirse a si mismo
           this.errorConnection = 1;
           let alertErrorMessage = document.getElementById("cancelConnect");
           // @ts-ignore
           alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
-        }
-        else if (this.errorConnection===1){
-          this.errorConnection=2;
+        } else if (this.errorConnection === 1) {
+          this.errorConnection = 2;
         }
       } else {
         this.listItemConnection.push(itemContainer.item)
@@ -396,8 +481,8 @@ export class SimulationComponent implements AfterViewInit, OnInit {
             alertMessage.classList.toggle('alertNewConnectionAlt');
             let alertErrorMessage = document.getElementById("cancelConnect");
             // @ts-ignore
-            let listClasses=alertErrorMessage.classList;
-            if (listClasses.length>1){
+            let listClasses = alertErrorMessage.classList;
+            if (listClasses.length > 1) {
               // @ts-ignore
               alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
             }
@@ -482,10 +567,10 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
   }
 
-  deleteConnectionFunction(){
-    if (this.connectionModal.idConnect){
+  deleteConnectionFunction() {
+    if (this.connectionModal.idConnect) {
       this.simulationService.deleteConnection(this.connectionModal.idConnect).subscribe(
-        (connection=>{
+        (connection => {
           this.ngOnInit();
         }),
         (error => this.router.navigate(['error500']))
@@ -493,9 +578,9 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
   }
 
-  openModalDeleteConnection(content:any,connection:ConnectionModel){
+  openModalDeleteConnection(content: any, connection: ConnectionModel) {
     this.connectionModal = connection;
-    this.modalService.open(content,{ariaLabelledBy: 'modal-basic-title'});
+    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
   openModalDeleteItem(content: any, itemContainer: ItemContainerModel) {
@@ -507,6 +592,17 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
+  addInput(i: number) {
+    const control = new FormControl('');
+    (this.editSourceForm.get('percentagesSource') as FormGroup).addControl(i.toString(), control)
+    this.inputControls.push(control)
+  }
+
+  deleteInput(i: number) {
+    (this.editSourceForm.get('percentagesSource') as FormGroup).removeControl(i.toString());
+    this.inputControls.splice(0, 1);
+  }
+
   openModalEdit(content: any, itemContainer: ItemContainerModel) {
     this.itemContainerModal = itemContainer;
     for (let i = 0; i < this.listItems.length; i++) {
@@ -514,14 +610,28 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         this.listNames.push(this.listItems[i].item.name)
       }
     }
+    let lengthInputsControls = this.inputControls.length;
+    // @ts-ignore
+    for (let i = 0; i < lengthInputsControls; i++) {
+      this.deleteInput(i);
+    }
     switch (this.itemContainerModal.item.description) {
       case "Source":
         this.editSourceForm.patchValue({
           nameSource: this.itemContainerModal.item.name,
           // @ts-ignore
           numberProductsSource: this.itemContainerModal.source?.numberProducts,
-          interArrivalTimeSource: this.itemContainerModal.source?.interArrivalTime
+          interArrivalTimeSource: this.itemContainerModal.source?.interArrivalTime,
+          sendToStrategySource: this.itemContainerModal.item.sendToStrategy
         });
+        if (itemContainer.connections && itemContainer.connections.length > 0) {
+          // @ts-ignore
+          for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
+            this.addInput(i);
+            // @ts-ignore
+            this.editSourceForm.controls['percentagesSource'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
+          }
+        }
         break;
       case "Sink":
         this.editSinkForm.patchValue({
@@ -567,7 +677,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
     this.simulationService.updateAllItems(this.id, this.listItems).subscribe(
       (listaItems => {
-        this.listConnections=[];
+        this.listConnections = [];
         this.listItems = listaItems;
         for (let i = 0; i < this.listItems.length; i++) {
           // @ts-ignore
@@ -612,6 +722,14 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
   get interArrivalTimeSource() {
     return this.editSourceForm.get('interArrivalTimeSource');
+  }
+
+  get percentagesSource() {
+    return this.editSourceForm.get('percentagesSource')
+  }
+
+  get sendToStrategySource() {
+    return this.editSourceForm.get('sendToStrategySource');
   }
 
   //Form edit sink
@@ -759,6 +877,26 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       return true;
     }
     return false;
+  }
+
+  validatePercentages(control: AbstractControl, itemContainer: ItemContainerModel) {
+    let input = control.value;
+    if (itemContainer) {
+      if (itemContainer.connections && itemContainer.connections.length > 0) {
+        let totalAmount = 0;
+        for (let i = 0; i < itemContainer.connections.length; i++) {
+          totalAmount = totalAmount + itemContainer.connections[i].percentage;
+        }
+        totalAmount = totalAmount + input
+        if (totalAmount != 100) {
+          return {invalidFormat: true};
+        }
+        control.setValue(0)
+
+      }
+      return null;
+    }
+    return null;
   }
 
   validateProbFunc(control: AbstractControl, component: any) {
@@ -936,6 +1074,14 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           this.itemContainerModal.source.numberProducts = this.editSourceForm.value.numberProductsSource;
           // @ts-ignore
           this.itemContainerModal.source.interArrivalTime = this.editSourceForm.value.interArrivalTimeSource;
+          // @ts-ignore
+          this.itemContainerModal.item.sendToStrategy = this.editSourceForm.value.sendToStrategySource;
+          if (this.itemContainerModal.connections){
+            for (let i=0;i<this.itemContainerModal.connections?.length;i++){
+              // @ts-ignore
+              this.itemContainerModal.connections[i].percentage=this.editSourceForm.value.percentagesSource[i]
+            }
+          }
           break;
         case "Sink":
           // @ts-ignore

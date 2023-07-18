@@ -20,6 +20,8 @@ public class Item {
 
     private String description;
 
+    private String sendToStrategy;
+
     @ManyToOne
     private Simulation idSimulation;
 
@@ -43,6 +45,13 @@ public class Item {
         this.description = description;
     }
 
+    public String getSendToStrategy() {
+        return sendToStrategy;
+    }
+
+    public void setSendToStrategy(String sendToStrategy) {
+        this.sendToStrategy = sendToStrategy;
+    }
 
     public Integer getPositionX() {
         return positionX;
