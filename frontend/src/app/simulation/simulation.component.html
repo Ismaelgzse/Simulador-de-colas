@@ -571,25 +571,27 @@
           <span *ngIf="numberProductsSource && numberProductsSource.invalid" class="errorMessage">Debe ser un número o ser Ilimitados</span>
         </div>
         <div class="form-group mt-3">
-          <div>
-            <label for="sendToStrategySource" class="col-form-label"></label>
-            Enviar a <span class="asterisk">*</span>
-            <div class="input-group mt-2">
-              <span class="strategy">Strategia:</span>
-              <select id="sendToStrategySource" class="form-select strategySelect"
-                      formControlName="sendToStrategySource">
-                <option selected disabled value="">Selecciona una estrategia</option>
-                <option [value]="strategy" *ngFor="let strategy of listSendToStrategies">{{strategy}}</option>
-              </select>
+          <label for="sendToStrategySource" class="col-form-label"></label>
+          Enviar a <span class="asterisk">*</span>
+          <div class="input-group mt-2">
+            <span class="strategy">Strategia:</span>
+            <select id="sendToStrategySource" class="form-select strategySelect"
+                    formControlName="sendToStrategySource">
+              <option selected disabled value="">Selecciona una estrategia</option>
+              <option [value]="strategy" *ngFor="let strategy of listSendToStrategies">{{strategy}}</option>
+            </select>
+          </div>
+          <div formGroupName="percentagesSource" class="connections">
+            <div class="connectionsTitle">Conexiones:</div>
+            <div class="interPercenteges" *ngFor="let connection of itemContainerModal.connections; let i= index;">
+              <span class="strategy">{{connection.destinationItem.name}}: </span>
+              <input *ngIf="showConnections" type="number" class="form-control inputPercentage" [formControlName]="i">
+              <input *ngIf="!showConnections" type="number" class="form-control inputPercentage" placeholder="X"
+                     disabled> <span *ngIf="showConnections"> %</span>
             </div>
-            <div *ngIf="showConnections" formGroupName="percentagesSource" class="connections">
-              <div class="connectionsTitle">Conexiones:</div>
-              <div class="interPercenteges" *ngFor="let connection of itemContainerModal.connections; let i= index;">
-                <span class="strategy">{{connection.destinationItem.name}}: </span>
-                <input type="number" class="form-control inputPercentage" [formControlName]="i"> %
-              </div>
-              <span *ngIf="(percentagesSource && percentagesSource.invalid) || (sendToStrategySource && sendToStrategySource.invalid)" class="errorMessage">La suma total de todos los porcentajes debe ser 100%</span>
-            </div>
+            <span
+              *ngIf="(percentagesSource && percentagesSource.invalid) || (sendToStrategySource && sendToStrategySource.invalid)"
+              class="errorMessage">La suma total de todos los porcentajes debe ser 100%</span>
           </div>
         </div>
       </div>
@@ -689,6 +691,30 @@
           <span *ngIf="queueDiscipline && queueDiscipline.invalid"
                 class="errorMessage">Debe ser Fifo, Lifo o Random.</span>
         </div>
+        <div class="form-group mt-3">
+          <label for="sendToStrategyQueue" class="col-form-label"></label>
+          Enviar a <span class="asterisk">*</span>
+          <div class="input-group mt-2">
+            <span class="strategy">Strategia:</span>
+            <select id="sendToStrategyQueue" class="form-select strategySelect"
+                    formControlName="sendToStrategyQueue">
+              <option selected disabled value="">Selecciona una estrategia</option>
+              <option [value]="strategy" *ngFor="let strategy of listSendToStrategies">{{strategy}}</option>
+            </select>
+          </div>
+          <div formGroupName="percentagesQueue" class="connections">
+            <div class="connectionsTitle">Conexiones:</div>
+            <div class="interPercenteges" *ngFor="let connection of itemContainerModal.connections; let i= index;">
+              <span class="strategy">{{connection.destinationItem.name}}: </span>
+              <input *ngIf="showConnections" type="number" class="form-control inputPercentage" [formControlName]="i">
+              <input *ngIf="!showConnections" type="number" class="form-control inputPercentage" placeholder="X"
+                     disabled> <span *ngIf="showConnections"> %</span>
+            </div>
+            <span
+              *ngIf="(percentagesQueue && percentagesQueue.invalid) || (sendToStrategyQueue && sendToStrategyQueue.invalid)"
+              class="errorMessage">La suma total de todos los porcentajes debe ser 100%</span>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal"
@@ -748,7 +774,30 @@
           </div>
           <span *ngIf="cycletimeServer && cycletimeServer.invalid"
                 class="errorMessage">No coincide con ninguna opción.</span>
-
+        </div>
+        <div class="form-group mt-3">
+          <label for="sendToStrategyServer" class="col-form-label"></label>
+          Enviar a <span class="asterisk">*</span>
+          <div class="input-group mt-2">
+            <span class="strategy">Strategia:</span>
+            <select id="sendToStrategyServer" class="form-select strategySelect"
+                    formControlName="sendToStrategyServer">
+              <option selected disabled value="">Selecciona una estrategia</option>
+              <option [value]="strategy" *ngFor="let strategy of listSendToStrategies">{{strategy}}</option>
+            </select>
+          </div>
+          <div formGroupName="percentagesServer" class="connections">
+            <div class="connectionsTitle">Conexiones:</div>
+            <div class="interPercenteges" *ngFor="let connection of itemContainerModal.connections; let i= index;">
+              <span class="strategy">{{connection.destinationItem.name}}: </span>
+              <input *ngIf="showConnections" type="number" class="form-control inputPercentage" [formControlName]="i">
+              <input *ngIf="!showConnections" type="number" class="form-control inputPercentage" placeholder="X"
+                     disabled> <span *ngIf="showConnections"> %</span>
+            </div>
+            <span
+              *ngIf="(percentagesServer && percentagesServer.invalid) || (sendToStrategyServer && sendToStrategyServer.invalid)"
+              class="errorMessage">La suma total de todos los porcentajes debe ser 100%</span>
+          </div>
         </div>
       </div>
       <div class="modal-footer mt-3">

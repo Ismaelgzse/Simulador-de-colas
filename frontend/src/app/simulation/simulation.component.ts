@@ -14,7 +14,171 @@ import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {isNumber} from "@ng-bootstrap/ng-bootstrap/util/util";
 import {ConnectionModel} from "./Connection/connection.model";
 
-function totalAmount(max: number, component: any): ValidatorFn {
+function totalAmountQueue(max: number, component: any): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    if (component) {
+      if (component.editQueueForm) {
+        if (component.editQueueForm.controls) {
+          if (component.editQueueForm.controls.sendToStrategyQueue.value === "Porcentaje") {
+            let total = 0;
+            let lengthControl = Object.keys(control.value)
+              .map(key => 0)
+              .reduce((a, b) => a + 1, 0);
+
+            for (let i = 0; i < lengthControl; i++) {
+              if (Number(control.value[i])) {
+                if (parseFloat(control.value[i]) > 100 || parseFloat(control.value[i]) < 0) {
+                  return {'invalid': true};
+                }
+              } else {
+                return {'invalid': true};
+              }
+            }
+            const totalAmount = Object.keys(control.value)
+              .map(key => parseFloat(control.value[key]) || 0)
+              .reduce((a, b) => a + b, 0);
+
+            if (totalAmount < 100 && lengthControl > 1) {
+              let final = control.value[lengthControl - 1]
+              final = totalAmount - final
+              component.editQueueForm.controls['percentagesQueue'].controls[lengthControl - 1].setValue(max - final)
+            }
+            if (totalAmount > 100) {
+              let final = control.value[lengthControl - 1]
+              final = totalAmount - final
+              component.editQueueForm.controls['percentagesQueue'].controls[lengthControl - 1].setValue(max - final)
+            }
+            if (totalAmount!=100 && lengthControl===1){
+              return {'invalid': true};
+            }
+            component.editQueueForm.controls['sendToStrategyQueue'].setErrors(null);
+            return null;
+          }
+        }
+      }
+    }
+    return null;
+  };
+}
+
+function totalAmountStrategyQueue(max: number, component: any): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    let input = control.value;
+    if (input === "Porcentaje") {
+      component.showConnections = true;
+      if (component) {
+        if (component.editQueueForm) {
+          if (component.editQueueForm.controls) {
+            if (component.editQueueForm.controls.percentagesQueue.value) {
+              const totalAmount = Object.keys(component.editQueueForm.controls.percentagesQueue.value)
+                .map(key => parseFloat(component.editQueueForm.controls.percentagesQueue.value[key]) || 0)
+                .reduce((a, b) => a + b, 0);
+
+              return totalAmount != max ? {'invalid': true} : null;
+            }
+          }
+        }
+      }
+    } else {
+      component.showConnections = false;
+      if (component) {
+        if (component.editQueueForm) {
+          if (component.editQueueForm.controls) {
+            if (component.editQueueForm.controls.percentagesQueue.value) {
+              component.editQueueForm.controls['percentagesQueue'].setErrors(null);
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+}
+
+
+function totalAmountServer(max: number, component: any): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    if (component) {
+      if (component.editServerForm) {
+        if (component.editServerForm.controls) {
+          if (component.editServerForm.controls.sendToStrategyServer.value === "Porcentaje") {
+            let total = 0;
+            let lengthControl = Object.keys(control.value)
+              .map(key => 0)
+              .reduce((a, b) => a + 1, 0);
+
+            for (let i = 0; i < lengthControl; i++) {
+              if (Number(control.value[i])) {
+                if (parseFloat(control.value[i]) > 100 || parseFloat(control.value[i]) < 0) {
+                  return {'invalid': true};
+                }
+              } else {
+                return {'invalid': true};
+              }
+            }
+            const totalAmount = Object.keys(control.value)
+              .map(key => parseFloat(control.value[key]) || 0)
+              .reduce((a, b) => a + b, 0);
+
+            if (totalAmount < 100 && lengthControl > 1) {
+              let final = control.value[lengthControl - 1]
+              final = totalAmount - final
+              component.editServerForm.controls['percentagesServer'].controls[lengthControl - 1].setValue(max - final)
+            }
+            if (totalAmount > 100) {
+              let final = control.value[lengthControl - 1]
+              final = totalAmount - final
+              component.editServerForm.controls['percentagesServer'].controls[lengthControl - 1].setValue(max - final)
+            }
+            if (totalAmount!=100 && lengthControl===1){
+              return {'invalid': true};
+            }
+            component.editServerForm.controls['sendToStrategyServer'].setErrors(null);
+            return null;
+          }
+        }
+      }
+    }
+    return null;
+  };
+}
+
+function totalAmountStrategyServer(max: number, component: any): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    let input = control.value;
+    if (input === "Porcentaje") {
+      component.showConnections = true;
+      if (component) {
+        if (component.editServerForm) {
+          if (component.editServerForm.controls) {
+            if (component.editServerForm.controls.percentagesServer.value) {
+              const totalAmount = Object.keys(component.editServerForm.controls.percentagesServer.value)
+                .map(key => parseFloat(component.editServerForm.controls.percentagesServer.value[key]) || 0)
+                .reduce((a, b) => a + b, 0);
+
+              return totalAmount != max ? {'invalid': true} : null;
+            }
+          }
+        }
+      }
+    } else {
+      component.showConnections = false;
+      if (component) {
+        if (component.editServerForm) {
+          if (component.editServerForm.controls) {
+            if (component.editServerForm.controls.percentagesServer.value) {
+              component.editServerForm.controls['percentagesServer'].setErrors(null);
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+}
+
+
+function totalAmountSource(max: number, component: any): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     if (component) {
       if (component.editSourceForm) {
@@ -43,10 +207,14 @@ function totalAmount(max: number, component: any): ValidatorFn {
               final = totalAmount - final
               component.editSourceForm.controls['percentagesSource'].controls[lengthControl - 1].setValue(max - final)
             }
+
             if (totalAmount > 100) {
               let final = control.value[lengthControl - 1]
               final = totalAmount - final
               component.editSourceForm.controls['percentagesSource'].controls[lengthControl - 1].setValue(max - final)
+            }
+            if (totalAmount!=100 && lengthControl===1){
+              return {'invalid': true};
             }
             component.editSourceForm.controls['sendToStrategySource'].setErrors(null);
             return null;
@@ -58,7 +226,7 @@ function totalAmount(max: number, component: any): ValidatorFn {
   };
 }
 
-function totalAmountStrategy(max: number, component: any): ValidatorFn {
+function totalAmountStrategySource(max: number, component: any): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     let input = control.value;
     if (input === "Porcentaje") {
@@ -143,21 +311,24 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     nameSource: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), (control) => this.validateName(control, this.listNames)])),
     interArrivalTimeSource: new FormControl('', Validators.compose([Validators.required, (control) => this.validateProbFunc(control, this)])),
     numberProductsSource: new FormControl('', Validators.compose([Validators.required, this.validateFormatNumberProducts])),
-    sendToStrategySource: new FormControl('', Validators.compose([Validators.required, totalAmountStrategy(100, this)])),
-    percentagesSource: new FormGroup({}, totalAmount(100, this))
-    //new FormControl('',Validators.compose([Validators.required, (control) => this.validatePercentages(control, this.itemContainerModal)]))
+    sendToStrategySource: new FormControl('', Validators.compose([Validators.required, totalAmountStrategySource(100, this)])),
+    percentagesSource: new FormGroup({}, totalAmountSource(100, this))
   })
 
   editServerForm = new FormGroup({
     nameServer: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), (control) => this.validateName(control, this.listNames)])),
     setUpTimeServer: new FormControl('', Validators.compose([Validators.required, Validators.min(0)])),
-    cycletimeServer: new FormControl('', Validators.compose([Validators.required, (control) => this.validateProbFunc(control, this)]))
+    cycletimeServer: new FormControl('', Validators.compose([Validators.required, (control) => this.validateProbFunc(control, this)])),
+    sendToStrategyServer: new FormControl('', Validators.compose([Validators.required, totalAmountStrategyServer(100, this)])),
+    percentagesServer: new FormGroup({}, totalAmountServer(100, this))
   })
 
   editQueueForm = new FormGroup({
     nameQueue: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), (control) => this.validateName(control, this.listNames)])),
     capacityQueue: new FormControl('', Validators.compose([Validators.required, this.validateFormatNumberProducts])),
-    queueDiscipline: new FormControl('', Validators.compose([Validators.required, this.validateQueueDiscipline]))
+    queueDiscipline: new FormControl('', Validators.compose([Validators.required, this.validateQueueDiscipline])),
+    sendToStrategyQueue: new FormControl('', Validators.compose([Validators.required, totalAmountStrategyQueue(100, this)])),
+    percentagesQueue: new FormGroup({}, totalAmountQueue(100, this))
   })
 
   editSinkForm = new FormGroup({
@@ -370,6 +541,75 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           }
         }
       }
+    }
+  }
+
+  editItem() {
+    if (this.itemContainerModal.item.idItem) {
+      switch (this.itemContainerModal.item.description) {
+        case "Source":
+          this.itemContainerModal.item.name = <string>this.editSourceForm.value.nameSource;
+          // @ts-ignore
+          this.itemContainerModal.source.numberProducts = this.editSourceForm.value.numberProductsSource;
+          // @ts-ignore
+          this.itemContainerModal.source.interArrivalTime = this.editSourceForm.value.interArrivalTimeSource;
+          // @ts-ignore
+          this.itemContainerModal.item.sendToStrategy = this.editSourceForm.value.sendToStrategySource;
+          if (this.itemContainerModal.connections){
+            for (let i=0;i<this.itemContainerModal.connections?.length;i++){
+              // @ts-ignore
+              this.itemContainerModal.connections[i].percentage=this.editSourceForm.value.percentagesSource[i];
+              (this.editSourceForm.get('percentagesSource') as FormGroup).removeControl(i.toString());
+            }
+          }
+          break;
+        case "Sink":
+          // @ts-ignore
+          this.itemContainerModal.item.name = this.editSinkForm.value.nameSink;
+          break;
+        case "Server":
+          // @ts-ignore
+          this.itemContainerModal.item.name = this.editServerForm.value.nameServer;
+          // @ts-ignore
+          this.itemContainerModal.server.setupTime = this.editServerForm.value.setUpTimeServer;
+          // @ts-ignore
+          this.itemContainerModal.server.cicleTime = this.editServerForm.value.cycletimeServer;
+          // @ts-ignore
+          this.itemContainerModal.item.sendToStrategy = this.editServerForm.value.sendToStrategyServer;
+          if (this.itemContainerModal.connections){
+            for (let i=0;i<this.itemContainerModal.connections?.length;i++){
+              // @ts-ignore
+              this.itemContainerModal.connections[i].percentage=this.editServerForm.value.percentagesServer[i];
+              (this.editServerForm.get('percentagesServer') as FormGroup).removeControl(i.toString());
+            }
+          }
+          break;
+        case "Queue":
+          // @ts-ignore
+          this.itemContainerModal.item.name = this.editQueueForm.value.nameQueue;
+          // @ts-ignore
+          this.itemContainerModal.queue.disciplineQueue = this.editQueueForm.value.queueDiscipline;
+          // @ts-ignore
+          this.itemContainerModal.queue.capacityQueue = this.editQueueForm.value.capacityQueue;
+          // @ts-ignore
+          this.itemContainerModal.item.sendToStrategy = this.editQueueForm.value.sendToStrategyQueue;
+          if (this.itemContainerModal.connections){
+            for (let i=0;i<this.itemContainerModal.connections?.length;i++){
+              // @ts-ignore
+              this.itemContainerModal.connections[i].percentage=this.editQueueForm.value.percentagesQueue[i];
+              (this.editQueueForm.get('percentagesQueue') as FormGroup).removeControl(i.toString());
+            }
+          }
+      }
+      this.simulationService.updateItem(this.id, this.itemContainerModal.item.idItem, this.itemContainerModal).subscribe(
+        (itemContainer => {
+          this.ngOnInit();
+        }),
+        (error => {
+          this.router.navigate(['error500']);
+        })
+      )
+
     }
   }
 
@@ -592,14 +832,23 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
-  addInput(i: number) {
+  addInput(i: number,description:string) {
     const control = new FormControl('');
-    (this.editSourceForm.get('percentagesSource') as FormGroup).addControl(i.toString(), control)
+    switch(description){
+      case "Source":
+        (this.editSourceForm.get('percentagesSource') as FormGroup).addControl(i.toString(), control);
+        break;
+      case "Server":
+        (this.editServerForm.get('percentagesServer') as FormGroup).addControl(i.toString(), control);
+        break;
+      case "Queue":
+        (this.editQueueForm.get('percentagesQueue') as FormGroup).addControl(i.toString(), control);
+        break;
+    }
     this.inputControls.push(control)
   }
 
   deleteInput(i: number) {
-    (this.editSourceForm.get('percentagesSource') as FormGroup).removeControl(i.toString());
     this.inputControls.splice(0, 1);
   }
 
@@ -609,6 +858,24 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       if (this.listItems[i].item.name != this.itemContainerModal.item.name) {
         this.listNames.push(this.listItems[i].item.name)
       }
+    }
+    let lengthControlSource = Object.keys((this.editSourceForm.get('percentagesSource') as FormGroup).controls)
+      .map(key => 0)
+      .reduce((a, b) => a + 1, 0);
+    for (let i=0;i<lengthControlSource;i++){
+      (this.editSourceForm.get('percentagesSource') as FormGroup).removeControl(i.toString());
+    }
+    let lengthControlServer = Object.keys((this.editServerForm.get('percentagesServer') as FormGroup).controls)
+      .map(key => 0)
+      .reduce((a, b) => a + 1, 0);
+    for (let i=0;i<lengthControlServer;i++){
+      (this.editServerForm.get('percentagesServer') as FormGroup).removeControl(i.toString());
+    }
+    let lengthControlQueue = Object.keys((this.editQueueForm.get('percentagesQueue') as FormGroup).controls)
+      .map(key => 0)
+      .reduce((a, b) => a + 1, 0);
+    for (let i=0;i<lengthControlQueue;i++){
+      (this.editQueueForm.get('percentagesQueue') as FormGroup).removeControl(i.toString());
     }
     let lengthInputsControls = this.inputControls.length;
     // @ts-ignore
@@ -627,7 +894,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         if (itemContainer.connections && itemContainer.connections.length > 0) {
           // @ts-ignore
           for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
-            this.addInput(i);
+            this.addInput(i,"Source");
             // @ts-ignore
             this.editSourceForm.controls['percentagesSource'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
           }
@@ -642,15 +909,34 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         this.editServerForm.patchValue({
           nameServer: this.itemContainerModal.item.name,
           setUpTimeServer: this.itemContainerModal.server?.setupTime,
-          cycletimeServer: this.itemContainerModal.server?.cicleTime
-        })
+          cycletimeServer: this.itemContainerModal.server?.cicleTime,
+          sendToStrategyServer: this.itemContainerModal.item.sendToStrategy
+        });
+        if (itemContainer.connections && itemContainer.connections.length > 0) {
+          // @ts-ignore
+          for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
+            this.addInput(i,"Server");
+            // @ts-ignore
+            this.editServerForm.controls['percentagesServer'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
+          }
+        }
         break;
       case "Queue":
         this.editQueueForm.patchValue({
           nameQueue: this.itemContainerModal.item.name,
           capacityQueue: this.itemContainerModal.queue?.capacityQueue,
-          queueDiscipline: this.itemContainerModal.queue?.disciplineQueue
+          queueDiscipline: this.itemContainerModal.queue?.disciplineQueue,
+          sendToStrategyQueue: this.itemContainerModal.item.sendToStrategy
         })
+        if (itemContainer.connections && itemContainer.connections.length > 0){
+          // @ts-ignore
+          for (let i=0;i<this.itemContainerModal.connections?.length;i++){
+            // @ts-ignore
+            this.addInput(i,"Queue");
+            // @ts-ignore
+            this.editQueueForm.controls['percentagesQueue'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
+          }
+        }
         break;
     }
 
@@ -750,6 +1036,14 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     return this.editServerForm.get('cycletimeServer');
   }
 
+  get sendToStrategyServer(){
+    return this.editServerForm.get('sendToStrategyServer');
+  }
+
+  get percentagesServer(){
+    return this.editServerForm.get('percentagesServer');
+  }
+
   //Form edit queue
   get nameQueue() {
     return this.editQueueForm.get('nameQueue');
@@ -761,6 +1055,14 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
   get queueDiscipline() {
     return this.editQueueForm.get('queueDiscipline');
+  }
+
+  get percentagesQueue(){
+    return this.editQueueForm.get('percentagesQueue');
+  }
+
+  get sendToStrategyQueue(){
+    return this.editQueueForm.get('sendToStrategyQueue');
   }
 
   setNumberProducts(option: string) {
@@ -1063,57 +1365,4 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
     return {invalidFormat: true};
   }
-
-
-  editItem() {
-    if (this.itemContainerModal.item.idItem) {
-      switch (this.itemContainerModal.item.description) {
-        case "Source":
-          this.itemContainerModal.item.name = <string>this.editSourceForm.value.nameSource;
-          // @ts-ignore
-          this.itemContainerModal.source.numberProducts = this.editSourceForm.value.numberProductsSource;
-          // @ts-ignore
-          this.itemContainerModal.source.interArrivalTime = this.editSourceForm.value.interArrivalTimeSource;
-          // @ts-ignore
-          this.itemContainerModal.item.sendToStrategy = this.editSourceForm.value.sendToStrategySource;
-          if (this.itemContainerModal.connections){
-            for (let i=0;i<this.itemContainerModal.connections?.length;i++){
-              // @ts-ignore
-              this.itemContainerModal.connections[i].percentage=this.editSourceForm.value.percentagesSource[i]
-            }
-          }
-          break;
-        case "Sink":
-          // @ts-ignore
-          this.itemContainerModal.item.name = this.editSinkForm.value.nameSink;
-          break;
-        case "Server":
-          // @ts-ignore
-          this.itemContainerModal.item.name = this.editServerForm.value.nameServer;
-          // @ts-ignore
-          this.itemContainerModal.server.setupTime = this.editServerForm.value.setUpTimeServer;
-          // @ts-ignore
-          this.itemContainerModal.server.cicleTime = this.editServerForm.value.cycletimeServer;
-          break;
-        case "Queue":
-          // @ts-ignore
-          this.itemContainerModal.item.name = this.editQueueForm.value.nameQueue;
-          // @ts-ignore
-          this.itemContainerModal.queue.disciplineQueue = this.editQueueForm.value.queueDiscipline;
-          // @ts-ignore
-          this.itemContainerModal.queue.capacityQueue = this.editQueueForm.value.capacityQueue
-      }
-      this.simulationService.updateItem(this.id, this.itemContainerModal.item.idItem, this.itemContainerModal).subscribe(
-        (itemContainer => {
-          this.ngOnInit();
-        }),
-        (error => {
-          this.router.navigate(['error500']);
-        })
-      )
-
-    }
-  }
-
-
 }

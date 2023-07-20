@@ -4,6 +4,7 @@ import es.tfg.simuladorteoriacolas.items.Item;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,6 +25,19 @@ public class ConnectionService {
         connection.setDestinationItem(destinationItem);
         connection.setPercentage(percentage);
         return connectionRepository.save(connection);
+    }
+
+    public List<Connection> saveAll(List<Connection> connections){
+        List<Connection> connectionList=new ArrayList<>();
+        Connection connection;
+        for (Connection connectionAux: connections) {
+            connection= connectionRepository.findById(connectionAux.getIdConnect()).orElseThrow();
+            connection.setOriginItem(connectionAux.getOriginItem());
+            connection.setDestinationItem(connectionAux.getDestinationItem());
+            connection.setPercentage(connectionAux.getPercentage());
+            connectionList.add(connectionRepository.save(connection));
+        }
+        return connectionList;
     }
 
     public Connection findById(Integer id){

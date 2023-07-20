@@ -155,6 +155,8 @@ public class ItemAPIController {
                         simulation,
                         itemFromRequest.getSendToStrategy());
                 savedItemDTO.setItem(savedItem);
+                List<Connection> connections= itemDTO.getConnections();
+                savedItemDTO.setConnections(connectionService.saveAll(connections));
                 switch (savedItem.getDescription()) {
                     case "Queue":
                         var queueFromRequest = itemDTO.getQueue();
