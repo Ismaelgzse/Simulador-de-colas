@@ -570,7 +570,7 @@
           </div>
           <span *ngIf="numberProductsSource && numberProductsSource.invalid" class="errorMessage">Debe ser un número o ser Ilimitados</span>
         </div>
-        <div class="form-group mt-3">
+        <div class="form-group mt-3"  *ngIf="numConnections>0">
           <label for="sendToStrategySource" class="col-form-label"></label>
           Enviar a <span class="asterisk">*</span>
           <div class="input-group mt-2">
@@ -691,7 +691,7 @@
           <span *ngIf="queueDiscipline && queueDiscipline.invalid"
                 class="errorMessage">Debe ser Fifo, Lifo o Random.</span>
         </div>
-        <div class="form-group mt-3">
+        <div class="form-group mt-3" *ngIf="numConnections>0">
           <label for="sendToStrategyQueue" class="col-form-label"></label>
           Enviar a <span class="asterisk">*</span>
           <div class="input-group mt-2">
@@ -775,7 +775,7 @@
           <span *ngIf="cycletimeServer && cycletimeServer.invalid"
                 class="errorMessage">No coincide con ninguna opción.</span>
         </div>
-        <div class="form-group mt-3">
+        <div class="form-group mt-3" *ngIf="numConnections>0">
           <label for="sendToStrategyServer" class="col-form-label"></label>
           Enviar a <span class="asterisk">*</span>
           <div class="input-group mt-2">

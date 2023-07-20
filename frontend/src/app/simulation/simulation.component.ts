@@ -268,6 +268,7 @@ function totalAmountStrategySource(max: number, component: any): ValidatorFn {
 })
 
 export class SimulationComponent implements AfterViewInit, OnInit {
+  numConnections:number;
   showConnections: boolean;
   inputControls: FormControl[] = [];
   listSendToStrategies = ["Aleatorio", "Primera conexión disponible", "Porcentaje"];
@@ -858,6 +859,9 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       if (this.listItems[i].item.name != this.itemContainerModal.item.name) {
         this.listNames.push(this.listItems[i].item.name)
       }
+    }
+    if (this.itemContainerModal.connections?.length){
+      this.numConnections=this.itemContainerModal.connections?.length;
     }
     let lengthControlSource = Object.keys((this.editSourceForm.get('percentagesSource') as FormGroup).controls)
       .map(key => 0)
