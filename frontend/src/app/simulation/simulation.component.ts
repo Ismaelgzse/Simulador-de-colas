@@ -337,7 +337,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   })
 
 
-  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, private simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
+  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
@@ -398,6 +398,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     this.route.params.subscribe(
       (params => {
         this.id = params['id'];
+        this.simulationService.connect(this.id.toString());
         this.simulationService.getSimulationInfo(this.id).subscribe(
           (simulation => {
             this.simulationTitle = simulation.title;
@@ -615,7 +616,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   }
 
   simulate() {
-    console.log(this.quickSimulationForm)
+    this.simulationService.sendMessage(this.id.toString());
   }
 
   cancelNewConnection() {

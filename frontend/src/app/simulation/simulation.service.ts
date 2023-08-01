@@ -4,9 +4,36 @@ import {Observable} from "rxjs";
 import {ItemContainerModel} from "./Items/itemContainer.model";
 import {ConnectionModel} from "./Connection/connection.model";
 
+// @ts-ignore
+declare var SockJS;
+// @ts-ignore
+declare var Stomp;
+
 @Injectable()
 export class SimulationService {
+  private stompClient;
+  message:string
+
+
   constructor(private httpClient: HttpClient) {
+    const ws = new SockJS("https://localhost:8443/ws");
+
+    this.stompClient=Stomp.over(ws);
+  }
+
+  public connect(simulationId:string){
+
+    // @ts-ignore
+    this.stompClient.connect({}, (frame) => {
+        // @ts-ignore
+      this.stompClient.subscribe(`/itemInfo/${simulationId}`, (message) => {
+          console.log(JSON.parse(message.body));
+        });
+    });
+  }
+
+  public sendMessage(simulationId:string){
+    this.stompClient.send('/wsAPI/destination/'+simulationId,{},JSON.stringify('connect'))
   }
 
   getItems(idSimulation: number): Observable<any> {
@@ -41,5 +68,6 @@ export class SimulationService {
     return this.httpClient.delete('/api/connection/'+idConnection,{withCredentials: true}) as Observable<any>;
 
   }
+
 
 }
