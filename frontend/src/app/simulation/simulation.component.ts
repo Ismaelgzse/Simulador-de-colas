@@ -271,7 +271,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   numConnections:number;
   showConnections: boolean;
   inputControls: FormControl[] = [];
-  listSendToStrategies = ["Aleatorio", "Primera conexión disponible", "Porcentaje"];
+  listSendToStrategiesQueue = ["Aleatorio", "Primera conexión disponible", "Porcentaje"];
+
+  listSendToStrategiesSource = ["Aleatorio (lo manda independientemente de si hay hueco o no)","Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)","Primera conexión disponible (si no hay hueco, espera hasta que lo haya)","Porcentaje (si no hay hueco se envia aunque se pierda)","Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
+  listSendToStrategiesServer= ["Aleatorio (lo manda independientemente de si hay hueco o no)","Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)","Primera conexión disponible","Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
+
   //0: no error
   //1: itself
   errorConnection: number;
@@ -297,7 +301,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   itemContainerInfo: ItemContainerModel;
   itemContainerModal: ItemContainerModel;
   listNames: string[];
-  listProbFunc = ["Erlang(10,2)", "LogNormal(10,2)", "Bernouilli(50,5,15)", "Max(0,Normal(10,1))",
+  listProbFunc = ["Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,15)", "Max(0,Normal(10,1))",
     "Beta(10,1,1)", "Gamma(10,2)", "Max(0,Logistic(10,1))", "Uniform(5,15)", "Weibull(10,2)",
     "10", "mins(10)", "hr(0.5)"]
 
@@ -480,6 +484,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               this.sourceInfo.interArrivalTime = '10';
               this.itemInfo.name = '';
               this.itemInfo.description = 'Source';
+              this.itemContainerInfo.item.sendToStrategy = "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)";
               this.itemContainerInfo.item = this.itemInfo;
               this.itemContainerInfo.source = this.sourceInfo;
               break;
@@ -490,6 +495,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               this.queueInfo.outQueue = 0;
               this.itemInfo.name = '';
               this.itemInfo.description = 'Queue';
+              this.itemContainerInfo.item.sendToStrategy = "Primera conexión disponible";
               this.itemContainerInfo.item = this.itemInfo;
               this.itemContainerInfo.queue = this.queueInfo;
               break;
@@ -499,6 +505,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               this.serverInfo.setupTime = '0'
               this.itemInfo.name = '';
               this.itemInfo.description = 'Server';
+              this.itemContainerInfo.item.sendToStrategy = "Primera conexión disponible";
               this.itemContainerInfo.item = this.itemInfo;
               this.itemContainerInfo.server = this.serverInfo;
               break;
@@ -510,7 +517,6 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               this.itemContainerInfo.sink = this.sinkInfo;
               break;
           }
-          this.itemContainerInfo.item.sendToStrategy = "Aleatorio"
           // @ts-ignore
           this.itemContainerInfo.item.positionX = event.pageX - document.getElementById(data).offsetWidth * 1.7;
           // @ts-ignore
@@ -1208,27 +1214,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
   validateProbFunc(control: AbstractControl, component: any) {
     let input = control.value;
-    if (input.substring(0, 6) === "Erlang") {
-      if (input.substring(6, 7) === "(" && input.substring(input.length - 1) === ")") {
-        let numbers = input.substring(7, input.length - 1)
-        if (component.validateNumbers(numbers)) {
-          return null;
-        } else {
-          return {invalidFormat: true};
-        }
-      }
-    }
-    if (input.substring(0, 9) === "LogNormal") {
-      if (input.substring(9, 10) === "(" && input.substring(input.length - 1) === ")") {
-        let numbers = input.substring(10, input.length - 1)
-        if (component.validateNumbers(numbers)) {
-          return null;
-        } else {
-          return {invalidFormat: true};
-        }
-      }
-    }
-    if (input.substring(0, 10) === "Bernouilli") {
+    if (input.substring(0, 10) === "Triangular") {
       if (input.substring(10, 11) === "(" && input.substring(input.length - 1) === ")") {
         let numbers = input.substring(11, input.length - 1)
         let posComa1 = -1;
@@ -1253,6 +1239,26 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           return null;
         }
         return {invalidFormat: true};
+      }
+    }
+    if (input.substring(0, 9) === "LogNormal") {
+      if (input.substring(9, 10) === "(" && input.substring(input.length - 1) === ")") {
+        let numbers = input.substring(10, input.length - 1)
+        if (component.validateNumbers(numbers)) {
+          return null;
+        } else {
+          return {invalidFormat: true};
+        }
+      }
+    }
+    if (input.substring(0, 8) === "Binomial") {
+      if (input.substring(8, 9) === "(" && input.substring(input.length - 1) === ")") {
+        let numbers = input.substring(9, input.length - 1)
+        if (component.validateNumbers(numbers)) {
+          return null;
+        } else {
+          return {invalidFormat: true};
+        }
       }
     }
     if (input.substring(0, 3) === "Max") {

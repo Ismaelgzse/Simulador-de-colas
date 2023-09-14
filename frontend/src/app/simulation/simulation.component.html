@@ -574,11 +574,11 @@
           <label for="sendToStrategySource" class="col-form-label"></label>
           Enviar a <span class="asterisk">*</span>
           <div class="input-group mt-2">
-            <span class="strategy">Strategia:</span>
+            <span class="strategy">Estrategia:</span>
             <select id="sendToStrategySource" class="form-select strategySelect"
                     formControlName="sendToStrategySource">
               <option selected disabled value="">Selecciona una estrategia</option>
-              <option [value]="strategy" *ngFor="let strategy of listSendToStrategies">{{strategy}}</option>
+              <option [value]="strategy" *ngFor="let strategy of listSendToStrategiesSource">{{strategy}}</option>
             </select>
           </div>
           <div formGroupName="percentagesSource" class="connections">
@@ -695,11 +695,11 @@
           <label for="sendToStrategyQueue" class="col-form-label"></label>
           Enviar a <span class="asterisk">*</span>
           <div class="input-group mt-2">
-            <span class="strategy">Strategia:</span>
+            <span class="strategy">Estrategia:</span>
             <select id="sendToStrategyQueue" class="form-select strategySelect"
                     formControlName="sendToStrategyQueue">
               <option selected disabled value="">Selecciona una estrategia</option>
-              <option [value]="strategy" *ngFor="let strategy of listSendToStrategies">{{strategy}}</option>
+              <option [value]="strategy" *ngFor="let strategy of listSendToStrategiesQueue">{{strategy}}</option>
             </select>
           </div>
           <div formGroupName="percentagesQueue" class="connections">
@@ -779,11 +779,11 @@
           <label for="sendToStrategyServer" class="col-form-label"></label>
           Enviar a <span class="asterisk">*</span>
           <div class="input-group mt-2">
-            <span class="strategy">Strategia:</span>
+            <span class="strategy">Estrategia:</span>
             <select id="sendToStrategyServer" class="form-select strategySelect"
                     formControlName="sendToStrategyServer">
               <option selected disabled value="">Selecciona una estrategia</option>
-              <option [value]="strategy" *ngFor="let strategy of listSendToStrategies">{{strategy}}</option>
+              <option [value]="strategy" *ngFor="let strategy of listSendToStrategiesServer">{{strategy}}</option>
             </select>
           </div>
           <div formGroupName="percentagesServer" class="connections">
