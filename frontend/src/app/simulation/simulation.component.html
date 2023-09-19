@@ -542,7 +542,8 @@
               </div>
             </ul>
           </div>
-          <span *ngIf="interArrivalTimeSource && interArrivalTimeSource.invalid" class="errorMessage">No coincide con ninguna opción.</span>
+          <!--<span *ngIf="interArrivalTimeSource && interArrivalTimeSource.invalid" class="errorMessage">No coincide con ninguna opción.</span>-->
+          <span *ngIf="editSourceForm.controls.interArrivalTimeSource.hasError('invalidFormat')" class="errorMessage">Error de formato.</span>
         </div>
         <div class="form-group mt-3">
           <label for="numberProducts" class="col-form-label">
@@ -788,8 +789,8 @@
               </div>
             </ul>
           </div>
-          <span *ngIf="cycletimeServer && cycletimeServer.invalid"
-                class="errorMessage">No coincide con ninguna opción.</span>
+          <span *ngIf="editServerForm.controls.cycletimeServer.hasError('invalidFormat')"
+                class="errorMessage">Error de formato.</span>
         </div>
         <div class="form-group mt-3" *ngIf="numConnections>0">
           <label for="sendToStrategyServer" class="col-form-label"></label>

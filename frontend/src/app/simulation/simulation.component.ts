@@ -302,13 +302,13 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   itemContainerInfo: ItemContainerModel;
   itemContainerModal: ItemContainerModel;
   listNames: string[];
-  listProbFunc = ["Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,15)", "Max(0,Normal(10,1))",
+  listProbFunc = ["Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,0.15)", "Max(0,Normal(10,1))",
     "Beta(10,1,1)", "Gamma(10,2)", "Max(0,Logistic(10,1))", "Uniform(5,15)", "Weibull(10,2)",
     "10", "mins(10)", "hr(0.5)"];
 
-  listProbFuncGuide=["Triangular(Limite superior,Limite inferior,Modo)","LogNormal(Escala,Forma)","Binomial(Ensayos,p)","Max(0,Normal(Media,Desviación típica))",
-  "Beta(Alfa,Beta,Max. valor)","Gamma(Escala,Forma)","Max(0,Logistic(mu,s))","Uniform(Min. valor,Max. valor)","Weibull(Alfa,Beta)",
-  "Valor entero (segundos)", "mins(Número minutos)","hr(Número de horas)"];
+  listProbFuncGuide = ["Triangular(Límite inferior,Modo,Límite superior)", "LogNormal(Escala,Forma)", "Binomial(Ensayos,p)", "Max(0,Normal(Media,Desviación típica))",
+    "Beta(Alfa,Beta,Max. valor)", "Gamma(Escala,Forma)", "Max(0,Logistic(mu,s))", "Uniform(Min. valor,Max. valor)", "Weibull(Alfa,Beta)",
+    "Valor entero (segundos)", "mins(Número minutos)", "hr(Número de horas)"];
 
   //Uniform min>0 min<max
   //Triangular min>0 min<max
@@ -1188,7 +1188,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     return null
   }
 
-  validateNumbers(numbers: string): boolean {
+  validateNumbers(numbers: string, func: string): boolean {
     let posComa = 0;
     for (let i = 0; i < numbers.length; i++) {
       if (numbers.charAt(i) === ',') {
@@ -1196,12 +1196,58 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         break;
       }
     }
-    let firstNumber = numbers.substring(0, posComa);
-    let secondNumber = numbers.substring(posComa + 1);
-    let firstNumberInt = Number(firstNumber)
-    let secondNumberInt = Number(secondNumber);
-    if (Number.isInteger(firstNumberInt) && Number.isInteger(secondNumberInt) && firstNumberInt > 0 && secondNumberInt > 0) {
-      return true;
+    if (posComa !== 0) {
+      let firstNumber = numbers.substring(0, posComa);
+      let secondNumber = numbers.substring(posComa + 1);
+      let firstNumberInt = Number(firstNumber)
+      let secondNumberInt = Number(secondNumber);
+      if (!isNaN(firstNumberInt) && !isNaN(secondNumberInt)) {
+        switch (func) {
+          case "LogNormal":
+            if (secondNumberInt > 0) {
+              return true;
+            }
+            return false;
+            break;
+          case "Binomial":
+            if (firstNumberInt > 0 && Number.isInteger(firstNumberInt) && secondNumberInt > 0 && secondNumberInt < 1) {
+              return true;
+            }
+            return false;
+            break;
+          case "Normal":
+            if (secondNumberInt > 0) {
+              return true;
+            }
+            return false;
+            break;
+          case "Logistic":
+            if (secondNumberInt > 0) {
+              return true;
+            }
+            return false;
+            break;
+          case "Gamma":
+            if (firstNumberInt > 0 && secondNumberInt > 0) {
+              return true;
+            }
+            return false;
+            break;
+          case "Weibull":
+            if (firstNumberInt > 0 && secondNumberInt > 0) {
+              return true;
+            }
+            return false;
+            break;
+          case "Uniform":
+            if (firstNumberInt > 0 && firstNumberInt < secondNumberInt) {
+              return true;
+            }
+            return false;
+            break;
+        }
+        return true;
+      }
     }
     return false;
   }
@@ -1226,16 +1272,6 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     return null;
   }
 
-  //Uniform min>0 min<max
-  //Triangular min>0 min<max
-  //LogNormal scaleBien shape>0
-  //Binomial trials>0 integer  0>p<1
-  //Max Normal max>=0 meanBien sd>0
-  //Beta alphaBien betaBien mult>0
-  //Gamma shape>0 scale>0
-  //Max Logistic muBien s>0
-  //Weibull alpha>0 beta>0
-
   validateProbFunc(control: AbstractControl, component: any) {
     let input = control.value;
     if (input.substring(0, 10) === "Triangular") {
@@ -1259,7 +1295,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         let firstNumberInt = Number(firstNumber);
         let secondNumberInt = Number(secondNumber);
         let thirdNumberInt = Number(thirdNumber)
-        if (Number.isInteger(firstNumberInt) && Number.isInteger(secondNumberInt) && Number.isInteger(thirdNumberInt) && firstNumberInt > 0 && secondNumberInt > 0 && thirdNumberInt > 0) {
+        if (!isNaN(firstNumberInt) && !isNaN(secondNumberInt) && !isNaN(thirdNumberInt) && firstNumberInt > 0 && secondNumberInt > firstNumberInt && thirdNumberInt > firstNumberInt && thirdNumberInt > secondNumberInt) {
           return null;
         }
         return {invalidFormat: true};
@@ -1268,7 +1304,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     if (input.substring(0, 9) === "LogNormal") {
       if (input.substring(9, 10) === "(" && input.substring(input.length - 1) === ")") {
         let numbers = input.substring(10, input.length - 1)
-        if (component.validateNumbers(numbers)) {
+        if (component.validateNumbers(numbers, "LogNormal")) {
           return null;
         } else {
           return {invalidFormat: true};
@@ -1278,7 +1314,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     if (input.substring(0, 8) === "Binomial") {
       if (input.substring(8, 9) === "(" && input.substring(input.length - 1) === ")") {
         let numbers = input.substring(9, input.length - 1)
-        if (component.validateNumbers(numbers)) {
+        if (component.validateNumbers(numbers, "Binomial")) {
           return null;
         } else {
           return {invalidFormat: true};
@@ -1298,10 +1334,10 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         let firstNumber = subInput.substring(0, posComa);
         let secondSubInput = subInput.substring(posComa + 1);
         let firstNumberInt = Number(firstNumber);
-        if (Number.isInteger(firstNumberInt) && firstNumberInt >= 0) {
+        if (!isNaN(firstNumberInt) && firstNumberInt >= 0) {
           if (secondSubInput.substring(0, 6) === "Normal" && secondSubInput.substring(6, 7) === "(" && secondSubInput.substring(secondSubInput.length - 1) === ")") {
             let numbers = secondSubInput.substring(7, secondSubInput.length - 1)
-            if (component.validateNumbers(numbers)) {
+            if (component.validateNumbers(numbers, "Normal")) {
               return null;
             } else {
               return {invalidFormat: true};
@@ -1309,7 +1345,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           }
           if (secondSubInput.substring(0, 8) === "Logistic" && secondSubInput.substring(8, 9) === "(" && secondSubInput.substring(secondSubInput.length - 1) === ")") {
             let numbers = secondSubInput.substring(9, secondSubInput.length - 1)
-            if (component.validateNumbers(numbers)) {
+            if (component.validateNumbers(numbers, "Logistic")) {
               return null;
             } else {
               return {invalidFormat: true};
@@ -1340,7 +1376,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         let firstNumberInt = Number(firstNumber);
         let secondNumberInt = Number(secondNumber);
         let thirdNumberInt = Number(thirdNumber)
-        if (Number.isInteger(firstNumberInt) && Number.isInteger(secondNumberInt) && Number.isInteger(thirdNumberInt) && firstNumberInt > 0 && secondNumberInt > 0 && thirdNumberInt > 0) {
+        if (!isNaN(firstNumberInt) && !isNaN(secondNumberInt) && !isNaN(thirdNumberInt) && firstNumberInt > 0 && secondNumberInt > 0 && thirdNumberInt > 0) {
           return null;
         }
         return {invalidFormat: true};
@@ -1349,7 +1385,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     if (input.substring(0, 5) === "Gamma") {
       if (input.substring(5, 6) === "(" && input.substring(input.length - 1) === ")") {
         let numbers = input.substring(6, input.length - 1)
-        if (component.validateNumbers(numbers)) {
+        if (component.validateNumbers(numbers, "Gamma")) {
           return null;
         } else {
           return {invalidFormat: true};
@@ -1359,7 +1395,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     if (input.substring(0, 7) === "Uniform") {
       if (input.substring(7, 8) === "(" && input.substring(input.length - 1) === ")") {
         let numbers = input.substring(8, input.length - 1)
-        if (component.validateNumbers(numbers)) {
+        if (component.validateNumbers(numbers, "Uniform")) {
           return null;
         } else {
           return {invalidFormat: true};
@@ -1369,7 +1405,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     if (input.substring(0, 7) === "Weibull") {
       if (input.substring(7, 8) === "(" && input.substring(input.length - 1) === ")") {
         let numbers = input.substring(8, input.length - 1)
-        if (component.validateNumbers(numbers)) {
+        if (component.validateNumbers(numbers, "Weibull")) {
           return null;
         } else {
           return {invalidFormat: true};
