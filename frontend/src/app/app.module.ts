@@ -10,7 +10,7 @@ import {NgModule} from "@angular/core";
 import {LogInComponent} from "./logIn/logIn.component";
 import {HomeComponent} from "./home/home.component";
 import {PasswordRecoveryComponent} from "./passwordRecovery/passwordRecovery.component";
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import {NgbModule, NgbTooltipModule} from '@ng-bootstrap/ng-bootstrap';
 import {Error403Component} from "./errors/error403/error403.component";
 import {Error404Component} from "./errors/error404/error404.component";
 import {Error500Component} from "./errors/error500/error500.component";
@@ -38,7 +38,8 @@ import {SimulationComponent} from "./simulation/simulation.component";
     FormsModule,
     HttpClientModule,
     NgbModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgbTooltipModule
   ],
   bootstrap: [AppComponent]
 })

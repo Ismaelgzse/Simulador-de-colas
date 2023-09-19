@@ -523,6 +523,9 @@
 
           <label for="interArrivalTime" class="col-form-label">Tiempo entre llegadas<span
             class="asterisk">*</span></label>
+          <span class="tooltipContainer" placement="right" [ngbTooltip]="list" tooltipClass="probFuncTooltip">
+            <i class="fa-solid fa-question"></i>
+          </span>
           <div ngbDropdown class="dropdown menuDropdown selectMenu">
             <input class="form-control" id="interArrivalTime" formControlName="interArrivalTimeSource">
             <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
@@ -728,6 +731,16 @@
   </div>
 </ng-template>
 
+<ng-template #list>
+  <div class="d-flex flex-column">
+    <span class="titleTooltip">Guía de funciones de probabilidad:</span>
+    <div *ngFor="let probFuncGuide of listProbFuncGuide">
+      -{{probFuncGuide}}
+    </div>
+
+  </div>
+</ng-template>
+
 <ng-template class="modal fade" #editServer let-modal>
   <div class="modal-content">
     <div class="modal-header">
@@ -754,6 +767,9 @@
           <label for="cycletimeServer" class="col-form-label">
             Duración del ciclo<span class="asterisk">*</span>
           </label>
+          <span class="tooltipContainer" placement="right" [ngbTooltip]="list" tooltipClass="probFuncTooltip">
+            <i class="fa-solid fa-question"></i>
+          </span>
           <div ngbDropdown class="dropdown menuDropdown selectMenu">
             <input type="text" class="form-control customizeInput" id="cycletimeServer"
                    placeholder="Selecciona o introduce una distribución del ciclo" formControlName="cycletimeServer">

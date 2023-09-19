@@ -14,6 +14,7 @@ import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {isNumber} from "@ng-bootstrap/ng-bootstrap/util/util";
 import {ConnectionModel} from "./Connection/connection.model";
 
+
 function totalAmountQueue(max: number, component: any): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     if (component) {
@@ -48,7 +49,7 @@ function totalAmountQueue(max: number, component: any): ValidatorFn {
               final = totalAmount - final
               component.editQueueForm.controls['percentagesQueue'].controls[lengthControl - 1].setValue(max - final)
             }
-            if (totalAmount!=100 && lengthControl===1){
+            if (totalAmount != 100 && lengthControl === 1) {
               return {'invalid': true};
             }
             component.editQueueForm.controls['sendToStrategyQueue'].setErrors(null);
@@ -130,7 +131,7 @@ function totalAmountServer(max: number, component: any): ValidatorFn {
               final = totalAmount - final
               component.editServerForm.controls['percentagesServer'].controls[lengthControl - 1].setValue(max - final)
             }
-            if (totalAmount!=100 && lengthControl===1){
+            if (totalAmount != 100 && lengthControl === 1) {
               return {'invalid': true};
             }
             component.editServerForm.controls['sendToStrategyServer'].setErrors(null);
@@ -213,7 +214,7 @@ function totalAmountSource(max: number, component: any): ValidatorFn {
               final = totalAmount - final
               component.editSourceForm.controls['percentagesSource'].controls[lengthControl - 1].setValue(max - final)
             }
-            if (totalAmount!=100 && lengthControl===1){
+            if (totalAmount != 100 && lengthControl === 1) {
               return {'invalid': true};
             }
             component.editSourceForm.controls['sendToStrategySource'].setErrors(null);
@@ -263,18 +264,18 @@ function totalAmountStrategySource(max: number, component: any): ValidatorFn {
 @Component({
   selector: 'app-simulation',
   templateUrl: './simulation.component.html',
-  styleUrls: ['../../assets/css/home.css', '../../assets/css/simulation.css', '../../assets/vendor/fontawesome-free-6.4.0-web/css/all.css'],
+  styleUrls: ['../../assets/css/home.css', '../../assets/vendor/fontawesome-free-6.4.0-web/css/all.css', '../../assets/css/simulation.css'
+  ],
   providers: [SimulationService]
 })
 
 export class SimulationComponent implements AfterViewInit, OnInit {
-  numConnections:number;
+  numConnections: number;
   showConnections: boolean;
   inputControls: FormControl[] = [];
   listSendToStrategiesQueue = ["Aleatorio", "Primera conexión disponible", "Porcentaje"];
-
-  listSendToStrategiesSource = ["Aleatorio (lo manda independientemente de si hay hueco o no)","Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)","Primera conexión disponible (si no hay hueco, espera hasta que lo haya)","Porcentaje (si no hay hueco se envia aunque se pierda)","Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
-  listSendToStrategiesServer= ["Aleatorio (lo manda independientemente de si hay hueco o no)","Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)","Primera conexión disponible","Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
+  listSendToStrategiesSource = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)", "Porcentaje (si no hay hueco se envia aunque se pierda)", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
+  listSendToStrategiesServer = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
 
   //0: no error
   //1: itself
@@ -303,8 +304,21 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   listNames: string[];
   listProbFunc = ["Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,15)", "Max(0,Normal(10,1))",
     "Beta(10,1,1)", "Gamma(10,2)", "Max(0,Logistic(10,1))", "Uniform(5,15)", "Weibull(10,2)",
-    "10", "mins(10)", "hr(0.5)"]
+    "10", "mins(10)", "hr(0.5)"];
 
+  listProbFuncGuide=["Triangular(Limite superior,Limite inferior,Modo)","LogNormal(Escala,Forma)","Binomial(Ensayos,p)","Max(0,Normal(Media,Desviación típica))",
+  "Beta(Alfa,Beta,Max. valor)","Gamma(Escala,Forma)","Max(0,Logistic(mu,s))","Uniform(Min. valor,Max. valor)","Weibull(Alfa,Beta)",
+  "Valor entero (segundos)", "mins(Número minutos)","hr(Número de horas)"];
+
+  //Uniform min>0 min<max
+  //Triangular min>0 min<max
+  //LogNormal scaleBien shape>0
+  //Binomial trials>0 integer  0>p<1
+  //Max Normal max>=0 meanBien sd>0
+  //Beta alphaBien betaBien mult>0
+  //Gamma shape>0 scale>0
+  //Max Logistic muBien s>0
+  //Weibull alpha>0 beta>0
   quickSimulationForm = new FormGroup({
     timeSimulation: new FormControl('', Validators.compose([Validators.required, Validators.min(0.1), Validators.max(20)])),
     numberSimulations: new FormControl('', Validators.compose([Validators.required, Validators.min(1), Validators.max(5)])),
@@ -563,10 +577,10 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           this.itemContainerModal.source.interArrivalTime = this.editSourceForm.value.interArrivalTimeSource;
           // @ts-ignore
           this.itemContainerModal.item.sendToStrategy = this.editSourceForm.value.sendToStrategySource;
-          if (this.itemContainerModal.connections){
-            for (let i=0;i<this.itemContainerModal.connections?.length;i++){
+          if (this.itemContainerModal.connections) {
+            for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
               // @ts-ignore
-              this.itemContainerModal.connections[i].percentage=this.editSourceForm.value.percentagesSource[i];
+              this.itemContainerModal.connections[i].percentage = this.editSourceForm.value.percentagesSource[i];
               (this.editSourceForm.get('percentagesSource') as FormGroup).removeControl(i.toString());
             }
           }
@@ -584,10 +598,10 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           this.itemContainerModal.server.cicleTime = this.editServerForm.value.cycletimeServer;
           // @ts-ignore
           this.itemContainerModal.item.sendToStrategy = this.editServerForm.value.sendToStrategyServer;
-          if (this.itemContainerModal.connections){
-            for (let i=0;i<this.itemContainerModal.connections?.length;i++){
+          if (this.itemContainerModal.connections) {
+            for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
               // @ts-ignore
-              this.itemContainerModal.connections[i].percentage=this.editServerForm.value.percentagesServer[i];
+              this.itemContainerModal.connections[i].percentage = this.editServerForm.value.percentagesServer[i];
               (this.editServerForm.get('percentagesServer') as FormGroup).removeControl(i.toString());
             }
           }
@@ -601,10 +615,10 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           this.itemContainerModal.queue.capacityQueue = this.editQueueForm.value.capacityQueue;
           // @ts-ignore
           this.itemContainerModal.item.sendToStrategy = this.editQueueForm.value.sendToStrategyQueue;
-          if (this.itemContainerModal.connections){
-            for (let i=0;i<this.itemContainerModal.connections?.length;i++){
+          if (this.itemContainerModal.connections) {
+            for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
               // @ts-ignore
-              this.itemContainerModal.connections[i].percentage=this.editQueueForm.value.percentagesQueue[i];
+              this.itemContainerModal.connections[i].percentage = this.editQueueForm.value.percentagesQueue[i];
               (this.editQueueForm.get('percentagesQueue') as FormGroup).removeControl(i.toString());
             }
           }
@@ -840,9 +854,9 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
-  addInput(i: number,description:string) {
+  addInput(i: number, description: string) {
     const control = new FormControl('');
-    switch(description){
+    switch (description) {
       case "Source":
         (this.editSourceForm.get('percentagesSource') as FormGroup).addControl(i.toString(), control);
         break;
@@ -867,25 +881,25 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         this.listNames.push(this.listItems[i].item.name)
       }
     }
-    if (this.itemContainerModal.connections?.length){
-      this.numConnections=this.itemContainerModal.connections?.length;
+    if (this.itemContainerModal.connections?.length) {
+      this.numConnections = this.itemContainerModal.connections?.length;
     }
     let lengthControlSource = Object.keys((this.editSourceForm.get('percentagesSource') as FormGroup).controls)
       .map(key => 0)
       .reduce((a, b) => a + 1, 0);
-    for (let i=0;i<lengthControlSource;i++){
+    for (let i = 0; i < lengthControlSource; i++) {
       (this.editSourceForm.get('percentagesSource') as FormGroup).removeControl(i.toString());
     }
     let lengthControlServer = Object.keys((this.editServerForm.get('percentagesServer') as FormGroup).controls)
       .map(key => 0)
       .reduce((a, b) => a + 1, 0);
-    for (let i=0;i<lengthControlServer;i++){
+    for (let i = 0; i < lengthControlServer; i++) {
       (this.editServerForm.get('percentagesServer') as FormGroup).removeControl(i.toString());
     }
     let lengthControlQueue = Object.keys((this.editQueueForm.get('percentagesQueue') as FormGroup).controls)
       .map(key => 0)
       .reduce((a, b) => a + 1, 0);
-    for (let i=0;i<lengthControlQueue;i++){
+    for (let i = 0; i < lengthControlQueue; i++) {
       (this.editQueueForm.get('percentagesQueue') as FormGroup).removeControl(i.toString());
     }
     let lengthInputsControls = this.inputControls.length;
@@ -905,7 +919,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         if (itemContainer.connections && itemContainer.connections.length > 0) {
           // @ts-ignore
           for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
-            this.addInput(i,"Source");
+            this.addInput(i, "Source");
             // @ts-ignore
             this.editSourceForm.controls['percentagesSource'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
           }
@@ -926,7 +940,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         if (itemContainer.connections && itemContainer.connections.length > 0) {
           // @ts-ignore
           for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
-            this.addInput(i,"Server");
+            this.addInput(i, "Server");
             // @ts-ignore
             this.editServerForm.controls['percentagesServer'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
           }
@@ -939,11 +953,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           queueDiscipline: this.itemContainerModal.queue?.disciplineQueue,
           sendToStrategyQueue: this.itemContainerModal.item.sendToStrategy
         })
-        if (itemContainer.connections && itemContainer.connections.length > 0){
+        if (itemContainer.connections && itemContainer.connections.length > 0) {
           // @ts-ignore
-          for (let i=0;i<this.itemContainerModal.connections?.length;i++){
+          for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
             // @ts-ignore
-            this.addInput(i,"Queue");
+            this.addInput(i, "Queue");
             // @ts-ignore
             this.editQueueForm.controls['percentagesQueue'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
           }
@@ -1047,11 +1061,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     return this.editServerForm.get('cycletimeServer');
   }
 
-  get sendToStrategyServer(){
+  get sendToStrategyServer() {
     return this.editServerForm.get('sendToStrategyServer');
   }
 
-  get percentagesServer(){
+  get percentagesServer() {
     return this.editServerForm.get('percentagesServer');
   }
 
@@ -1068,11 +1082,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     return this.editQueueForm.get('queueDiscipline');
   }
 
-  get percentagesQueue(){
+  get percentagesQueue() {
     return this.editQueueForm.get('percentagesQueue');
   }
 
-  get sendToStrategyQueue(){
+  get sendToStrategyQueue() {
     return this.editQueueForm.get('sendToStrategyQueue');
   }
 
@@ -1211,6 +1225,16 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
     return null;
   }
+
+  //Uniform min>0 min<max
+  //Triangular min>0 min<max
+  //LogNormal scaleBien shape>0
+  //Binomial trials>0 integer  0>p<1
+  //Max Normal max>=0 meanBien sd>0
+  //Beta alphaBien betaBien mult>0
+  //Gamma shape>0 scale>0
+  //Max Logistic muBien s>0
+  //Weibull alpha>0 beta>0
 
   validateProbFunc(control: AbstractControl, component: any) {
     let input = control.value;

@@ -432,7 +432,7 @@
   position: relative;
 }
 
-.interPercenteges{
+.interPercenteges {
   margin-bottom: 10px;
 }
 
@@ -446,5 +446,24 @@
 
 body {
   overflow: hidden
+}
+
+::ng-deep .probFuncTooltip .tooltip-inner {
+  background: #3d3d5c;
+  font-size: 110%;
+}
+
+::ng-deep .tooltip-inner {
+  max-width: 1000px !important;
+}
+
+.tooltipContainer {
+  margin-left: 10px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.titleTooltip {
+  margin-bottom: 5px;
 }
 
