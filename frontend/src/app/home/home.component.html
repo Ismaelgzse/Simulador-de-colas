@@ -106,10 +106,9 @@
       <div class="form-group mt-3">
         <label for="message-text" class="col-form-label">Carpeta</label>
         <select class="form-control" required formControlName="folder">
-          <ng-container *ngFor="let folder of listFolders">
-            <option [selected]="folder.idFolder===simulationInfo.folderId"
-                    [ngValue]="folder.idFolder">{{ folder.nameFolder }}</option>
-          </ng-container>
+          <option selected disabled value="">Selecciona una carpeta</option>
+          <option *ngFor="let folder of listFolders" [selected]="folder.idFolder===simulationInfo.folderId"
+                    [value]="folder.idFolder">{{ folder.nameFolder }}</option>
         </select>
         <span *ngIf="folderSimulation && folderSimulation.invalid" class="errorMessage">Debe estar seleccionada una carpeta.</span>
       </div>
