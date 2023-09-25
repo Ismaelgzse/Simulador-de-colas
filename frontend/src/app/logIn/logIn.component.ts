@@ -35,8 +35,14 @@ export class LogInComponent implements OnInit{
         })
       )
     }else {
-      this.homeService.getFolders().subscribe(
-        (success=> this.router.navigate(['home']))
+      this.homeService.isAutenticated().subscribe(
+        (isAutenticated=>{
+          if (isAutenticated){
+            this.homeService.getFolders().subscribe(
+              (success=> this.router.navigate(['home']))
+            )
+          }
+        })
       )
     }
   }

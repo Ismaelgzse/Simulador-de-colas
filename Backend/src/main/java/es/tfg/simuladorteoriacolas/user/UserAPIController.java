@@ -1,5 +1,6 @@
 package es.tfg.simuladorteoriacolas.user;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,5 +37,13 @@ public class UserAPIController {
     @GetMapping("/existingUser")
     public Boolean checkIfUserExist(@RequestParam String nickname){
         return userService.existUser(nickname);
+    }
+
+    @GetMapping("/isAutenticated")
+    public ResponseEntity<Boolean> isAutenticated(HttpServletRequest request){
+        if (request.getUserPrincipal()!=null){
+            return ResponseEntity.ok(userService.existUser(request.getUserPrincipal().getName()));
+        }
+        return ResponseEntity.ok(false);
     }
 }

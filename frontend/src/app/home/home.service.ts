@@ -14,6 +14,10 @@ export class HomeService{
     return this.httpClient.get('/api/foldersAlt',{withCredentials: true}) as Observable<any>;
   }
 
+  isAutenticated():Observable<any>{
+    return this.httpClient.get('api/isAutenticated',{withCredentials: true}) as Observable<any>;
+  }
+
   getPageSimulation(idFolder:number,page:number):Observable<any>{
     return this.httpClient.get('/api/folders/'+idFolder+'/simulations?page='+page) as Observable<any>;
   }

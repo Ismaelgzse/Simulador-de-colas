@@ -29,9 +29,9 @@ export class HeaderComponent {
   }
 
   changeHeader(){
-    this.homeService.getFolders().subscribe(
-      (folders=>{
-        this.header=0
+    this.homeService.isAutenticated().subscribe(
+      (isAutenticated=>{
+        this.header= isAutenticated ? 0 : 1;
       }),
       (error => this.header=1)
     )
