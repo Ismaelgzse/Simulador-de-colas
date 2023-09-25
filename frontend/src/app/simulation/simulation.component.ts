@@ -434,9 +434,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               }),
               (error => this.router.navigate(['error403']))
             )
-          })
+          }),
+          (error => this.router.navigate(['error403']))
         )
-      })
+      }),
+      (error => this.router.navigate(['error403']))
     )
 
     /*this.simulationService.getItems().subscribe(
