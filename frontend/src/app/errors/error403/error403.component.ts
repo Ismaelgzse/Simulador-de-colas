@@ -14,11 +14,15 @@ export class Error403Component implements OnInit{
   }
 
   ngOnInit(): void {
-    this.homeService.getFolders().subscribe(
-      (success=>{
-        this.logged=true;
-      }),
-      (error => this.logged=false)
+    this.homeService.isAutenticated().subscribe(
+      {
+        next: (success)=>{
+          this.logged=success;
+        },
+        error: (err)=>{
+          this.logged=false;
+        }
+      }
     )
   }
 

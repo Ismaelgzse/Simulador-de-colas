@@ -4,48 +4,48 @@ import {PasswordRecoveryService} from "./passwordRecovery.service";
 import {Router} from "@angular/router";
 import {flip} from "@popperjs/core";
 
-export class PasswordFormDTO{
-  nickname:String;
-  securityQuestion:String;
-  securityAnswer:String;
-  password:String;
+export class PasswordFormDTO {
+  nickname: String;
+  securityQuestion: String;
+  securityAnswer: String;
+  password: String;
 }
 
 @Component({
-  selector:'app-passwordRecovery',
-  templateUrl:'./passwordRecovery.component.html',
+  selector: 'app-passwordRecovery',
+  templateUrl: './passwordRecovery.component.html',
   styleUrls: ['../../assets/css/loginAndRegistration.css', '../../assets/vendor/fontawesome-free-6.4.0-web/css/all.css'],
   providers: [PasswordRecoveryService]
 })
 
-export class PasswordRecoveryComponent implements OnInit{
-  formNum:number;
-  error:number;
-  passwordRecoveryForm:PasswordFormDTO;
+export class PasswordRecoveryComponent implements OnInit {
+  formNum: number;
+  error: number;
+  passwordRecoveryForm: PasswordFormDTO;
   preguntaseguridadOpciones: String[];
-  visibilidadRespuesta:boolean;
-  visibilidadPassword1:boolean;
-  visibilidadPassword2:boolean;
-  passwordConfirmation:String;
-  wasValidated:boolean;
+  visibilidadRespuesta: boolean;
+  visibilidadPassword1: boolean;
+  visibilidadPassword2: boolean;
+  passwordConfirmation: String;
+  wasValidated: boolean;
   @ViewChild('form') passwordRecoveryFormElement: ElementRef;
-  loading:boolean;
+  loading: boolean;
 
 
-  constructor(private passwordRecoveryService:PasswordRecoveryService,
+  constructor(private passwordRecoveryService: PasswordRecoveryService,
               private router: Router) {
   }
 
   ngOnInit(): void {
-    this.error=0;
-    this.formNum=1;
-    this.passwordRecoveryForm={
-      nickname:'',
-      securityAnswer:'',
-      securityQuestion:'',
-      password:''
+    this.error = 0;
+    this.formNum = 1;
+    this.passwordRecoveryForm = {
+      nickname: '',
+      securityAnswer: '',
+      securityQuestion: '',
+      password: ''
     }
-    this.passwordConfirmation=''
+    this.passwordConfirmation = ''
     this.preguntaseguridadOpciones = [
       "Nombre de tu mascota",
       "Nombre de tu comida favorita",
@@ -55,75 +55,73 @@ export class PasswordRecoveryComponent implements OnInit{
       "Pelicula favorita"
     ];
 
-    this.visibilidadRespuesta=true;
-    this.wasValidated=false;
-    this.visibilidadPassword1=true;
-    this.visibilidadPassword2=true;
-    this.loading=false;
+    this.visibilidadRespuesta = true;
+    this.wasValidated = false;
+    this.visibilidadPassword1 = true;
+    this.visibilidadPassword2 = true;
+    this.loading = false;
 
   }
 
-  changeVisibilityAnswer():void{
-    this.visibilidadRespuesta=!this.visibilidadRespuesta
+  changeVisibilityAnswer(): void {
+    this.visibilidadRespuesta = !this.visibilidadRespuesta
   }
 
-  changeVisibilityPassword1():void{
-    this.visibilidadPassword1=!this.visibilidadPassword1
-  }
-  changeVisibilityPassword2():void{
-    this.visibilidadPassword2=!this.visibilidadPassword2
+  changeVisibilityPassword1(): void {
+    this.visibilidadPassword1 = !this.visibilidadPassword1
   }
 
-  changeForm(even:Event):void{
+  changeVisibilityPassword2(): void {
+    this.visibilidadPassword2 = !this.visibilidadPassword2
+  }
+
+  changeForm(even: Event): void {
     even.preventDefault();
-    if (this.passwordRecoveryFormElement.nativeElement.checkValidity()){
-      this.loading=true;
-      this.passwordRecoveryService.checkUser(this.passwordRecoveryForm).subscribe(
-        ((success: boolean) =>{
+    if (this.passwordRecoveryFormElement.nativeElement.checkValidity()) {
+      this.loading = true;
+      this.passwordRecoveryService.checkUser(this.passwordRecoveryForm).subscribe({
+        next: (success: boolean) => {
           if (success) {
-            this.formNum=2;
-            this.loading=false;
-            this.error=0;
-            this.wasValidated=false;
+            this.formNum = 2;
+            this.loading = false;
+            this.error = 0;
+            this.wasValidated = false;
+          } else {
+            this.error = 1;
+            this.loading = false;
           }
-          else {
-            this.error=1;
-            this.loading=false;
-          }
-        }),
-        (error => {
+        },
+        error: (err) => {
           this.router.navigate(['/error500'])
-        })
-      )
-    }
-    else {
-      this.wasValidated=true;
-      this.loading=false;
+        }
+      })
+    } else {
+      this.wasValidated = true;
+      this.loading = false;
     }
   }
 
-  confirmPassword(event:Event):void{
+  confirmPassword(event: Event): void {
     event.preventDefault();
-    this.wasValidated=false;
-    if (this.passwordRecoveryForm.password===this.passwordConfirmation){
-      if (this.passwordRecoveryFormElement.nativeElement.checkValidity()){
-        this.loading=true;
-        this.passwordRecoveryService.changePassword(this.passwordRecoveryForm).subscribe(
-          (success =>{
+    this.wasValidated = false;
+    if (this.passwordRecoveryForm.password === this.passwordConfirmation) {
+      if (this.passwordRecoveryFormElement.nativeElement.checkValidity()) {
+        this.loading = true;
+        this.passwordRecoveryService.changePassword(this.passwordRecoveryForm).subscribe({
+          next: (success) => {
             this.router.navigate(["login"])
-          }),
-          (error => {
-            this.loading=false;
-            this.error=0;
+          },
+          error: (err) => {
+            this.loading = false;
+            this.error = 0;
             this.router.navigate(['/error500'])
-          })
-        )
+          }
+        })
+      } else {
+        this.wasValidated = true;
       }
-      else {
-        this.wasValidated=true;
-      }
-    }else {
-      this.error=2;
+    } else {
+      this.error = 2;
     }
 
   }

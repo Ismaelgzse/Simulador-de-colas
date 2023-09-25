@@ -310,15 +310,6 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     "Beta(Alfa,Beta,Max. valor)", "Gamma(Escala,Forma)", "Max(0,Logistic(mu,s))", "Uniform(Min. valor,Max. valor)", "Weibull(Alfa,Beta)",
     "Valor entero (segundos)", "mins(Número minutos)", "hr(Número de horas)"];
 
-  //Uniform min>0 min<max
-  //Triangular min>0 min<max
-  //LogNormal scaleBien shape>0
-  //Binomial trials>0 integer  0>p<1
-  //Max Normal max>=0 meanBien sd>0
-  //Beta alphaBien betaBien mult>0
-  //Gamma shape>0 scale>0
-  //Max Logistic muBien s>0
-  //Weibull alpha>0 beta>0
   quickSimulationForm = new FormGroup({
     timeSimulation: new FormControl('', Validators.compose([Validators.required, Validators.min(0.1), Validators.max(20)])),
     numberSimulations: new FormControl('', Validators.compose([Validators.required, Validators.min(1), Validators.max(5)])),
@@ -413,15 +404,15 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
     this.listNames = []
     this.listItems = [];
-    this.route.params.subscribe(
-      (params => {
+    this.route.params.subscribe({
+      next: (params) => {
         this.id = params['id'];
         this.simulationService.connect(this.id.toString());
-        this.simulationService.getSimulationInfo(this.id).subscribe(
-          (simulation => {
+        this.simulationService.getSimulationInfo(this.id).subscribe({
+          next: (simulation) => {
             this.simulationTitle = simulation.title;
-            this.simulationService.getItems(this.id).subscribe(
-              (items => {
+            this.simulationService.getItems(this.id).subscribe({
+              next: (items) => {
                 this.listItems = items;
                 for (let i = 0; i < this.listItems.length; i++) {
                   // @ts-ignore
@@ -431,33 +422,27 @@ export class SimulationComponent implements AfterViewInit, OnInit {
                   }
                 }
                 this.listConnectionsBackUp = this.listConnections;
-              }),
-              (error => this.router.navigate(['error403']))
-            )
-          }),
-          (error => this.router.navigate(['error403']))
-        )
-      }),
-      (error => this.router.navigate(['error403']))
-    )
-
-    /*this.simulationService.getItems().subscribe(
-      (items=>{
-
-      }),
-      (error => //this.router.navigate(['error403'])
-                console.log("a") )
-    )
-
-     */
-
+              },
+              error: (err) => {
+                this.router.navigate(['error403']);
+              }
+            })
+          },
+          error: (err) => {
+            this.router.navigate(['error403']);
+          }
+        })
+      },
+      error: (err) => {
+        this.router.navigate(['error403']);
+      }
+    })
   }
 
   inicializeConnections(itemContainer: ItemContainerModel) {
     // @ts-ignore
     this.listConnections.concat(itemContainer.connections)
   }
-
 
   ngAfterViewInit(): void {
     let destinationElement = document.getElementById("canvas")
@@ -538,11 +523,14 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           // @ts-ignore
           this.itemContainerInfo.item.positionY = event.pageY - document.getElementById(data).offsetHeight * 2.4;
           // @ts-ignore
-          this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe(
-            // @ts-ignore
-            (item => {
+          this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
+            next: (item) => {
               this.ngOnInit();
-            }));
+            },
+            error: (err) => {
+              this.router.navigate(['error403']);
+            }
+          });
         } else {
           for (let i = 0; i < this.listItems.length; i++) {
             if (data === this.listItems[i].item.name) {
@@ -557,11 +545,14 @@ export class SimulationComponent implements AfterViewInit, OnInit {
             this.itemContainerInfo.item.positionX = -15
           }
           if (this.itemContainerInfo.item.idItem) {
-            this.simulationService.updateItem(this.id, this.itemContainerInfo.item.idItem, this.itemContainerInfo).subscribe(
-              (itemContainer => {
+            this.simulationService.updateItem(this.id, this.itemContainerInfo.item.idItem, this.itemContainerInfo).subscribe({
+              next: (itemContainer) => {
                 this.ngOnInit();
-              })
-            );
+              },
+              error: (err) => {
+                this.router.navigate(['error403']);
+              }
+            });
           }
         }
       }
@@ -625,15 +616,14 @@ export class SimulationComponent implements AfterViewInit, OnInit {
             }
           }
       }
-      this.simulationService.updateItem(this.id, this.itemContainerModal.item.idItem, this.itemContainerModal).subscribe(
-        (itemContainer => {
+      this.simulationService.updateItem(this.id, this.itemContainerModal.item.idItem, this.itemContainerModal).subscribe({
+        next: (itemContainer) => {
           this.ngOnInit();
-        }),
-        (error => {
+        },
+        error: (err) => {
           this.router.navigate(['error500']);
-        })
-      )
-
+        }
+      })
     }
   }
 
@@ -735,8 +725,8 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         this.listItemConnection.push(itemContainer.item)
         this.connectionInfo.originItem = this.listItemConnection[0];
         this.connectionInfo.destinationItem = this.listItemConnection[1];
-        this.simulationService.newConnection(this.connectionInfo).subscribe(
-          (connection => {
+        this.simulationService.newConnection(this.connectionInfo).subscribe({
+          next: (connection) => {
             let blackCanvas = document.getElementById('blackScreen')
             // @ts-ignore
             blackCanvas.classList.toggle("showScreen")
@@ -751,9 +741,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
             }
             this.ngOnInit();
-          }),
-          (error => this.router.navigate(['error500']))
-        )
+          },
+          error: (err) => {
+            this.router.navigate(['error500'])
+          }
+        })
       }
     } else {
       let typeElement = itemContainer.item.description;
@@ -771,74 +763,35 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           break;
       }
       this.listItemConnection.push(itemContainer.item)
-      // @ts-ignore
-      /*let father= event.currentTarget.offsetParent.offsetParent;
-      let childRect=father.children[1].children[0].children[0]
-      childRect.classList.toggle("rectAlt")
-
-       */
       let blackCanvas = document.getElementById('blackScreen')
       // @ts-ignore
       blackCanvas.classList.toggle("showScreen")
     }
-
-
-    /*
-        let canvas=document.getElementById('canvas')
-        // @ts-ignore
-        canvas.classList.add('show')
-        // @ts-ignore
-        let childrenCanvas= canvas.children;
-        for (let i=1;i<childrenCanvas.length;i++){
-          childrenCanvas[i].classList.add('show')
-        }
-
-
-     */
-
-    //blackCanvas.setAttribute("style","visibility:visible")
-    //let a = document.getElementsByClassName("images");
-    //if (itemContainer.item.idItem) {
-    //let itemSelected = document.getElementById(itemContainer.item.name)
-    // @ts-ignore
-    //let kk= itemSelected.children[1]
-    // @ts-ignore
-    //canvas.setAttribute("style","z-index:5;visibility:hidden")
-    // @ts-ignore
-    //itemSelected.setAttribute("style","visibility:visible")
-    // @ts-ignore
-    //let children1=itemSelected.children[1].children[0].children[0]
-    // @ts-ignore
-    //let children2=itemSelected.children[1].children[1].children[0]
-    // @ts-ignore
-    //children1.classList.add("selected")
-    //children2.classList.add("selected")
-    // @ts-ignore
-    //itemSelected.classList.add("selected")
-
-    //}
-
   }
 
   deleteItemFunction() {
     if (this.itemContainerModal.item.idItem) {
-      this.simulationService.deleteItem(this.id, this.itemContainerModal.item.idItem).subscribe(
-        (item => {
+      this.simulationService.deleteItem(this.id, this.itemContainerModal.item.idItem).subscribe({
+        next: (item) => {
           this.ngOnInit();
-        }),
-        (error => this.router.navigate(['error500']))
-      )
+        },
+        error: (err) => {
+          this.router.navigate(['error500']);
+        }
+      })
     }
   }
 
   deleteConnectionFunction() {
     if (this.connectionModal.idConnect) {
-      this.simulationService.deleteConnection(this.connectionModal.idConnect).subscribe(
-        (connection => {
+      this.simulationService.deleteConnection(this.connectionModal.idConnect).subscribe({
+        next: (connection) => {
           this.ngOnInit();
-        }),
-        (error => this.router.navigate(['error500']))
-      )
+        },
+        error: (err) => {
+          this.router.navigate(['error500']);
+        }
+      })
     }
   }
 
@@ -988,8 +941,8 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       this.listItems[i].item.positionY = y;
       x = x + 200
     }
-    this.simulationService.updateAllItems(this.id, this.listItems).subscribe(
-      (listaItems => {
+    this.simulationService.updateAllItems(this.id, this.listItems).subscribe({
+      next: (listaItems) => {
         this.listConnections = [];
         this.listItems = listaItems;
         for (let i = 0; i < this.listItems.length; i++) {
@@ -1000,12 +953,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           }
         }
         this.listConnectionsBackUp = this.listConnections;
-
-      }),
-      (error => {
+      },
+      error: (err) => {
         this.router.navigate(['error500']);
-      })
-    )
+      }
+    })
   }
 
   get timeSimulation() {

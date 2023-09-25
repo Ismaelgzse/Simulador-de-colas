@@ -24,29 +24,29 @@ export class HomeComponent implements OnInit {
   numFoldersEmpty: boolean;
   newFolderTitleBinding: boolean;
   newSimulationTitleBinding: boolean;
-  loading:boolean;
+  loading: boolean;
 
-  newFolderForm= new FormGroup({
-    folderName: new FormControl('',Validators.compose([Validators.required,Validators.minLength(1)]))
+  newFolderForm = new FormGroup({
+    folderName: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1)]))
   })
 
-  newSimulationForm= new FormGroup({
-    title:new FormControl('',Validators.compose([Validators.required,Validators.minLength(4),Validators.maxLength(20)])),
-    body:new FormControl('',Validators.compose([Validators.required,Validators.maxLength(100)])),
-    folder:new FormControl(),
+  newSimulationForm = new FormGroup({
+    title: new FormControl('', Validators.compose([Validators.required, Validators.minLength(4), Validators.maxLength(20)])),
+    body: new FormControl('', Validators.compose([Validators.required, Validators.maxLength(100)])),
+    folder: new FormControl(),
   })
 
 
-  constructor(private modalService: NgbModal, private homeService: HomeService, private router:Router) {
+  constructor(private modalService: NgbModal, private homeService: HomeService, private router: Router) {
   }
 
   ngOnInit(): void {
-    this.loading=true;
-    this.image=undefined;
+    this.loading = true;
+    this.image = undefined;
     this.simulationInfo = {
       title: '',
       body: '',
-      imageFile:''
+      imageFile: ''
     }
     this.folderInfo = {
       nameFolder: '',
@@ -57,8 +57,8 @@ export class HomeComponent implements OnInit {
     this.newSimulationTitleBinding = false
     this.numFoldersEmpty = false;
     this.listFolders = [];
-    this.homeService.getFolders().subscribe(
-      (folders => {
+    this.homeService.getFolders().subscribe({
+      next: (folders) => {
         this.listFolders = folders;
         if (this.listFolders.length > 0) {
           this.numFoldersEmpty = false;
@@ -68,12 +68,12 @@ export class HomeComponent implements OnInit {
         } else {
           this.numFoldersEmpty = true;
         }
-        this.loading=false;
-      }),
-      (error => {
-        this.router.navigate(['error403'])
-      })
-    )
+        this.loading = false;
+      },
+      error: (err) => {
+        this.router.navigate(['error403']);
+      }
+    })
   }
 
   openModalFolder(content: any, element: number
@@ -83,13 +83,13 @@ export class HomeComponent implements OnInit {
       this.folderInfo.idFolder = this.listFolders[element].idFolder;
       this.folderInfo.simulations = this.listFolders[element].simulations;
       this.newFolderForm.patchValue({
-        folderName:this.folderInfo.nameFolder
+        folderName: this.folderInfo.nameFolder
       })
     } else {
       this.folderInfo.nameFolder = '';
       this.folderInfo.simulations = []
       this.newFolderForm.patchValue({
-        folderName:this.folderInfo.nameFolder
+        folderName: this.folderInfo.nameFolder
       })
     }
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'})
@@ -102,7 +102,7 @@ export class HomeComponent implements OnInit {
       this.simulationInfo.title = this.listFolders[folder].simulations[simulation].title;
       this.simulationInfo.body = this.listFolders[folder].simulations[simulation].body;
       this.simulationInfo.folderId = this.listFolders[folder].idFolder;
-      this.simulationInfo.imageFile=this.listFolders[folder].simulations[simulation].imageFile;
+      this.simulationInfo.imageFile = this.listFolders[folder].simulations[simulation].imageFile;
       this.newSimulationForm.patchValue({
         title: this.simulationInfo.title,
         body: this.simulationInfo.body,
@@ -111,7 +111,7 @@ export class HomeComponent implements OnInit {
     } else {
       this.simulationInfo.body = '';
       this.simulationInfo.title = '';
-      this.simulationInfo.imageFile='';
+      this.simulationInfo.imageFile = '';
       this.newSimulationForm.patchValue({
         title: '',
         body: '',
@@ -122,110 +122,135 @@ export class HomeComponent implements OnInit {
   }
 
   saveFolder() {
-    this.loading=true;
+    this.loading = true;
     if (typeof this.newFolderForm.value.folderName === "string") {
       this.folderInfo.nameFolder = this.newFolderForm.value.folderName;
     }
-    if (this.folderInfo.idFolder){
-      this.homeService.updateFolder(this.folderInfo).subscribe(
-        (folder => {
-          this.loading=false;
+    if (this.folderInfo.idFolder) {
+      this.homeService.updateFolder(this.folderInfo).subscribe({
+        next: (folder) => {
+          this.loading = false;
           this.ngOnInit();
-        })
-      )
-    }
-    else {
-      this.homeService.saveFolder(this.folderInfo).subscribe(
-        (folder => {
-          this.loading=false;
+        },
+        error: (err) => {
+          this.router.navigate(['error500']);
+        }
+      })
+    } else {
+      this.homeService.saveFolder(this.folderInfo).subscribe({
+        next: (folder) => {
+          this.loading = false;
           this.ngOnInit();
-        })
-      )
+        },
+        error: (err) => {
+          this.router.navigate(['error500']);
+        }
+      })
     }
   }
 
   saveSimulation() {
-    this.loading=true;
-    this.simulationInfo.title= <string>this.newSimulationForm.value.title;
-    this.simulationInfo.body=<string>this.newSimulationForm.value.body;
-    this.simulationInfo.folderId=this.newSimulationForm.value.folder;
+    this.loading = true;
+    this.simulationInfo.title = <string>this.newSimulationForm.value.title;
+    this.simulationInfo.body = <string>this.newSimulationForm.value.body;
+    this.simulationInfo.folderId = this.newSimulationForm.value.folder;
 
-    if (this.simulationInfo.idSimulation){
-      this.homeService.updateSimulation(this.simulationInfo).subscribe(
-        (simulation => {
+    if (this.simulationInfo.idSimulation) {
+      this.homeService.updateSimulation(this.simulationInfo).subscribe({
+        next: (simulation) => {
           if (this.image != null && simulation.idSimulation) {
             const form = new FormData();
             form.append('file', this.image, this.image.name);
-            this.homeService.updateImage(simulation.idSimulation, form).subscribe(
-              (response => {
+            this.homeService.updateImage(simulation.idSimulation, form).subscribe({
+              next: (response) => {
                 this.ngOnInit();
-              })
-            )
+              },
+              error: (err) => {
+                this.router.navigate(['error500']);
+              }
+            })
           }
-          this.loading=false;
+          this.loading = false;
           this.ngOnInit();
-        })
-      )
-    }
-    else {
-      this.homeService.saveSimulation(this.simulationInfo).subscribe(
-        (simulation => {
+        },
+        error: (err) => {
+          this.router.navigate(['error500']);
+        }
+      })
+    } else {
+      this.homeService.saveSimulation(this.simulationInfo).subscribe({
+        next: (simulation) => {
           if (this.image != null && simulation.idSimulation) {
             const form = new FormData();
             form.append('file', this.image, this.image.name);
-            this.homeService.updateImage(simulation.idSimulation, form).subscribe(
-              (response => {
+            this.homeService.updateImage(simulation.idSimulation, form).subscribe({
+              next: (response) => {
                 this.ngOnInit();
-              })
-            )
+              },
+              error: (err) => {
+                this.router.navigate(['error500']);
+              }
+            })
           }
-          this.loading=false;
+          this.loading = false;
           this.ngOnInit();
-        })
-      )
+        },
+        error: (err) => {
+          this.router.navigate(['error500']);
+        }
+      })
     }
   }
 
   deleteFolderFunction() {
-    this.loading=true;
+    this.loading = true;
     this.modalService.dismissAll();
     if (this.folderInfo.idFolder != undefined) {
-      this.homeService.deleteFolder(this.folderInfo.idFolder).subscribe(
-        (folder => {
-          this.loading=false;
+      this.homeService.deleteFolder(this.folderInfo.idFolder).subscribe({
+        next: (folder) => {
+          this.loading = false;
           this.ngOnInit();
-        })
-      )
+        },
+        error: (err) => {
+          this.router.navigate(['error500']);
+        }
+      })
     }
   }
 
   deleteSimulationFunction() {
-    this.loading=true;
+    this.loading = true;
     this.modalService.dismissAll();
     if (this.simulationInfo.folderId != undefined && this.simulationInfo.idSimulation != undefined) {
-      this.homeService.deleteSimulation(this.simulationInfo.folderId, this.simulationInfo.idSimulation).subscribe(
-        (simulation => {
-          this.loading=false;
+      this.homeService.deleteSimulation(this.simulationInfo.folderId, this.simulationInfo.idSimulation).subscribe({
+        next: (simulation) => {
+          this.loading = false;
           this.ngOnInit();
-        })
-      )
+        },
+        error: (err) => {
+          this.router.navigate(['error500']);
+        }
+      })
     }
   }
 
   loadNewPageSimulations(folder: number) {
-    this.loading=true;
+    this.loading = true;
     let idFolder = this.listFolders[folder].idFolder;
     let page = this.listFolders[folder].page
     if (idFolder && page != undefined) {
-      this.homeService.getPageSimulation(idFolder, page + 1).subscribe(
-        (simulations => {
+      this.homeService.getPageSimulation(idFolder, page + 1).subscribe({
+        next: (simulations) => {
           // @ts-ignore
           this.listFolders[folder].page = page + 1;
           this.listFolders[folder].simulations = this.listFolders[folder].simulations.concat(simulations.content);
           this.listFolders[folder].isLastPage = simulations.last;
-          this.loading=false;
-        })
-      )
+          this.loading = false;
+        },
+        error: (err) => {
+          this.router.navigate(['error500']);
+        }
+      })
     }
 
   }
@@ -251,19 +276,19 @@ export class HomeComponent implements OnInit {
     this.newSimulationTitleBinding = false;
   }
 
-  get folderName(){
+  get folderName() {
     return this.newFolderForm.get('folderName')
   }
 
-  get title(){
+  get title() {
     return this.newSimulationForm.get('title')
   }
 
-  get body(){
+  get body() {
     return this.newSimulationForm.get('body')
   }
 
-  get folderSimulation(){
+  get folderSimulation() {
     return this.newSimulationForm.get('folder')
   }
 

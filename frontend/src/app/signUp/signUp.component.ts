@@ -27,7 +27,7 @@ export class SignUpComponent implements OnInit {
   @ViewChild('form') signUpFormElement: ElementRef;
   wasValidated: boolean
   loading: boolean
-  existUser:boolean
+  existUser: boolean
 
   registrationForm: RegistrationForm;
 
@@ -64,32 +64,30 @@ export class SignUpComponent implements OnInit {
 
     this.wasValidated = false;
 
-    this.existUser=false
+    this.existUser = false
   }
 
   signUp(event: Event): void {
     event.preventDefault();
     if (this.signUpFormElement.nativeElement.checkValidity()) {
-      this.signUpService.checkIfExistUser(this.registrationForm.nickname).subscribe(
-        ((success: boolean) => {
-          if (success){
-            this.existUser=true;
-          }
-          else {
-            this.existUser=false
+      this.signUpService.checkIfExistUser(this.registrationForm.nickname).subscribe({
+        next: (success: boolean) => {
+          if (success) {
+            this.existUser = true;
+          } else {
+            this.existUser = false
             this.loading = true;
-            this.signUpService.signUp(this.registrationForm).subscribe(
-              (success => {
+            this.signUpService.signUp(this.registrationForm).subscribe({
+              next: (success) => {
                 this.router.navigate(["login"])
-              }),
-              (error => {
-                this.loading=false;
-                //Hacer control de errores
-              })
-            )
+              },
+              error: (err) => {
+                this.loading = false;
+              }
+            })
           }
-        }),
-      )
+        }
+      })
     } else {
       this.wasValidated = true;
     }

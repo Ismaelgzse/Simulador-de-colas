@@ -5,22 +5,22 @@ import {HomeService} from "../home/home.service";
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
-  styleUrls: ['../../assets/css/home.css','../../assets/css/loginAndRegistration.css', '../../assets/vendor/fontawesome-free-6.4.0-web/css/all.css'],
+  styleUrls: ['../../assets/css/home.css', '../../assets/css/loginAndRegistration.css', '../../assets/vendor/fontawesome-free-6.4.0-web/css/all.css'],
   providers: [HomeService]
 })
 
 export class HeaderComponent {
 
 
-  header:number;
+  header: number;
 
-  constructor(public router:Router,private homeService:HomeService) {
-    if (router.url==='\/logout'){
-      this.header=1
-    }else {
+  constructor(public router: Router, private homeService: HomeService) {
+    if (router.url === '\/logout') {
+      this.header = 1
+    } else {
       router.events.subscribe(
-        (event) =>{
-          if (event instanceof NavigationEnd){
+        (event) => {
+          if (event instanceof NavigationEnd) {
             this.changeHeader();
           }
         }
@@ -28,12 +28,13 @@ export class HeaderComponent {
     }
   }
 
-  changeHeader(){
-    this.homeService.isAutenticated().subscribe(
-      (isAutenticated=>{
-        this.header= isAutenticated ? 0 : 1;
-      }),
-      (error => this.header=1)
+  changeHeader() {
+    this.homeService.isAutenticated().subscribe({
+        next: (isAutenticated) => {
+          this.header = isAutenticated ? 0 : 1;
+        },
+        error: (err => this.header = 1)
+      }
     )
   }
 }
