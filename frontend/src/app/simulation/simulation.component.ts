@@ -102,7 +102,7 @@ function totalAmountServer(max: number, component: any): ValidatorFn {
     if (component) {
       if (component.editServerForm) {
         if (component.editServerForm.controls) {
-          if (component.editServerForm.controls.sendToStrategyServer.value === "Porcentaje") {
+          if (component.editServerForm.controls.sendToStrategyServer.value === "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
             let total = 0;
             let lengthControl = Object.keys(control.value)
               .map(key => 0)
@@ -147,7 +147,7 @@ function totalAmountServer(max: number, component: any): ValidatorFn {
 function totalAmountStrategyServer(max: number, component: any): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     let input = control.value;
-    if (input === "Porcentaje") {
+    if (input === "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
       component.showConnections = true;
       if (component) {
         if (component.editServerForm) {
@@ -184,7 +184,7 @@ function totalAmountSource(max: number, component: any): ValidatorFn {
     if (component) {
       if (component.editSourceForm) {
         if (component.editSourceForm.controls) {
-          if (component.editSourceForm.controls.sendToStrategySource.value === "Porcentaje") {
+          if (component.editSourceForm.controls.sendToStrategySource.value === "Porcentaje (si no hay hueco se envia aunque se pierda)" || component.editSourceForm.controls.sendToStrategySource.value ==="Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
             let total = 0;
             let lengthControl = Object.keys(control.value)
               .map(key => 0)
@@ -230,7 +230,7 @@ function totalAmountSource(max: number, component: any): ValidatorFn {
 function totalAmountStrategySource(max: number, component: any): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     let input = control.value;
-    if (input === "Porcentaje") {
+    if (input === "Porcentaje (si no hay hueco se envia aunque se pierda)" || input==="Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
       component.showConnections = true;
       if (component) {
         if (component.editSourceForm) {

@@ -821,7 +821,7 @@
         <button type="button" class="btn btn-secondary" data-dismiss="modal"
                 (click)="[resetListNames(),modal.dismiss()]">Cancelar
         </button>
-        <button type="submit" class="btn btn-danger" (click)="[resetListNames(),modal.dismiss()]">Guardar</button>
+        <button [disabled]="editServerForm.invalid" type="submit" class="btn btn-danger" (click)="[resetListNames(),modal.dismiss()]">Guardar</button>
       </div>
     </form>
   </div>
