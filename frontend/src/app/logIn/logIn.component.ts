@@ -28,6 +28,7 @@ export class LogInComponent implements OnInit {
 
 
   constructor(private router: Router, private logInService: LogInService, private homeService: HomeService) {
+    //If the url is Logout, we show a success message
     if (this.router.url === '/logout') {
       this.logInService.logOut().subscribe({
           next: (success) => {
@@ -35,13 +36,12 @@ export class LogInComponent implements OnInit {
           }
         }
       )
+      //If is autheticated, the user is redirected to the home screen
     } else {
-      this.homeService.isAutenticated().subscribe({
-          next: (isAutenticated) => {
-            if (isAutenticated) {
-              this.homeService.getFolders().subscribe(
-                (success => this.router.navigate(['home']))
-              )
+      this.homeService.isAuthenticated().subscribe({
+          next: (isAuthenticated) => {
+            if (isAuthenticated) {
+              this.router.navigate(['home'])
             }
           }
         }
@@ -64,12 +64,15 @@ export class LogInComponent implements OnInit {
 
   logIn(event: Event): void {
     event.preventDefault()
+    //Check the validity of the format of the form fields
     if (this.logInFormElement.nativeElement.checkValidity()) {
       this.loading = true;
       this.logInService.logIn(this.logInForm.nickname, this.logInForm.password).subscribe({
+        //If is correct the user is redirected to the home screen
           next: (success) => {
             this.router.navigate(['home']);
           },
+        //If not, we show the user an error alert
           error: (error) => {
             this.loading = false;
             this.error = true;

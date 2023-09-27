@@ -80,7 +80,6 @@
             <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
                   stroke="none">Fuente
             </text>
-
           </g>
         </svg>
       </div>
@@ -98,13 +97,12 @@
             </text>
           </g>
           <g stroke="black" stroke-width="1px" fill="white">
-            <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#00ff99"
+            <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="rgb(0, 255, 153)"
                   stroke="rgb(0, 0, 0)"
                   stroke-width="2.1"></rect>
             <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
                   stroke="none">Cola
             </text>
-
           </g>
         </svg>
       </div>
@@ -161,6 +159,7 @@
     </div>
   </div>
 </div>
+<div *ngIf="blackScreen" class="showScreen leftMenuContainerBlackScreen"></div>
 
 
 <div id="newConnect" class="alertNewConnection">Nueva conexión <i (click)="cancelNewConnection()" type="button"
@@ -574,7 +573,7 @@
           </div>
           <span *ngIf="numberProductsSource && numberProductsSource.invalid" class="errorMessage">Debe ser un número o ser Ilimitados</span>
         </div>
-        <div class="form-group mt-3"  *ngIf="numConnections>0">
+        <div class="form-group mt-3" *ngIf="numConnections>0">
           <label for="sendToStrategySource" class="col-form-label"></label>
           Enviar a <span class="asterisk">*</span>
           <div class="input-group mt-2">
@@ -821,7 +820,9 @@
         <button type="button" class="btn btn-secondary" data-dismiss="modal"
                 (click)="[resetListNames(),modal.dismiss()]">Cancelar
         </button>
-        <button [disabled]="editServerForm.invalid" type="submit" class="btn btn-danger" (click)="[resetListNames(),modal.dismiss()]">Guardar</button>
+        <button [disabled]="editServerForm.invalid" type="submit" class="btn btn-danger"
+                (click)="[resetListNames(),modal.dismiss()]">Guardar
+        </button>
       </div>
     </form>
   </div>

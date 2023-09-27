@@ -11,7 +11,6 @@ import {ServerModel} from "./Items/server.model";
 import {ItemModel} from "./Items/item.model";
 import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
-import {isNumber} from "@ng-bootstrap/ng-bootstrap/util/util";
 import {ConnectionModel} from "./Connection/connection.model";
 
 
@@ -20,12 +19,16 @@ function totalAmountQueue(max: number, component: any): ValidatorFn {
     if (component) {
       if (component.editQueueForm) {
         if (component.editQueueForm.controls) {
+          //Checks if we need to verify the total amount of the percentages
           if (component.editQueueForm.controls.sendToStrategyQueue.value === "Porcentaje") {
             let total = 0;
+
+            //Number of fields of connections
             let lengthControl = Object.keys(control.value)
               .map(key => 0)
               .reduce((a, b) => a + 1, 0);
 
+            //Won't let the user put a number under 0 or over 100
             for (let i = 0; i < lengthControl; i++) {
               if (Number(control.value[i])) {
                 if (parseFloat(control.value[i]) > 100 || parseFloat(control.value[i]) < 0) {
@@ -35,10 +38,13 @@ function totalAmountQueue(max: number, component: any): ValidatorFn {
                 return {'invalid': true};
               }
             }
+
+            //The total amount need to be 100 in total
             const totalAmount = Object.keys(control.value)
               .map(key => parseFloat(control.value[key]) || 0)
               .reduce((a, b) => a + b, 0);
 
+            //We help the user to reach 100
             if (totalAmount < 100 && lengthControl > 1) {
               let final = control.value[lengthControl - 1]
               final = totalAmount - final
@@ -49,9 +55,12 @@ function totalAmountQueue(max: number, component: any): ValidatorFn {
               final = totalAmount - final
               component.editQueueForm.controls['percentagesQueue'].controls[lengthControl - 1].setValue(max - final)
             }
+
             if (totalAmount != 100 && lengthControl === 1) {
               return {'invalid': true};
             }
+
+            //if everything is correct we sets the error off
             component.editQueueForm.controls['sendToStrategyQueue'].setErrors(null);
             return null;
           }
@@ -65,6 +74,7 @@ function totalAmountQueue(max: number, component: any): ValidatorFn {
 function totalAmountStrategyQueue(max: number, component: any): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     let input = control.value;
+    //If the strategy is percentage-based, we allow the user the possibility of choosing the percentages
     if (input === "Porcentaje") {
       component.showConnections = true;
       if (component) {
@@ -81,6 +91,7 @@ function totalAmountStrategyQueue(max: number, component: any): ValidatorFn {
         }
       }
     } else {
+      //If the strategy is not percentage-based, we set the errors to null
       component.showConnections = false;
       if (component) {
         if (component.editQueueForm) {
@@ -102,12 +113,16 @@ function totalAmountServer(max: number, component: any): ValidatorFn {
     if (component) {
       if (component.editServerForm) {
         if (component.editServerForm.controls) {
+          //Checks if we need to verify the total amount of the percentages
           if (component.editServerForm.controls.sendToStrategyServer.value === "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
             let total = 0;
+
+            //Number of fields of connections
             let lengthControl = Object.keys(control.value)
               .map(key => 0)
               .reduce((a, b) => a + 1, 0);
 
+            //Won't let the user put a number under 0 or over 100
             for (let i = 0; i < lengthControl; i++) {
               if (Number(control.value[i])) {
                 if (parseFloat(control.value[i]) > 100 || parseFloat(control.value[i]) < 0) {
@@ -117,10 +132,13 @@ function totalAmountServer(max: number, component: any): ValidatorFn {
                 return {'invalid': true};
               }
             }
+
+            //The total amount need to be 100 in total
             const totalAmount = Object.keys(control.value)
               .map(key => parseFloat(control.value[key]) || 0)
               .reduce((a, b) => a + b, 0);
 
+            //We help the user to reach 100
             if (totalAmount < 100 && lengthControl > 1) {
               let final = control.value[lengthControl - 1]
               final = totalAmount - final
@@ -131,9 +149,12 @@ function totalAmountServer(max: number, component: any): ValidatorFn {
               final = totalAmount - final
               component.editServerForm.controls['percentagesServer'].controls[lengthControl - 1].setValue(max - final)
             }
+
             if (totalAmount != 100 && lengthControl === 1) {
               return {'invalid': true};
             }
+
+            //if everything is correct we sets the error off
             component.editServerForm.controls['sendToStrategyServer'].setErrors(null);
             return null;
           }
@@ -147,6 +168,8 @@ function totalAmountServer(max: number, component: any): ValidatorFn {
 function totalAmountStrategyServer(max: number, component: any): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     let input = control.value;
+
+    //If the strategy is percentage-based, we allow the user the possibility of choosing the percentages
     if (input === "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
       component.showConnections = true;
       if (component) {
@@ -163,6 +186,7 @@ function totalAmountStrategyServer(max: number, component: any): ValidatorFn {
         }
       }
     } else {
+      //If the strategy is not percentage-based, we set the errors to null
       component.showConnections = false;
       if (component) {
         if (component.editServerForm) {
@@ -184,12 +208,16 @@ function totalAmountSource(max: number, component: any): ValidatorFn {
     if (component) {
       if (component.editSourceForm) {
         if (component.editSourceForm.controls) {
+          //Checks if we need to verify the total amount of the percentages
           if (component.editSourceForm.controls.sendToStrategySource.value === "Porcentaje (si no hay hueco se envia aunque se pierda)" || component.editSourceForm.controls.sendToStrategySource.value ==="Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
             let total = 0;
+
+            //Number of fields of connections
             let lengthControl = Object.keys(control.value)
               .map(key => 0)
               .reduce((a, b) => a + 1, 0);
 
+            //Won't let the user put a number under 0 or over 100
             for (let i = 0; i < lengthControl; i++) {
               if (Number(control.value[i])) {
                 if (parseFloat(control.value[i]) > 100 || parseFloat(control.value[i]) < 0) {
@@ -199,24 +227,29 @@ function totalAmountSource(max: number, component: any): ValidatorFn {
                 return {'invalid': true};
               }
             }
+
+            //The total amount need to be 100 in total
             const totalAmount = Object.keys(control.value)
               .map(key => parseFloat(control.value[key]) || 0)
               .reduce((a, b) => a + b, 0);
 
+            //We help the user to reach 100
             if (totalAmount < 100 && lengthControl > 1) {
               let final = control.value[lengthControl - 1]
               final = totalAmount - final
               component.editSourceForm.controls['percentagesSource'].controls[lengthControl - 1].setValue(max - final)
             }
-
             if (totalAmount > 100) {
               let final = control.value[lengthControl - 1]
               final = totalAmount - final
               component.editSourceForm.controls['percentagesSource'].controls[lengthControl - 1].setValue(max - final)
             }
+
             if (totalAmount != 100 && lengthControl === 1) {
               return {'invalid': true};
             }
+
+            //if everything is correct we sets the error off
             component.editSourceForm.controls['sendToStrategySource'].setErrors(null);
             return null;
           }
@@ -230,6 +263,7 @@ function totalAmountSource(max: number, component: any): ValidatorFn {
 function totalAmountStrategySource(max: number, component: any): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     let input = control.value;
+    //If the strategy is percentage-based, we allow the user the possibility of choosing the percentages
     if (input === "Porcentaje (si no hay hueco se envia aunque se pierda)" || input==="Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
       component.showConnections = true;
       if (component) {
@@ -246,6 +280,7 @@ function totalAmountStrategySource(max: number, component: any): ValidatorFn {
         }
       }
     } else {
+      //If the strategy is not percentage-based, we set the errors to null
       component.showConnections = false;
       if (component) {
         if (component.editSourceForm) {
@@ -277,9 +312,12 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   listSendToStrategiesSource = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)", "Porcentaje (si no hay hueco se envia aunque se pierda)", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
   listSendToStrategiesServer = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
 
+  //Variable related to connection messages
   //0: no error
   //1: itself
+  //2: already exist
   errorConnection: number;
+
   connectionModal: ConnectionModel;
   listConnections: ConnectionModel[]
   listConnectionsBackUp: ConnectionModel[]
@@ -290,7 +328,10 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   correctQueueShown: boolean;
   sameElement: string
   blackScreen: boolean;
+
+  //Stores a pair of item that makes a connection
   listItemConnection: ItemModel[];
+
   listItems: ItemContainerModel[]
   id: number;
   simulationTitle: string;
@@ -358,6 +399,8 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     this.correctQueueShown = false;
     this.sameElement = '';
     this.blackScreen = false;
+
+    //The main variables and objects are initialised
     this.listItemConnection = [];
     this.listConnections = []
     this.queueInfo = {
@@ -404,10 +447,15 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
     this.listNames = []
     this.listItems = [];
+
     this.route.params.subscribe({
       next: (params) => {
         this.id = params['id'];
+
+        //TODO conexion a websockect
         this.simulationService.connect(this.id.toString());
+
+        //The simulation and its items and connections are loaded
         this.simulationService.getSimulationInfo(this.id).subscribe({
           next: (simulation) => {
             this.simulationTitle = simulation.title;
@@ -439,19 +487,17 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     })
   }
 
-  inicializeConnections(itemContainer: ItemContainerModel) {
-    // @ts-ignore
-    this.listConnections.concat(itemContainer.connections)
-  }
-
   ngAfterViewInit(): void {
+    //We assign to the canvas element of the html some events
     let destinationElement = document.getElementById("canvas")
     // @ts-ignore
     if (destinationElement !== null) {
       destinationElement.addEventListener("dragover", this.dragOver);
+      //When we drop an element over canvas we execute a custom function
       // @ts-ignore
       destinationElement.addEventListener("drop", (event) => this.newElement(event, this));
     }
+    //We assign to the images element of the html some events
     let imagenes = document.querySelectorAll(".image")
     for (var i = 0; i < imagenes.length; i++) {
       // @ts-ignore
@@ -472,10 +518,13 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     if (event != undefined) {
       event.preventDefault();
       if (event.dataTransfer !== null) {
+        //Get the data from the object that triggered the event
         var data = event.dataTransfer.getData("text")
         // @ts-ignore
         var parentClass = document.getElementById(data).parentElement.className;
         var element = document.getElementById(data)
+
+        //If the object is from the side menu then we will create a new object
         if (parentClass === "dragItemContainer") {
           let type = data.substring(0, 4)
           switch (type) {
@@ -518,10 +567,13 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               this.itemContainerInfo.sink = this.sinkInfo;
               break;
           }
+          //Gets the position where the user dropped it
           // @ts-ignore
           this.itemContainerInfo.item.positionX = event.pageX - document.getElementById(data).offsetWidth * 1.7;
           // @ts-ignore
           this.itemContainerInfo.item.positionY = event.pageY - document.getElementById(data).offsetHeight * 2.4;
+
+          //Saves the new item
           // @ts-ignore
           this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
             next: (item) => {
@@ -531,19 +583,23 @@ export class SimulationComponent implements AfterViewInit, OnInit {
               this.router.navigate(['error403']);
             }
           });
+          //If the item is not from the side menu, it means that it already exists and the user wants to move it
         } else {
           for (let i = 0; i < this.listItems.length; i++) {
             if (data === this.listItems[i].item.name) {
               this.itemContainerInfo = this.listItems[i];
             }
           }
+          //Gets the position where the user dropped it
           // @ts-ignore
           this.itemContainerInfo.item.positionX = event.pageX - document.getElementById(data).offsetWidth * 1.5;
           // @ts-ignore
           this.itemContainerInfo.item.positionY = event.pageY - document.getElementById(data).offsetHeight * 2;
+
           if (this.itemContainerInfo.item.positionX < -30) {
             this.itemContainerInfo.item.positionX = -15
           }
+          //Saves the existing item
           if (this.itemContainerInfo.item.idItem) {
             this.simulationService.updateItem(this.id, this.itemContainerInfo.item.idItem, this.itemContainerInfo).subscribe({
               next: (itemContainer) => {
@@ -562,6 +618,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   editItem() {
     if (this.itemContainerModal.item.idItem) {
       switch (this.itemContainerModal.item.description) {
+        //Gets the data of the item from the modal
         case "Source":
           this.itemContainerModal.item.name = <string>this.editSourceForm.value.nameSource;
           // @ts-ignore
@@ -574,6 +631,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
             for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
               // @ts-ignore
               this.itemContainerModal.connections[i].percentage = this.editSourceForm.value.percentagesSource[i];
+              //Once the connection data has been stored, the Controls are removed from the FormGroup that is responsible for verifying the correct formatting of the percentages.
               (this.editSourceForm.get('percentagesSource') as FormGroup).removeControl(i.toString());
             }
           }
@@ -595,6 +653,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
             for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
               // @ts-ignore
               this.itemContainerModal.connections[i].percentage = this.editServerForm.value.percentagesServer[i];
+              //Once the connection data has been stored, the Controls are removed from the FormGroup that is responsible for verifying the correct formatting of the percentages.
               (this.editServerForm.get('percentagesServer') as FormGroup).removeControl(i.toString());
             }
           }
@@ -612,10 +671,12 @@ export class SimulationComponent implements AfterViewInit, OnInit {
             for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
               // @ts-ignore
               this.itemContainerModal.connections[i].percentage = this.editQueueForm.value.percentagesQueue[i];
+              //Once the connection data has been stored, the Controls are removed from the FormGroup that is responsible for verifying the correct formatting of the percentages.
               (this.editQueueForm.get('percentagesQueue') as FormGroup).removeControl(i.toString());
             }
           }
       }
+      //Saves the item updated
       this.simulationService.updateItem(this.id, this.itemContainerModal.item.idItem, this.itemContainerModal).subscribe({
         next: (itemContainer) => {
           this.ngOnInit();
@@ -627,15 +688,21 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
   }
 
+  //TODO
   simulate() {
     this.simulationService.sendMessage(this.id.toString());
   }
 
+  //When the user cancels the procces of adding a new connection between two items
   cancelNewConnection() {
-    if (this.blackScreen === true) {
+    if (this.blackScreen) {
+
+      //Go back to the previous state
       this.listConnections = this.listConnectionsBackUp;
       this.blackScreen = false;
       this.listItemConnection = [];
+
+      //Go back tho the normal screen, removing the blackscreen
       let blackCanvas = document.getElementById('blackScreen')
       // @ts-ignore
       blackCanvas.classList.toggle("showScreen")
@@ -643,6 +710,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       // @ts-ignore
       alertMessage.classList.toggle('alertNewConnectionAlt')
       let alertErrorMessage = document.getElementById("cancelConnect");
+      //If the error message was being displayed, it is removed.
       // @ts-ignore
       let listClasses = alertErrorMessage.classList;
       if (listClasses.length > 1) {
@@ -653,6 +721,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
   }
 
+  //Returns the connections of a item
   connectionsOfSelectedItem(itemContainer: ItemContainerModel) {
     for (let i = 0; i < this.listItems.length; i++) {
       if (this.listItems[i].item.idItem === itemContainer.item.idItem && this.listItems[i].item.name === itemContainer.item.name) {
@@ -662,6 +731,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     return []
   }
 
+  //Returns true if the items are already connected, false otherwise
   alreadyConnected(origin: ItemModel, destination: ItemContainerModel) {
     let originItem: ItemContainerModel;
     for (let i = 0; i < this.listItems.length; i++) {
@@ -684,10 +754,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   }
 
   newConnection(event: Event, itemContainer: ItemContainerModel) {
-    //cuando se pulsa por primera vez solo quedan las conexiones de las existentes con las posibles
+    //When the user presses the button to add a new connection we add a blackscreen to focus
     this.blackScreen = true;
     // @ts-ignore
     if (event.currentTarget.nodeName != "DIV") {
+      //We show the new connection message and store the connections and name of the first selected item
       // @ts-ignore
       this.listConnections = this.connectionsOfSelectedItem(itemContainer);
       let alertMessage = document.getElementById("newConnect");
@@ -700,33 +771,46 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
     if (this.listItemConnection.length != 0) {
       if (itemContainer.item.name === this.listItemConnection[0].name && itemContainer.item.idItem === this.listItemConnection[0].idItem) {
+        //If the selected item is itself, we show an alert to the user
         // @ts-ignore
         if (this.errorConnection != 1 || this.errorConnection != 2) {
           //Mostrar error de que no es posible unirse a si mismo
           this.errorConnection = 1;
           let alertErrorMessage = document.getElementById("cancelConnect");
           // @ts-ignore
-          alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+          let listClasses = alertErrorMessage.classList;
+          if (listClasses.length <= 1) {
+            // @ts-ignore
+            alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+          }
+          //If the selected item is already connected, we show another alert
         } else if (this.errorConnection === 2) {
           this.errorConnection = 1;
         }
+        //If the selected item is already connected
       } else if (this.alreadyConnected(this.listItemConnection[0], itemContainer)) {
+        //We show the correct alert, depending on the previous error value
         // @ts-ignore
         if (this.errorConnection != 1 || this.errorConnection != 2) {
-          //Mostrar error de que no es posible unirse a si mismo
-          this.errorConnection = 1;
+          this.errorConnection = 2;
           let alertErrorMessage = document.getElementById("cancelConnect");
           // @ts-ignore
-          alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+          let listClasses = alertErrorMessage.classList;
+          if (listClasses.length <= 1) {
+            // @ts-ignore
+            alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+          }
         } else if (this.errorConnection === 1) {
           this.errorConnection = 2;
         }
+        //If the item selected is not itself and is not already connected, we create and save a new connection
       } else {
         this.listItemConnection.push(itemContainer.item)
         this.connectionInfo.originItem = this.listItemConnection[0];
         this.connectionInfo.destinationItem = this.listItemConnection[1];
         this.simulationService.newConnection(this.connectionInfo).subscribe({
           next: (connection) => {
+            //Reset the error values, the black screen and alerts
             let blackCanvas = document.getElementById('blackScreen')
             // @ts-ignore
             blackCanvas.classList.toggle("showScreen")
@@ -748,6 +832,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
         })
       }
     } else {
+      //Depending on the type of item, we show the compatible objects that can be linked to the selected item
       let typeElement = itemContainer.item.description;
       switch (typeElement) {
         case "Source":
@@ -770,6 +855,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   }
 
   deleteItemFunction() {
+    //If the item is not null, we delete the selected item
     if (this.itemContainerModal.item.idItem) {
       this.simulationService.deleteItem(this.id, this.itemContainerModal.item.idItem).subscribe({
         next: (item) => {
@@ -783,6 +869,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   }
 
   deleteConnectionFunction() {
+    //If the connection is not null, we delete the selected connection
     if (this.connectionModal.idConnect) {
       this.simulationService.deleteConnection(this.connectionModal.idConnect).subscribe({
         next: (connection) => {
@@ -795,11 +882,13 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     }
   }
 
+  //When the user clicks the delete button, we store the connection data, and in case the user confirms the deletion, we will delete the connection
   openModalDeleteConnection(content: any, connection: ConnectionModel) {
     this.connectionModal = connection;
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
+  //When the user clicks the delete button, we store the item data, and in case the user confirms the deletion, we will delete the item
   openModalDeleteItem(content: any, itemContainer: ItemContainerModel) {
     this.itemContainerModal = itemContainer;
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
@@ -830,6 +919,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   }
 
   openModalEdit(content: any, itemContainer: ItemContainerModel) {
+    //When the user clicks the edit button, we store the item data and its connections
     this.itemContainerModal = itemContainer;
     for (let i = 0; i < this.listItems.length; i++) {
       if (this.listItems[i].item.name != this.itemContainerModal.item.name) {
@@ -839,6 +929,8 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     if (this.itemContainerModal.connections?.length) {
       this.numConnections = this.itemContainerModal.connections?.length;
     }
+
+    //We delete all previously created controls that manage the porcentages FormGroup
     let lengthControlSource = Object.keys((this.editSourceForm.get('percentagesSource') as FormGroup).controls)
       .map(key => 0)
       .reduce((a, b) => a + 1, 0);
@@ -862,6 +954,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     for (let i = 0; i < lengthInputsControls; i++) {
       this.deleteInput(i);
     }
+    //Depending on the item type we fill the corresponding form with the item information
     switch (this.itemContainerModal.item.description) {
       case "Source":
         this.editSourceForm.patchValue({
@@ -872,6 +965,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           sendToStrategySource: this.itemContainerModal.item.sendToStrategy
         });
         if (itemContainer.connections && itemContainer.connections.length > 0) {
+          //Add the number of controls needed for each of the connections and store them
           // @ts-ignore
           for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
             this.addInput(i, "Source");
@@ -892,6 +986,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           cycletimeServer: this.itemContainerModal.server?.cicleTime,
           sendToStrategyServer: this.itemContainerModal.item.sendToStrategy
         });
+        //Add the number of controls needed for each of the connections and store them
         if (itemContainer.connections && itemContainer.connections.length > 0) {
           // @ts-ignore
           for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
@@ -908,6 +1003,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
           queueDiscipline: this.itemContainerModal.queue?.disciplineQueue,
           sendToStrategyQueue: this.itemContainerModal.item.sendToStrategy
         })
+        //Add the number of controls needed for each of the connections and store them
         if (itemContainer.connections && itemContainer.connections.length > 0) {
           // @ts-ignore
           for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
@@ -928,10 +1024,10 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     this.listNames = []
   }
 
+  //When the user resets the position of the item we place the items in controled positions, in order to be visible
   resetPositions() {
     let x = -15;
     let y = 30;
-    //2000
     for (let i = 0; i < this.listItems.length; i++) {
       if (x > 2000) {
         x = -15;
@@ -941,6 +1037,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       this.listItems[i].item.positionY = y;
       x = x + 200
     }
+    //When we already placed the positions of the items we save and update them
     this.simulationService.updateAllItems(this.id, this.listItems).subscribe({
       next: (listaItems) => {
         this.listConnections = [];
@@ -1134,6 +1231,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
 
   validateName(control: AbstractControl, listNames: string[]) {
     let name = control.value;
+    //The name of the item need to be unique in the simulation
     if (name != '' && name != undefined && this.listNames.length != 0) {
       if (this.listNames.includes(name)) {
         return {invalidFormat: true}
@@ -1142,6 +1240,7 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     return null
   }
 
+  //Validate the format of the functions
   validateNumbers(numbers: string, func: string): boolean {
     let posComa = 0;
     for (let i = 0; i < numbers.length; i++) {

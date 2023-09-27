@@ -58,6 +58,20 @@
   padding-left: 5px;
 }
 
+.leftMenuContainerBlackScreen{
+  left: 0;
+  z-index: 2;
+  overflow: visible;
+  top: 167px;
+  width: 209px;
+  bottom: 0;
+  position: absolute;
+  border-width: 2px;
+  border-color: black;
+  border-style: none solid none none;
+  background-color: rgba(102, 102, 102, 0.8);
+}
+
 
 .leftMenuContainer {
   left: 0;

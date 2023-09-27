@@ -14,7 +14,8 @@ export class Error404Component implements OnInit{
   }
 
   ngOnInit(): void {
-    this.homeService.isAutenticated().subscribe(
+    //If the user is logged in when the error pops up we decide where the user is redirected to
+    this.homeService.isAuthenticated().subscribe(
       {
         next: (success)=>{
           this.logged=success;

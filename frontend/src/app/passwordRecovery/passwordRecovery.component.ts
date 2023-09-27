@@ -77,8 +77,10 @@ export class PasswordRecoveryComponent implements OnInit {
 
   changeForm(even: Event): void {
     even.preventDefault();
+    //Check the validity of the format of the form fields
     if (this.passwordRecoveryFormElement.nativeElement.checkValidity()) {
       this.loading = true;
+      //If the user, the security question and the security answer are correct we change to the second form
       this.passwordRecoveryService.checkUser(this.passwordRecoveryForm).subscribe({
         next: (success: boolean) => {
           if (success) {
@@ -101,9 +103,11 @@ export class PasswordRecoveryComponent implements OnInit {
     }
   }
 
+  //The second form
   confirmPassword(event: Event): void {
     event.preventDefault();
     this.wasValidated = false;
+    //If the format of the new password is correct, we change the old password of the user
     if (this.passwordRecoveryForm.password === this.passwordConfirmation) {
       if (this.passwordRecoveryFormElement.nativeElement.checkValidity()) {
         this.loading = true;

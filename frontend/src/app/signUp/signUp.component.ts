@@ -69,12 +69,15 @@ export class SignUpComponent implements OnInit {
 
   signUp(event: Event): void {
     event.preventDefault();
+    //Check the validity of the format of the form fields
     if (this.signUpFormElement.nativeElement.checkValidity()) {
+      //Check if the user exists, if it does, we show an error
       this.signUpService.checkIfExistUser(this.registrationForm.nickname).subscribe({
         next: (success: boolean) => {
           if (success) {
             this.existUser = true;
           } else {
+            //If doesn't, we registrate the user
             this.existUser = false
             this.loading = true;
             this.signUpService.signUp(this.registrationForm).subscribe({
