@@ -39,8 +39,8 @@ public class UserAPIController {
         return userService.existUser(nickname);
     }
 
-    @GetMapping("/isAuthenticated")
-    public ResponseEntity<Boolean> isAuthenticated(HttpServletRequest request){
+    @GetMapping("/isAutenticated")
+    public ResponseEntity<Boolean> isAutenticated(HttpServletRequest request){
         if (request.getUserPrincipal()!=null){
             return ResponseEntity.ok(userService.existUser(request.getUserPrincipal().getName()));
         }
