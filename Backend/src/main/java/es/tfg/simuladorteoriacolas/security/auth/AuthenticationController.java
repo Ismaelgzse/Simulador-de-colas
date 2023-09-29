@@ -1,8 +1,14 @@
 package es.tfg.simuladorteoriacolas.security.auth;
 
+import es.tfg.simuladorteoriacolas.items.ItemDTO;
 import es.tfg.simuladorteoriacolas.user.UserEntity;
 import es.tfg.simuladorteoriacolas.user.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +35,22 @@ public class AuthenticationController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Register a new user
+     *
+     * @param request Register request.
+     * @return {@code True} A new user is registered.
+     */
+    @Operation(summary = "Register a new user.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User entity.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserEntity.class))}),
+            @ApiResponse(responseCode = "500", description = "Error occurred while creating a user",
+                    content = @Content)
+    })
     @PostMapping("/newUser")
-    public ResponseEntity<UserEntity> register (@RequestBody RegisterRequest request){
+    public ResponseEntity<UserEntity> register (@Parameter(description = "Register request") @RequestBody RegisterRequest request){
         if (userService.findByNickname(request.getNickname()).isPresent()){
             return ResponseEntity.badRequest().build();
         }
@@ -38,6 +58,22 @@ public class AuthenticationController {
         return ResponseEntity.created(fromCurrentRequest().path("/{id}").buildAndExpand(savedUser.getNickname()).toUri()).body(savedUser);
     }
 
+    /**
+     * User login to the application.
+     *
+     * @param accessToken Access token.
+     * @param refreshToken Refresh token.
+     * @param loginRequest Login request.
+     * @return {@code True} Auth response.
+     */
+    @Operation(summary = "User login to the application.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Authentication response.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = AuthenticationResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Error occurred while logging in a user",
+                    content = @Content)
+    })
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(
             @Parameter(description = "Access token.") @CookieValue(name = "accessToken", required = false) String accessToken,
@@ -47,12 +83,42 @@ public class AuthenticationController {
         return authenticationService.login(loginRequest, accessToken, refreshToken);
     }
 
+    /**
+     * Refresh a token
+     *
+     * @param refreshToken Refresh token
+     * @return {@code True} Auth response.
+     * @throws IOException
+     */
+    @Operation(summary = "Refresh a token.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Authentication response.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = AuthenticationResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Error occurred while refreshing a token",
+                    content = @Content)
+    })
     @PostMapping("/refresh")
     public ResponseEntity<AuthenticationResponse> refreshToken(
             @Parameter(description = "Refresh token.") @CookieValue(name = "refreshToken", required = false) String refreshToken) throws IOException {
         return authenticationService.refreshToken(refreshToken);
     }
 
+    /**
+     * Logout from the application
+     *
+     * @param request Http servlet information.
+     * @param response Http servlet response
+     * @return {@code True} Auth response.
+     */
+    @Operation(summary = "Logout from the application.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Authentication response.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = AuthenticationResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Error occurred while logging out a user",
+                    content = @Content)
+    })
     @PostMapping("/logout")
     public ResponseEntity<AuthenticationResponse> logOut(@Parameter(description = "HTTP Servlet Request.") HttpServletRequest request,
                                                @Parameter(description = "HTTP Servlet Response.") HttpServletResponse response) {

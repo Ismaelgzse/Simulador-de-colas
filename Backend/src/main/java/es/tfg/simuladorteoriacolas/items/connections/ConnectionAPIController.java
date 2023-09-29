@@ -67,7 +67,7 @@ public class ConnectionAPIController {
      *
      * @param idConnection Id of the connection to be deleted.
      * @param request      Http servlet information.
-     * @return The connection deleted.
+     * @return {@code True} The connection deleted. {@code False} Bad request.
      */
     @Operation(summary = "Deletes a connection.")
     @ApiResponses(value = {

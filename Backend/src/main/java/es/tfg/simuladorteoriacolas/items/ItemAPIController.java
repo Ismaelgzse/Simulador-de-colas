@@ -6,8 +6,16 @@ import es.tfg.simuladorteoriacolas.items.types.*;
 import es.tfg.simuladorteoriacolas.items.types.Queue;
 import es.tfg.simuladorteoriacolas.simulation.SimulationService;
 import es.tfg.simuladorteoriacolas.user.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,10 +37,28 @@ public class ItemAPIController {
     @Autowired
     private ConnectionService connectionService;
 
+    /**
+     * Gets a item.
+     *
+     * @param idSimulation Id of the simulation.
+     * @param idItem Id of the item.
+     * @param request Http servlet information.
+     * @return {@code True} The DTO of the item. {@code False} Bad request.
+     */
+    @Operation(summary = "Gets an item.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Item DTO",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ItemDTO.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while getting the item",
+                    content = @Content)
+    })
     @GetMapping("/simulations/{idSimulation}/item/{idItem}")
-    public ResponseEntity<ItemDTO> getItem(@PathVariable Integer idSimulation,
-                                           @PathVariable Integer idItem,
-                                           HttpServletRequest request) {
+    public ResponseEntity<ItemDTO> getItem(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                           @Parameter(description = "Id of the item to get") @PathVariable Integer idItem,
+                                           @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var userName = request.getUserPrincipal().getName();
         var simulation = simulationService.findById(idSimulation).orElseThrow();
         if (userName.equals(simulation.getUserCreator().getNickname())) {
@@ -47,12 +73,29 @@ public class ItemAPIController {
             }
             return ResponseEntity.ok(itemDTO);
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    /**
+     * Gets the items of a simulation.
+     *
+     * @param idSimulation Id of the simulation.
+     * @param request Http servlet information.
+     * @return {@code True} A list of item DTO. {@code False} Bad request.
+     */
+    @Operation(summary = "Gets an item.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of items DTO.",
+                    content = {@Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = ItemDTO.class)))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while getting the list of items",
+                    content = @Content)
+    })
     @GetMapping("/simulations/{idSimulation}/items")
-    public ResponseEntity<List<ItemDTO>> getItems(@PathVariable Integer idSimulation,
-                                                  HttpServletRequest request) {
+    public ResponseEntity<List<ItemDTO>> getItems(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                                  @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var userName = request.getUserPrincipal().getName();
         var simulation = simulationService.findById(idSimulation).orElseThrow();
         List<ItemDTO> itemDTOList = new ArrayList<>();
@@ -77,10 +120,28 @@ public class ItemAPIController {
         return ResponseEntity.badRequest().build();
     }
 
+    /**
+     * Updates all the items of a simulation.
+     *
+     * @param idSimulation Id of the simulation.
+     * @param request Http servlet information.
+     * @param listItemDTO All the items of the simulation.
+     * @return {@code True} List of updated items. {@code False} Bad request.
+     */
+    @Operation(summary = "Updates of the items of a simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of items DTO.",
+                    content = {@Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = ItemDTO.class)))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while updating the list of items",
+                    content = @Content)
+    })
     @PutMapping("/simulations/{idSimulation}/item/all")
-    public ResponseEntity<List<ItemDTO>> updateAll(@PathVariable Integer idSimulation,
-                                                   HttpServletRequest request,
-                                                   @RequestBody List<ItemDTO> listItemDTO) {
+    public ResponseEntity<List<ItemDTO>> updateAll(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                                   @Parameter(description = "Http servlet information") HttpServletRequest request,
+                                                   @Parameter(description = "Items to be updated") @RequestBody List<ItemDTO> listItemDTO) {
         var userName = request.getUserPrincipal().getName();
         var simulation = simulationService.findById(idSimulation).orElseThrow();
         if (userName.equals(simulation.getUserCreator().getNickname())) {
@@ -136,11 +197,30 @@ public class ItemAPIController {
         return ResponseEntity.badRequest().build();
     }
 
+    /**
+     * Updates an item of a simulation.
+     *
+     * @param idSimulation Id of the simulation.
+     * @param idItem Id of the item.
+     * @param request Http servlet information.
+     * @param itemDTO Item DTO.
+     * @return {@code True} Updated item. {@code} Bad request.
+     */
+    @Operation(summary = "Updates an item of a simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Item DTO.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ItemDTO.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while updating a item",
+                    content = @Content)
+    })
     @PutMapping("/simulations/{idSimulation}/item/{idItem}")
-    public ResponseEntity<ItemDTO> update(@PathVariable Integer idSimulation,
-                                          @PathVariable Integer idItem,
-                                          HttpServletRequest request,
-                                          @RequestBody ItemDTO itemDTO) {
+    public ResponseEntity<ItemDTO> update( @Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                          @Parameter(description = "Id of the item to be updated") @PathVariable Integer idItem,
+                                          @Parameter(description = "Http servlet information") HttpServletRequest request,
+                                          @Parameter(description = "Item to be updated") @RequestBody ItemDTO itemDTO) {
         var userName = request.getUserPrincipal().getName();
         var simulation = simulationService.findById(idSimulation).orElseThrow();
         if (userName.equals(simulation.getUserCreator().getNickname())) {
@@ -194,10 +274,28 @@ public class ItemAPIController {
         return ResponseEntity.badRequest().build();
     }
 
+    /**
+     * Deletes an item.
+     *
+     * @param idSimulation Id of the simulation.
+     * @param idItem Id of the item
+     * @param request Http servlet information
+     * @return {@code True} Item deleted. {@code False} Bad request.
+     */
+    @Operation(summary = "Deletes an item of a simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Item DTO.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ItemDTO.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while deleting a item",
+                    content = @Content)
+    })
     @DeleteMapping("/simulations/{idSimulation}/item/{idItem}")
-    public ResponseEntity<ItemDTO> deleteItem(@PathVariable Integer idSimulation,
-                                              @PathVariable Integer idItem,
-                                              HttpServletRequest request) {
+    public ResponseEntity<ItemDTO> deleteItem(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                              @Parameter(description = "Id of the item to be deleted") @PathVariable Integer idItem,
+                                              @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var userName = request.getUserPrincipal().getName();
         var simulation = simulationService.findById(idSimulation).orElseThrow();
         if (userName.equals(simulation.getUserCreator().getNickname())) {
@@ -230,10 +328,28 @@ public class ItemAPIController {
         return ResponseEntity.badRequest().build();
     }
 
+    /**
+     * Creates a new Item.
+     *
+     * @param idSimulation Id of the simulation.
+     * @param itemDTO Item DTO.
+     * @param request Http servlet information.
+     * @return {@code True} Item created. {@code False} Bad request.
+     */
+    @Operation(summary = "Creates an item.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Item DTO.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ItemDTO.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while creating a item",
+                    content = @Content)
+    })
     @PostMapping("/simulations/{idSimulation}/item")
-    public ResponseEntity<ItemDTO> newItem(@PathVariable Integer idSimulation,
-                                           @RequestBody ItemDTO itemDTO,
-                                           HttpServletRequest request) {
+    public ResponseEntity<ItemDTO> newItem(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                           @Parameter(description = "Item DTO") @RequestBody ItemDTO itemDTO,
+                                           @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var userName = request.getUserPrincipal().getName();
         var simulation = simulationService.findById(idSimulation).orElseThrow();
         if (userName.equals(simulation.getUserCreator().getNickname())) {

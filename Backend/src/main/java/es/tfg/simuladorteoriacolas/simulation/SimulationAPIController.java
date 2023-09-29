@@ -3,6 +3,14 @@ package es.tfg.simuladorteoriacolas.simulation;
 import es.tfg.simuladorteoriacolas.folder.FolderService;
 import es.tfg.simuladorteoriacolas.items.Item;
 import es.tfg.simuladorteoriacolas.items.ItemService;
+import es.tfg.simuladorteoriacolas.items.connections.Connection;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.Resource;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,72 +42,186 @@ public class SimulationAPIController {
     @Autowired
     private ItemService itemService;
 
+    /**
+     * Returns a page of simulations of a folder.
+     *
+     * @param idFolder Id of the folder.
+     * @param page     Page of the simulation.
+     * @return {@code True} A page of simulations of a folder. {@code False} Bad request.
+     */
+    @Operation(summary = "Returns a page of simulations of a folder.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The page of simulations",
+                    content = {@Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Simulation.class)))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while getting the page of simulations.",
+                    content = @Content)
+    })
     @GetMapping("/folders/{idFolder}/simulations")
-    public ResponseEntity<Page<Simulation>> getSimulations(@PathVariable Integer idFolder,@RequestParam(required = false) Integer page) {
+    public ResponseEntity<Page<Simulation>> getSimulations(@Parameter(description = "Id of the folder") @PathVariable Integer idFolder,
+                                                           @Parameter(description = "Page of the simulation") @RequestParam(required = false) Integer page,
+                                                           @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var folder = folderService.findById(idFolder);
-        if (folder.isPresent()) {
-            var numPage= (page==null) ? 0 : page;
-            var simulations = simulationService.getSimulationsInPages(folder.get(),numPage);
-            if (simulations.hasContent()){
-                return ResponseEntity.ok(simulations);
+        if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
+            if (folder.get().getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
+                var numPage = (page == null) ? 0 : page;
+                var simulations = simulationService.getSimulationsInPages(folder.get(), numPage);
+                if (simulations.hasContent()) {
+                    return ResponseEntity.ok(simulations);
+                }
+                return ResponseEntity.badRequest().build();
             }
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    /**
+     * Creates a new simulation on a folder.
+     *
+     * @param idFolder Id of the folder.
+     * @param simulation Simulation DTO.
+     * @param request Http servlet information.
+     * @return {@code True} The simulation created. {@code False} Bad request.
+     */
+    @Operation(summary = "Creates a new simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The simulation created",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Simulation.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while creating the simulation.",
+                    content = @Content)
+    })
     @PostMapping("/folders/{idFolder}/simulations")
-    public ResponseEntity<Simulation> newSimulation(@PathVariable Integer idFolder,
-                                                    @RequestBody SimulationDTO simulation,
-                                                    HttpServletRequest request) {
-        if (folderService.findById(idFolder).isPresent()) {
-            var savedSimulation = simulationService.save(idFolder, simulation, request);
-            return ResponseEntity.created(fromCurrentRequest().path("/{id}").buildAndExpand(savedSimulation.getIdSimulation()).toUri()).body(savedSimulation);
-        }
-        return ResponseEntity.badRequest().build();
-    }
-
-    @DeleteMapping("/folders/{idFolder}/simulations/{idSimulation}")
-    public ResponseEntity<Simulation> deleteSimulation(@PathVariable Integer idFolder,
-                                                       @PathVariable Integer idSimulation) {
-        var simulation = simulationService.findById(idSimulation).orElseThrow();
-        if (simulation == null) {
-            return ResponseEntity.notFound().build();
-        }
-        itemService.deleteAllItemsBySimulation(simulation);
-        simulationService.delete(idSimulation);
-        return ResponseEntity.ok(simulation);
-    }
-
-    @PutMapping("/folders/{idFolder}/simulations/{idSimulation}")
-    public ResponseEntity<Simulation> modifySimulation(@PathVariable Integer idFolder,
-                                                       @PathVariable Integer idSimulation,
-                                                       @RequestBody SimulationDTO simulation,
-                                                       HttpServletRequest request) {
-        if (simulationService.findById(idSimulation).isPresent()) {
-            var savedSimulation = simulationService.save(idFolder, simulation, request);
-            if (savedSimulation != null) {
-                return ResponseEntity.ok(savedSimulation);
+    public ResponseEntity<Simulation> newSimulation(@Parameter(description = "Id of the folder") @PathVariable Integer idFolder,
+                                                    @Parameter(description = "Simulation DTO") @RequestBody SimulationDTO simulation,
+                                                    @Parameter(description = "Http servlet information") HttpServletRequest request) {
+        if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
+            if (folderService.findById(idFolder).isPresent()) {
+                var savedSimulation = simulationService.save(idFolder, simulation, request);
+                return ResponseEntity.created(fromCurrentRequest().path("/{id}").buildAndExpand(savedSimulation.getIdSimulation()).toUri()).body(savedSimulation);
             }
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    /**
+     * Deletes a simulation.
+     *
+     * @param idFolder Id of the folder.
+     * @param idSimulation Id of the simulation.
+     * @param request Http servlet information
+     * @return {@code True} The simulation deleted {@code False} Bad request.
+     */
+    @Operation(summary = "Deletes a simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The simulation deleted.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Simulation.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while deleting the simulation.",
+                    content = @Content)
+    })
+    @DeleteMapping("/folders/{idFolder}/simulations/{idSimulation}")
+    public ResponseEntity<Simulation> deleteSimulation(@Parameter(description = "Id of the folder") @PathVariable Integer idFolder,
+                                                       @Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                                       @Parameter(description = "Http servlet information") HttpServletRequest request) {
+        var folder = folderService.findById(idFolder).get();
+        if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
+            if (folder.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
+                var simulation = simulationService.findById(idSimulation).orElseThrow();
+                if (simulation == null) {
+                    return ResponseEntity.notFound().build();
+                }
+                if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
+                    itemService.deleteAllItemsBySimulation(simulation);
+                    simulationService.delete(idSimulation);
+                    return ResponseEntity.ok(simulation);
+                }
+            }
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    /**
+     * Updates a simulation.
+     *
+     * @param idFolder Id of the folder.
+     * @param idSimulation Id of the simulation.
+     * @param simulation Simulation DTO.
+     * @param request Http servlet information.
+     * @return {@code True} The simulation updated {@code False} Bad request.
+     */
+    @Operation(summary = "Updates a simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The simulation updated.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Simulation.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while updating the simulation.",
+                    content = @Content)
+    })
+    @PutMapping("/folders/{idFolder}/simulations/{idSimulation}")
+    public ResponseEntity<Simulation> modifySimulation(@Parameter(description = "Id of the folder") @PathVariable Integer idFolder,
+                                                       @Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                                       @Parameter(description = "Simulation DTO") @RequestBody SimulationDTO simulation,
+                                                       @Parameter(description = "Http servlet information") HttpServletRequest request) {
+        var simulationAux = simulationService.findById(idSimulation).get();
+        if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
+            if (simulationAux.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
+                if (simulationService.findById(idSimulation).isPresent()) {
+                    var savedSimulation = simulationService.save(idFolder, simulation, request);
+                    if (savedSimulation != null) {
+                        return ResponseEntity.ok(savedSimulation);
+                    }
+                    return ResponseEntity.badRequest().build();
+                }
+                return ResponseEntity.notFound().build();
+            }
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    /**
+     * Saves the image of a simulation.
+     *
+     * @param idSimulation Id of the simulation.
+     * @param file Multipart file.
+     * @param request Http servlet information.
+     * @return {@code True} The object saved. {@code False} Bad request.
+     * @throws IOException
+     */
+    @Operation(summary = "Saves the image of a simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The image saved.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Object.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while saving the image.",
+                    content = @Content)
+    })
     @PutMapping("/simulations/{idSimulation}/image")
-    public ResponseEntity<Object> uploadSimulationImage(@PathVariable Integer idSimulation,
-                                                        @RequestParam MultipartFile file,
-                                                        HttpServletRequest request) throws IOException {
-        var requestUser= request.getUserPrincipal().getName();
-        var simulation=simulationService.findById(idSimulation).orElseThrow();
-        if (requestUser.equals(simulation.getUserCreator().getNickname())){
+    public ResponseEntity<Object> uploadSimulationImage(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                                        @Parameter(description = "Multipart file") @RequestParam MultipartFile file,
+                                                        @Parameter(description = "Http servlet information") HttpServletRequest request) throws IOException {
+        var requestUser = request.getUserPrincipal().getName();
+        var simulation = simulationService.findById(idSimulation).orElseThrow();
+        if (requestUser.equals(simulation.getUserCreator().getNickname())) {
             try {
-                simulation.setImageFile(BlobProxy.generateProxy(file.getInputStream(),file.getSize()))
+                simulation.setImageFile(BlobProxy.generateProxy(file.getInputStream(), file.getSize()))
                         .setMimeImage(file.getContentType());
-                var savedSimulation=simulationService.save(simulation);
-                if (savedSimulation!=null){
+                var savedSimulation = simulationService.save(simulation);
+                if (savedSimulation != null) {
                     return ResponseEntity.ok(savedSimulation);
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 ResponseEntity.badRequest().build();
             }
 
@@ -108,14 +230,32 @@ public class SimulationAPIController {
 
     }
 
+    /**
+     * Gets the image of a simulation.
+     *
+     * @param idSimulation Id of the simulation.
+     * @param request Http servlet information.
+     * @return {@code True} The image of the simulation. {@code False} Bad request.
+     * @throws SQLException
+     */
+    @Operation(summary = "Gets the image of a simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The image of a simulation.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Object.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while getting the image.",
+                    content = @Content)
+    })
     @GetMapping("/simulations/{idSimulation}/image")
-    public ResponseEntity<Object> getSimulationImage(@PathVariable Integer idSimulation,
-                                                     HttpServletRequest request) throws SQLException {
-        var requestUser= request.getUserPrincipal().getName();
-        var simulation=simulationService.findById(idSimulation).orElseThrow();
-        if (requestUser.equals(simulation.getUserCreator().getNickname())){
-            if (simulation.getImageFile()!=null){
-                InputStreamResource image= new InputStreamResource(simulation.getImageFile().getBinaryStream());
+    public ResponseEntity<Object> getSimulationImage(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                                     @Parameter(description = "Http servlet information") HttpServletRequest request) throws SQLException {
+        var requestUser = request.getUserPrincipal().getName();
+        var simulation = simulationService.findById(idSimulation).orElseThrow();
+        if (requestUser.equals(simulation.getUserCreator().getNickname())) {
+            if (simulation.getImageFile() != null) {
+                InputStreamResource image = new InputStreamResource(simulation.getImageFile().getBinaryStream());
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_TYPE, simulation.getMimeImage())
                         .contentLength(simulation.getImageFile().length()).body(image);
@@ -125,12 +265,29 @@ public class SimulationAPIController {
 
     }
 
+    /**
+     * Gets the simulation.
+     *
+     * @param idSimulation Id of a simulation.
+     * @param request Http servlet information.
+     * @return {@code True} The simulation. {@code False} Bad request.
+     */
+    @Operation(summary = "Gets the simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The simulation.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Simulation.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while getting the simulation.",
+                    content = @Content)
+    })
     @GetMapping("/simulation/{idSimulation}")
-    public ResponseEntity<Simulation> getSimulation(@PathVariable Integer idSimulation,
-                                                    HttpServletRequest request){
-        var requestUser= request.getUserPrincipal().getName();
-        var simulation=simulationService.findById(idSimulation).orElseThrow();
-        if (requestUser.equals(simulation.getUserCreator().getNickname())){
+    public ResponseEntity<Simulation> getSimulation(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                                    @Parameter(description = "Http servlet information") HttpServletRequest request) {
+        var requestUser = request.getUserPrincipal().getName();
+        var simulation = simulationService.findById(idSimulation).orElseThrow();
+        if (requestUser.equals(simulation.getUserCreator().getNickname())) {
             return ResponseEntity.ok(simulation);
         }
         return ResponseEntity.badRequest().build();

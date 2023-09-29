@@ -19,7 +19,7 @@ export class HomeService{
   }
 
   getPageSimulation(idFolder:number,page:number):Observable<any>{
-    return this.httpClient.get('/api/folders/'+idFolder+'/simulations?page='+page) as Observable<any>;
+    return this.httpClient.get('/api/folders/'+idFolder+'/simulations?page='+page,{withCredentials: true}) as Observable<any>;
   }
 
   getIdFolder(nameFolder:string):Observable<number>{
