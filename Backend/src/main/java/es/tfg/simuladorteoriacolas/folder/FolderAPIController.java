@@ -60,6 +60,7 @@ public class FolderAPIController {
         return ResponseEntity.badRequest().build();
     }
 
+
     /**
      * Returns the list of folders with their respective paginated simulations.
      *
