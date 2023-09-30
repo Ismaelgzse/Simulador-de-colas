@@ -16,6 +16,18 @@ public class Server {
 
     private Integer outServer;
 
+    private Double totalBusy;
+
+    private Double pctBusyTime;
+
+    private Double totalIdle;
+
+    private Double lastTimeIdle;
+
+    private Double lastTimeBusy;
+
+    private Integer idleOrBusy;
+
     @OneToOne
     private Item item;
 
@@ -53,5 +65,53 @@ public class Server {
 
     public Integer getIdServer() {
         return idServer;
+    }
+
+    public Double getTotalBusy() {
+        return totalBusy;
+    }
+
+    public void setTotalBusy(Double totalBusy) {
+        this.totalBusy = totalBusy;
+    }
+
+    public Double getPctBusyTime() {
+        return pctBusyTime;
+    }
+
+    public void setPctBusyTime(Double pctBusyTime) {
+        this.pctBusyTime = pctBusyTime;
+    }
+
+    public Double getTotalIdle() {
+        return totalIdle;
+    }
+
+    public void setTotalIdle(Double totalIdle) {
+        this.totalIdle = totalIdle;
+    }
+
+    public Double getLastTimeIdle() {
+        return lastTimeIdle;
+    }
+
+    public void setLastTimeIdle(Double lastTimeIdle) {
+        this.lastTimeIdle = lastTimeIdle;
+    }
+
+    public Double getLastTimeBusy() {
+        return lastTimeBusy;
+    }
+
+    public void setLastTimeBusy(Double lastTimeBusy) {
+        this.lastTimeBusy = lastTimeBusy;
+    }
+
+    public Integer getIdleOrBusy() {
+        return idleOrBusy;
+    }
+
+    public void setIdleOrBusy(Integer idleOrBusy) {
+        this.idleOrBusy = idleOrBusy;
     }
 }
