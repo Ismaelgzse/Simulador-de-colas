@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Inject, OnInit, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {HomeService} from "../home/home.service";
 import {DOCUMENT} from "@angular/common";
 import {ItemContainerModel} from "./Items/itemContainer.model";
@@ -301,10 +301,10 @@ function totalAmountStrategySource(max: number, component: any): ValidatorFn {
   templateUrl: './simulation.component.html',
   styleUrls: ['../../assets/css/home.css', '../../assets/vendor/fontawesome-free-6.4.0-web/css/all.css', '../../assets/css/simulation.css'
   ],
-  providers: [SimulationService]
+  providers: [SimulationService,HomeService]
 })
 
-export class SimulationComponent implements AfterViewInit, OnInit {
+export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   numConnections: number;
   showConnections: boolean;
   inputControls: FormControl[] = [];
@@ -387,8 +387,19 @@ export class SimulationComponent implements AfterViewInit, OnInit {
   })
 
 
-  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
+  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document,public homeService:HomeService, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
   }
+
+  ngOnDestroy(): void {
+        this.homeService.isAuthenticated().subscribe({
+          next: (success)=>{
+            if (success){
+              this.simulationService.sendMessage(this.id.toString())
+              this.simulationService.closeConnection();
+            }
+          }
+        })
+    }
 
   ngOnInit(): void {
     this.showConnections = true
@@ -451,13 +462,11 @@ export class SimulationComponent implements AfterViewInit, OnInit {
     this.route.params.subscribe({
       next: (params) => {
         this.id = params['id'];
-
-        //TODO conexion a websockect
-        this.simulationService.connect(this.id.toString());
-
         //The simulation and its items and connections are loaded
         this.simulationService.getSimulationInfo(this.id).subscribe({
           next: (simulation) => {
+            this.simulationService.connect(this.id.toString());
+
             this.simulationTitle = simulation.title;
             this.simulationService.getItems(this.id).subscribe({
               next: (items) => {
@@ -486,6 +495,8 @@ export class SimulationComponent implements AfterViewInit, OnInit {
       }
     })
   }
+
+
 
   ngAfterViewInit(): void {
     //We assign to the canvas element of the html some events

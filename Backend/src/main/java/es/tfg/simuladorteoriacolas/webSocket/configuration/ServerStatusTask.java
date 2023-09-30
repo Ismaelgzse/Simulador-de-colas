@@ -48,6 +48,6 @@ public class ServerStatusTask {
             itemDTOList.add(itemDTO);
         }
 
-        simpMessageSendingOperations.convertAndSend("/itemInfo/"+simulationId,itemDTOList);
+        simpMessageSendingOperations.convertAndSend("/simulationInfo/"+simulationId,itemDTOList);
     }
 }

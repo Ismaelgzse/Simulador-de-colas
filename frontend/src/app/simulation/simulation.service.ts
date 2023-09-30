@@ -26,14 +26,18 @@ export class SimulationService {
     // @ts-ignore
     this.stompClient.connect({}, (frame) => {
         // @ts-ignore
-      this.stompClient.subscribe(`/itemInfo/${simulationId}`, (message) => {
+      this.stompClient.subscribe(`/simulationInfo/${simulationId}`, (message) => {
           console.log(JSON.parse(message.body));
         });
     });
   }
 
   public sendMessage(simulationId:string){
-    this.stompClient.send('/wsAPI/destination/'+simulationId,{},JSON.stringify('connect'))
+    this.stompClient.send('/wsAPI/simulateMessage/'+simulationId,{},JSON.stringify('connect'))
+  }
+
+  public closeConnection(){
+    this.stompClient.disconnect();
   }
 
   getItems(idSimulation: number): Observable<any> {

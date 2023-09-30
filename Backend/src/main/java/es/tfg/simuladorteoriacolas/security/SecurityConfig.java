@@ -26,7 +26,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
-                .authorizeHttpRequests().requestMatchers("/api/logout","/api/login","/api/newUser","/api/isAuthenticated","/api/forgottenPassword","/api/existingUser","/ws/**","/api/destination/**","/itemInfo/**","/api-docs/**","/swagger-ui/**").permitAll()
+                .authorizeHttpRequests().requestMatchers("/api/logout","/api/login","/api/newUser","/api/isAuthenticated","/api/forgottenPassword","/api/existingUser","/ws/**","/simulationInfo/**","/api-docs/**","/swagger-ui/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

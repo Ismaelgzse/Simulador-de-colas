@@ -11,6 +11,7 @@ import es.tfg.simuladorteoriacolas.items.types.Queue;
 import es.tfg.simuladorteoriacolas.items.types.Server;
 import es.tfg.simuladorteoriacolas.items.types.Sink;
 import es.tfg.simuladorteoriacolas.items.types.Source;
+import es.tfg.simuladorteoriacolas.simulation.Simulation;
 import org.apache.commons.math3.distribution.*;
 
 import java.util.ArrayList;
@@ -21,7 +22,12 @@ import java.util.concurrent.Exchanger;
 import java.util.concurrent.Semaphore;
 
 public class Algorithm implements Runnable{
-    public static final int clientes = 10;
+
+    private List<ItemDTO> simulation;
+
+    public Algorithm(List<ItemDTO> simulation){
+        this.simulation=simulation;
+    }
 
     //ITEMS
     //Semaforos IN OUT para controlar entradas y salidas de los items
@@ -31,41 +37,9 @@ public class Algorithm implements Runnable{
     //Tendrá que haber un OUT por cada posible conexión que tenga la salida de ese item
     //Tendrá 0 permisos este semaforo ya que los otorga la salida de este indicando que va a salir un objeto
 
-    Semaphore fuenteOut = new Semaphore(0, true);
-    Semaphore fuenteInOut = new Semaphore(0, true);
-    Semaphore colaCapacity = new Semaphore(1000000000, true);
-    Semaphore colaOut = new Semaphore(0, true);
-    Semaphore productsQueueSemaphore = new Semaphore(1, true);
-    Integer numberProductsQueue = 0;
-    Semaphore queueOutSemaphore = new Semaphore(0, true);
-    Semaphore serverInSemaphore = new Semaphore(0, true);
-    Semaphore productsInServerSemaphore = new Semaphore(1, true);
-    Integer in = 0;
-    Semaphore productsOutServerSemaphore = new Semaphore(0, true);
-    Semaphore productsInSinkSemaphore = new Semaphore(1, true);
-    Integer productsInSink = 0;
-    Semaphore queueInOut = new Semaphore(0, true);
     Double startSimulation;
 
-
-    int fuenteTiempo = 2;
-    int servidorTiempo = 2;
-
     Random random = new Random();
-
-    public List<Integer> moreThanOneConnection(Integer destination, List<ItemDTO> itemDTOList) {
-        List<Integer> finalList = new ArrayList<>();
-        for (ItemDTO itemDTO : itemDTOList) {
-            if (itemDTO.getConnections() != null) {
-                for (Connection connection : itemDTO.getConnections()) {
-                    if (connection.getDestinationItem().getIdItem().equals(destination)) {
-                        finalList.add(connection.getOriginItem().getIdItem());
-                    }
-                }
-            }
-        }
-        return finalList;
-    }
 
 
     @Override
@@ -1257,6 +1231,7 @@ public class Algorithm implements Runnable{
                 case "Sink":
                     finalI = i;
                     var sink = new Thread(() -> {
+                        var productsInSink=0;
                         var inSemaphoreType = getSemaphore(semaphoresItem, "In");
                         var accessOutType = getSemaphore(semaphoresItem, "AccessOut");
                         var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
@@ -1372,140 +1347,6 @@ public class Algorithm implements Runnable{
 
          */
 
-
-        /*var fuente = new Thread(() -> {
-            var sourceIn = new Thread(() -> {
-                try {
-                    while (true) {
-                        var dormir = random.nextInt(4000, 7000);
-                        Thread.sleep(dormir);
-                        fuenteInOut.release();
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            });
-            //System.out.println(dormir);
-            var sourceOut = new Thread(() -> {
-                try {
-                    while (true) {
-                        fuenteInOut.acquire();
-                        fuenteOut.release();
-                        System.out.println("Producto generado y enviado a la cola");
-                        //Todo controlar a qué cola tener que enviar los productos debido a la estrategia seleccionada
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            });
-            sourceIn.start();
-            sourceOut.start();
-        });
-        fuente.start();
-        var cola = new Thread(() -> {
-            var colaIn = new Thread(() -> {
-                while (true) {
-                    if (colaCapacity.availablePermits() > 0) {
-                        try {
-                            colaCapacity.acquire();
-                            fuenteOut.acquire();
-                            System.out.println("Producto adquirido por cola");
-                            productsQueueSemaphore.acquire();
-                            numbreProductsQueue++;
-                            System.out.println(numbreProductsQueue + " productos en la cola");
-                            productsQueueSemaphore.release();
-                            queueInOut.release();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    } else if (colaCapacity.availablePermits() < 1) {
-                        try {
-                            fuenteOut.acquire();
-                            System.out.println("Producto perdido por capacidad de cola");
-                            //Se pierde este producto al no haber más capacidad de cola
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-            var colaOut = new Thread(() -> {
-                while (true) {
-                    if (serverInSemaphore.availablePermits() > 0) {
-                        try {
-                            queueInOut.acquire();
-                            serverInSemaphore.acquire();
-                            productsQueueSemaphore.acquire();
-                            numbreProductsQueue--;
-                            System.out.println(numbreProductsQueue + " productos en la cola");
-                            productsQueueSemaphore.release();
-                            queueOutSemaphore.release();
-                            colaCapacity.release();
-                            System.out.println("Producto enviado al servidor");
-                            //TODO tener que seleccionar a qué servidor enviar los productos debido a la strategia
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-            colaIn.start();
-            colaOut.start();
-        });
-        cola.start();
-
-        var server = new Thread(() -> {
-            while (true) {
-                try {
-                    serverInSemaphore.release();
-                    queueOutSemaphore.acquire();
-                    System.out.println("Producto adquirido por el servidor");
-                    productsInServerSemaphore.acquire();
-                    productsInServer++;
-                    System.out.println(productsInServer + " productos en el servidor");
-                    productsInServerSemaphore.release();
-                    System.out.println("Procesandose por el servidor");
-                    var r = random.nextInt(10000, 20000);
-                    Thread.sleep(r);
-                    productsInServerSemaphore.acquire();
-                    productsInServer--;
-                    System.out.println(productsInServer + " productos en el servidor");
-                    productsInServerSemaphore.release();
-                    System.out.println("Producto enviado al sumidero");
-                    productsOutServerSemaphore.release();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        server.start();
-
-        var sink = new Thread(() -> {
-            try {
-                while (true) {
-                    productsOutServerSemaphore.acquire();
-                    System.out.println("Producto adquirido por el sumidero");
-                    productsInSinkSemaphore.acquire();
-                    productsInSink++;
-                    System.out.println(productsInSink + " productos en el sumidero");
-                    productsInSinkSemaphore.release();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
-        sink.start();
-
-         */
-
-
-
-           /* while (true) {
-                Thread.sleep(2000);
-                var a = random.nextInt();
-                System.out.println(a);
-            }
-            */
     }
 
     private List<Exchanger> getExchangers(SemaphoreAsignation semaphoresItem, String type) {
@@ -1716,6 +1557,20 @@ public class Algorithm implements Runnable{
             }
         }
         return null;
+    }
+
+    public List<Integer> moreThanOneConnection(Integer destination, List<ItemDTO> itemDTOList) {
+        List<Integer> finalList = new ArrayList<>();
+        for (ItemDTO itemDTO : itemDTOList) {
+            if (itemDTO.getConnections() != null) {
+                for (Connection connection : itemDTO.getConnections()) {
+                    if (connection.getDestinationItem().getIdItem().equals(destination)) {
+                        finalList.add(connection.getOriginItem().getIdItem());
+                    }
+                }
+            }
+        }
+        return finalList;
     }
 
 }
