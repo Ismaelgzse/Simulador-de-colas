@@ -4,4 +4,6 @@ export interface Simulation{
   body:string;
   folderId?:number;
   imageFile:string;
+  statusSimulation?:string;
+
 }

@@ -80,9 +80,9 @@ public class SimulationAPIController {
     /**
      * Creates a new simulation on a folder.
      *
-     * @param idFolder Id of the folder.
+     * @param idFolder   Id of the folder.
      * @param simulation Simulation DTO.
-     * @param request Http servlet information.
+     * @param request    Http servlet information.
      * @return {@code True} The simulation created. {@code False} Bad request.
      */
     @Operation(summary = "Creates a new simulation.")
@@ -112,9 +112,9 @@ public class SimulationAPIController {
     /**
      * Deletes a simulation.
      *
-     * @param idFolder Id of the folder.
+     * @param idFolder     Id of the folder.
      * @param idSimulation Id of the simulation.
-     * @param request Http servlet information
+     * @param request      Http servlet information
      * @return {@code True} The simulation deleted {@code False} Bad request.
      */
     @Operation(summary = "Deletes a simulation.")
@@ -151,10 +151,10 @@ public class SimulationAPIController {
     /**
      * Updates a simulation.
      *
-     * @param idFolder Id of the folder.
+     * @param idFolder     Id of the folder.
      * @param idSimulation Id of the simulation.
-     * @param simulation Simulation DTO.
-     * @param request Http servlet information.
+     * @param simulation   Simulation DTO.
+     * @param request      Http servlet information.
      * @return {@code True} The simulation updated {@code False} Bad request.
      */
     @Operation(summary = "Updates a simulation.")
@@ -192,8 +192,8 @@ public class SimulationAPIController {
      * Saves the image of a simulation.
      *
      * @param idSimulation Id of the simulation.
-     * @param file Multipart file.
-     * @param request Http servlet information.
+     * @param file         Multipart file.
+     * @param request      Http servlet information.
      * @return {@code True} The object saved. {@code False} Bad request.
      * @throws IOException
      */
@@ -234,7 +234,7 @@ public class SimulationAPIController {
      * Gets the image of a simulation.
      *
      * @param idSimulation Id of the simulation.
-     * @param request Http servlet information.
+     * @param request      Http servlet information.
      * @return {@code True} The image of the simulation. {@code False} Bad request.
      * @throws SQLException
      */
@@ -269,7 +269,7 @@ public class SimulationAPIController {
      * Gets the simulation.
      *
      * @param idSimulation Id of a simulation.
-     * @param request Http servlet information.
+     * @param request      Http servlet information.
      * @return {@code True} The simulation. {@code False} Bad request.
      */
     @Operation(summary = "Gets the simulation.")
@@ -291,6 +291,38 @@ public class SimulationAPIController {
             return ResponseEntity.ok(simulation);
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * Checks if the simulation is running.
+     *
+     * @param idSimulation Id of the simulation.
+     * @param request Http servlet information.
+     * @return {@code} Boolean with the value of the check. {@code} Bad request.
+     */
+    @Operation(summary = "Checks if the simulation is running.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Boolean with the value of the check.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Simulation.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while checking the status of the simulation.",
+                    content = @Content)
+    })
+    @GetMapping("simulation/{idSimulation}/isRunning")
+    public ResponseEntity<Boolean> isRunning(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                             @Parameter(description = "Http servlet information") HttpServletRequest request) {
+        var simulation = simulationService.findById(idSimulation).get();
+        if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
+            if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
+                if (simulation.getStatusSimulation().equals("1")) {
+                    return ResponseEntity.ok(true);
+                }
+                return ResponseEntity.ok(false);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
 }

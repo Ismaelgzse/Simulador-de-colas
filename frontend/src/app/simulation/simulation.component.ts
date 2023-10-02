@@ -3,7 +3,7 @@ import {HomeService} from "../home/home.service";
 import {DOCUMENT} from "@angular/common";
 import {ItemContainerModel} from "./Items/itemContainer.model";
 import {SimulationService} from "./simulation.service";
-import {ActivatedRoute, Route, Router} from "@angular/router";
+import {ActivatedRoute, NavigationEnd, NavigationStart, Route, Router} from "@angular/router";
 import {QueueModel} from "./Items/queue.model";
 import {SinkModel} from "./Items/sink.model";
 import {SourceModel} from "./Items/source.model";
@@ -12,6 +12,7 @@ import {ItemModel} from "./Items/item.model";
 import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from "@angular/forms";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ConnectionModel} from "./Connection/connection.model";
+import {refresh} from "../app.component";
 
 
 function totalAmountQueue(max: number, component: any): ValidatorFn {
@@ -209,7 +210,7 @@ function totalAmountSource(max: number, component: any): ValidatorFn {
       if (component.editSourceForm) {
         if (component.editSourceForm.controls) {
           //Checks if we need to verify the total amount of the percentages
-          if (component.editSourceForm.controls.sendToStrategySource.value === "Porcentaje (si no hay hueco se envia aunque se pierda)" || component.editSourceForm.controls.sendToStrategySource.value ==="Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
+          if (component.editSourceForm.controls.sendToStrategySource.value === "Porcentaje (si no hay hueco se envia aunque se pierda)" || component.editSourceForm.controls.sendToStrategySource.value === "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
             let total = 0;
 
             //Number of fields of connections
@@ -264,7 +265,7 @@ function totalAmountStrategySource(max: number, component: any): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     let input = control.value;
     //If the strategy is percentage-based, we allow the user the possibility of choosing the percentages
-    if (input === "Porcentaje (si no hay hueco se envia aunque se pierda)" || input==="Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
+    if (input === "Porcentaje (si no hay hueco se envia aunque se pierda)" || input === "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)") {
       component.showConnections = true;
       if (component) {
         if (component.editSourceForm) {
@@ -296,13 +297,15 @@ function totalAmountStrategySource(max: number, component: any): ValidatorFn {
   }
 }
 
+
 @Component({
   selector: 'app-simulation',
   templateUrl: './simulation.component.html',
   styleUrls: ['../../assets/css/home.css', '../../assets/vendor/fontawesome-free-6.4.0-web/css/all.css', '../../assets/css/simulation.css'
   ],
-  providers: [SimulationService,HomeService]
+  providers: [SimulationService, HomeService]
 })
+
 
 export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   numConnections: number;
@@ -318,6 +321,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   //2: already exist
   errorConnection: number;
 
+  //refresh:boolean;
+  simulating: boolean;
   connectionModal: ConnectionModel;
   listConnections: ConnectionModel[]
   listConnectionsBackUp: ConnectionModel[]
@@ -387,21 +392,34 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   })
 
 
-  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document,public homeService:HomeService, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
+  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, public homeService: HomeService, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
   }
 
   ngOnDestroy(): void {
-        this.homeService.isAuthenticated().subscribe({
-          next: (success)=>{
-            if (success){
-              this.simulationService.sendMessage(this.id.toString())
+    this.homeService.isAuthenticated().subscribe({
+      next: (success) => {
+        if (success) {
+          this.simulationService.getStatusSimulation(this.id).subscribe({
+            next: (status) => {
+              if (status) {
+                this.simulationService.sendMessage(this.id.toString())
+              }
               this.simulationService.closeConnection();
+            },
+            error : (err)=>{
+              if (this.simulating){
+                this.simulationService.sendMessage(this.id.toString());
+                this.simulationService.closeConnection();
+              }
             }
-          }
-        })
-    }
+          })
+        }
+      }
+    })
+  }
 
   ngOnInit(): void {
+    this.simulating = false;
     this.showConnections = true
     this.errorConnection = 0;
     this.correctSinkShown = false;
@@ -462,40 +480,83 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.route.params.subscribe({
       next: (params) => {
         this.id = params['id'];
-        //The simulation and its items and connections are loaded
-        this.simulationService.getSimulationInfo(this.id).subscribe({
-          next: (simulation) => {
-            this.simulationService.connect(this.id.toString());
-
-            this.simulationTitle = simulation.title;
-            this.simulationService.getItems(this.id).subscribe({
-              next: (items) => {
-                this.listItems = items;
-                for (let i = 0; i < this.listItems.length; i++) {
-                  // @ts-ignore
-                  for (let j = 0; j < this.listItems[i].connections.length; j++) {
-                    // @ts-ignore
-                    this.listConnections.push(this.listItems[i].connections[j]);
-                  }
-                }
-                this.listConnectionsBackUp = this.listConnections;
-              },
-              error: (err) => {
-                this.router.navigate(['error403']);
+        if (refresh) {
+          this.simulationService.getStatusSimulation(this.id).subscribe({
+            next: (status) => {
+              if (status) {
+                this.simulationService.connectAlt(this.id.toString());
+                this.simulating = false;
               }
-            })
-          },
-          error: (err) => {
-            this.router.navigate(['error403']);
-          }
-        })
+              else {
+                this.simulationService.connect(this.id.toString());
+
+              }
+              //The simulation and its items and connections are loaded
+              this.simulationService.getSimulationInfo(this.id).subscribe({
+                next: (simulation) => {
+
+                  this.simulationTitle = simulation.title;
+                  this.simulationService.getItems(this.id).subscribe({
+                    next: (items) => {
+                      this.listItems = items;
+                      for (let i = 0; i < this.listItems.length; i++) {
+                        // @ts-ignore
+                        for (let j = 0; j < this.listItems[i].connections.length; j++) {
+                          // @ts-ignore
+                          this.listConnections.push(this.listItems[i].connections[j]);
+                        }
+                      }
+                      this.listConnectionsBackUp = this.listConnections;
+                    },
+                    error: (err) => {
+                      this.router.navigate(['error403']);
+                    }
+                  })
+                },
+                error: (err) => {
+                  this.router.navigate(['error403']);
+                }
+              })
+            },
+            error: (err) => {
+              this.router.navigate(['error500']);
+            }
+          })
+        } else {
+          this.simulationService.connect(this.id.toString());
+
+          //The simulation and its items and connections are loaded
+          this.simulationService.getSimulationInfo(this.id).subscribe({
+            next: (simulation) => {
+              this.simulationTitle = simulation.title;
+              this.simulationService.getItems(this.id).subscribe({
+                next: (items) => {
+                  this.listItems = items;
+                  for (let i = 0; i < this.listItems.length; i++) {
+                    // @ts-ignore
+                    for (let j = 0; j < this.listItems[i].connections.length; j++) {
+                      // @ts-ignore
+                      this.listConnections.push(this.listItems[i].connections[j]);
+                    }
+                  }
+                  this.listConnectionsBackUp = this.listConnections;
+                },
+                error: (err) => {
+                  this.router.navigate(['error403']);
+                }
+              })
+            },
+            error: (err) => {
+              this.router.navigate(['error403']);
+            }
+          })
+        }
       },
       error: (err) => {
         this.router.navigate(['error403']);
       }
     })
   }
-
 
 
   ngAfterViewInit(): void {
@@ -699,12 +760,35 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  //TODO
-  simulate() {
-    this.simulationService.sendMessage(this.id.toString());
+  stopSimulating() {
+    if (this.simulating) {
+      //Go back tho the normal screen, removing the blackscreen
+      let blackCanvas = document.getElementById('blackScreen')
+      // @ts-ignore
+      blackCanvas.classList.toggle("showScreen")
+      this.blackScreen = false;
+      this.simulating = false;
+      this.simulationService.sendMessage(this.id.toString());
+    }
   }
 
-  //When the user cancels the procces of adding a new connection between two items
+  //TODO
+  simulate() {
+    if (!this.blackScreen) {
+      //Go back tho the normal screen, removing the blackscreen
+      let blackCanvas = document.getElementById('blackScreen')
+      // @ts-ignore
+      blackCanvas.classList.toggle("showScreen")
+      this.blackScreen = true;
+      this.simulating = true;
+    }
+
+    this.simulationService.sendMessage(this.id.toString());
+
+
+  }
+
+//When the user cancels the procces of adding a new connection between two items
   cancelNewConnection() {
     if (this.blackScreen) {
 
@@ -732,8 +816,11 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  //Returns the connections of a item
-  connectionsOfSelectedItem(itemContainer: ItemContainerModel) {
+//Returns the connections of a item
+  connectionsOfSelectedItem(itemContainer
+                              :
+                              ItemContainerModel
+  ) {
     for (let i = 0; i < this.listItems.length; i++) {
       if (this.listItems[i].item.idItem === itemContainer.item.idItem && this.listItems[i].item.name === itemContainer.item.name) {
         return this.listItems[i].connections;
@@ -742,8 +829,13 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return []
   }
 
-  //Returns true if the items are already connected, false otherwise
-  alreadyConnected(origin: ItemModel, destination: ItemContainerModel) {
+//Returns true if the items are already connected, false otherwise
+  alreadyConnected(origin
+                     :
+                     ItemModel, destination
+                     :
+                     ItemContainerModel
+  ) {
     let originItem: ItemContainerModel;
     for (let i = 0; i < this.listItems.length; i++) {
       // @ts-ignore
@@ -764,7 +856,12 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return false;
   }
 
-  newConnection(event: Event, itemContainer: ItemContainerModel) {
+  newConnection(event
+                  :
+                  Event, itemContainer
+                  :
+                  ItemContainerModel
+  ) {
     //When the user presses the button to add a new connection we add a blackscreen to focus
     this.blackScreen = true;
     // @ts-ignore
@@ -893,23 +990,41 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  //When the user clicks the delete button, we store the connection data, and in case the user confirms the deletion, we will delete the connection
-  openModalDeleteConnection(content: any, connection: ConnectionModel) {
+//When the user clicks the delete button, we store the connection data, and in case the user confirms the deletion, we will delete the connection
+  openModalDeleteConnection(content
+                              :
+                              any, connection
+                              :
+                              ConnectionModel
+  ) {
     this.connectionModal = connection;
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
-  //When the user clicks the delete button, we store the item data, and in case the user confirms the deletion, we will delete the item
-  openModalDeleteItem(content: any, itemContainer: ItemContainerModel) {
+//When the user clicks the delete button, we store the item data, and in case the user confirms the deletion, we will delete the item
+  openModalDeleteItem(content
+                        :
+                        any, itemContainer
+                        :
+                        ItemContainerModel
+  ) {
     this.itemContainerModal = itemContainer;
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
-  openModalQuickSimulation(content: any) {
+  openModalQuickSimulation(content
+                             :
+                             any
+  ) {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
-  addInput(i: number, description: string) {
+  addInput(i
+             :
+             number, description
+             :
+             string
+  ) {
     const control = new FormControl('');
     switch (description) {
       case "Source":
@@ -925,11 +1040,19 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.inputControls.push(control)
   }
 
-  deleteInput(i: number) {
+  deleteInput(i
+                :
+                number
+  ) {
     this.inputControls.splice(0, 1);
   }
 
-  openModalEdit(content: any, itemContainer: ItemContainerModel) {
+  openModalEdit(content
+                  :
+                  any, itemContainer
+                  :
+                  ItemContainerModel
+  ) {
     //When the user clicks the edit button, we store the item data and its connections
     this.itemContainerModal = itemContainer;
     for (let i = 0; i < this.listItems.length; i++) {
@@ -1035,7 +1158,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.listNames = []
   }
 
-  //When the user resets the position of the item we place the items in controled positions, in order to be visible
+//When the user resets the position of the item we place the items in controled positions, in order to be visible
   resetPositions() {
     let x = -15;
     let y = 30;
@@ -1084,7 +1207,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return this.quickSimulationForm.get('csvFormat');
   }
 
-  //Form edit source
+//Form edit source
   get nameSource() {
     return this.editSourceForm.get('nameSource');
   }
@@ -1105,12 +1228,12 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return this.editSourceForm.get('sendToStrategySource');
   }
 
-  //Form edit sink
+//Form edit sink
   get nameSink() {
     return this.editSinkForm.get('nameSink');
   }
 
-  //Form edit server
+//Form edit server
   get nameServer() {
     return this.editServerForm.get('nameServer');
   }
@@ -1131,7 +1254,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return this.editServerForm.get('percentagesServer');
   }
 
-  //Form edit queue
+//Form edit queue
   get nameQueue() {
     return this.editQueueForm.get('nameQueue');
   }
@@ -1152,7 +1275,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return this.editQueueForm.get('sendToStrategyQueue');
   }
 
-  setNumberProducts(option: string) {
+  setNumberProducts(option
+                      :
+                      string
+  ) {
     if (option == "Ilimitados") {
       this.editSourceForm.patchValue({
         numberProductsSource: "Ilimitados"
@@ -1164,20 +1290,29 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  setinterArrivalTime(option: string) {
+  setinterArrivalTime(option
+                        :
+                        string
+  ) {
     this.editSourceForm.patchValue({
       interArrivalTimeSource: option
     });
   }
 
-  //Form edit Server
-  setcycletimeServer(option: string) {
+//Form edit Server
+  setcycletimeServer(option
+                       :
+                       string
+  ) {
     this.editServerForm.patchValue({
       cycletimeServer: option
     })
   }
 
-  setCapacityQueue(option: string) {
+  setCapacityQueue(option
+                     :
+                     string
+  ) {
     if (option == "Ilimitados") {
       this.editQueueForm.patchValue({
         capacityQueue: "Ilimitados"
@@ -1189,7 +1324,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  validateQueueDiscipline(control: AbstractControl) {
+  validateQueueDiscipline(control
+                            :
+                            AbstractControl
+  ) {
     let opt = control.value.substring(0, 6).toLowerCase();
     switch (opt) {
       case "fifo":
@@ -1203,7 +1341,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  setQueueDiscipline(option: string) {
+  setQueueDiscipline(option
+                       :
+                       string
+  ) {
     switch (option) {
       case "Fifo":
         this.editQueueForm.patchValue({
@@ -1224,7 +1365,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
 
-  validateFormatNumberProducts(control: AbstractControl) {
+  validateFormatNumberProducts(control
+                                 :
+                                 AbstractControl
+  ) {
     let numberProducts = control.value;
     if (numberProducts === "Ilimitados" || !isNaN(numberProducts)) {
       if (numberProducts === "Ilimitados") {
@@ -1240,7 +1384,12 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return {invalidFormat: true}
   }
 
-  validateName(control: AbstractControl, listNames: string[]) {
+  validateName(control
+                 :
+                 AbstractControl, listNames
+                 :
+                 string[]
+  ) {
     let name = control.value;
     //The name of the item need to be unique in the simulation
     if (name != '' && name != undefined && this.listNames.length != 0) {
@@ -1251,8 +1400,14 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return null
   }
 
-  //Validate the format of the functions
-  validateNumbers(numbers: string, func: string): boolean {
+//Validate the format of the functions
+  validateNumbers(numbers
+                    :
+                    string, func
+                    :
+                    string
+  ):
+    boolean {
     let posComa = 0;
     for (let i = 0; i < numbers.length; i++) {
       if (numbers.charAt(i) === ',') {
@@ -1316,7 +1471,12 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return false;
   }
 
-  validatePercentages(control: AbstractControl, itemContainer: ItemContainerModel) {
+  validatePercentages(control
+                        :
+                        AbstractControl, itemContainer
+                        :
+                        ItemContainerModel
+  ) {
     let input = control.value;
     if (itemContainer) {
       if (itemContainer.connections && itemContainer.connections.length > 0) {
@@ -1336,7 +1496,12 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return null;
   }
 
-  validateProbFunc(control: AbstractControl, component: any) {
+  validateProbFunc(control
+                     :
+                     AbstractControl, component
+                     :
+                     any
+  ) {
     let input = control.value;
     if (input.substring(0, 10) === "Triangular") {
       if (input.substring(10, 11) === "(" && input.substring(input.length - 1) === ")") {

@@ -46,7 +46,8 @@ export class HomeComponent implements OnInit {
     this.simulationInfo = {
       title: '',
       body: '',
-      imageFile: ''
+      imageFile: '',
+      statusSimulation:'0'
     }
     this.folderInfo = {
       nameFolder: '',
@@ -106,7 +107,7 @@ export class HomeComponent implements OnInit {
       this.newSimulationForm.patchValue({
         title: this.simulationInfo.title,
         body: this.simulationInfo.body,
-        folder: this.simulationInfo.folderId,
+        folder: this.simulationInfo.folderId
       })
     } else {
       this.simulationInfo.body = '';
@@ -154,7 +155,6 @@ export class HomeComponent implements OnInit {
     this.simulationInfo.title = <string>this.newSimulationForm.value.title;
     this.simulationInfo.body = <string>this.newSimulationForm.value.body;
     this.simulationInfo.folderId = this.newSimulationForm.value.folder;
-
     if (this.simulationInfo.idSimulation) {
       this.homeService.updateSimulation(this.simulationInfo).subscribe({
         next: (simulation) => {
@@ -178,6 +178,7 @@ export class HomeComponent implements OnInit {
         }
       })
     } else {
+      this.simulationInfo.statusSimulation='0';
       this.homeService.saveSimulation(this.simulationInfo).subscribe({
         next: (simulation) => {
           if (this.image != null && simulation.idSimulation) {

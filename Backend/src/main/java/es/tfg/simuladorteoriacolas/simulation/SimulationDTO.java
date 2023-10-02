@@ -10,11 +10,14 @@ public class SimulationDTO {
 
     private Integer folderId;
 
-    public SimulationDTO(Integer id, String title, String body,Integer folderId){
+    private String statusSimulation;
+
+    public SimulationDTO(Integer id, String title, String body,Integer folderId,String statusSimulation){
         this.idSimulation =id;
         this.title=title;
         this.body=body;
         this.folderId=folderId;
+        this.statusSimulation=statusSimulation;
     }
 
     public Integer getIdSimulation() {
@@ -47,5 +50,13 @@ public class SimulationDTO {
 
     public void setFolderId(Integer folderId) {
         this.folderId = folderId;
+    }
+
+    public String getStatusSimulation() {
+        return statusSimulation;
+    }
+
+    public void setStatusSimulation(String statusSimulation) {
+        this.statusSimulation = statusSimulation;
     }
 }

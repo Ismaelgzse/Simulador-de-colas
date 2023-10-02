@@ -53,6 +53,7 @@ public class SimulationService {
         else {
             simulation=simulationRepository.findById(simulationDTO.getIdSimulation()).get();
         }
+        simulation.setStatusSimulation(simulationDTO.getStatusSimulation());
         simulation.setBody(simulationDTO.getBody());
         simulation.setTitle(simulationDTO.getTitle());
         Folder folder= folderService.findById(idFolder).get();

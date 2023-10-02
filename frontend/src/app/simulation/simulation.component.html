@@ -28,27 +28,34 @@
         <div class="row">
           <div class="col-4">
             <div class="titleControls">Terminar</div>
-            <i class="fa-solid fa-stop"></i>
+            <button class="controlButtons" [disabled]="!simulating" (click)="stopSimulating()">
+              <i class="fa-solid fa-stop"></i>
+            </button>
           </div>
           <div class="col-4">
             <div class="titleControls">Pausar</div>
-            <i class="fa-solid fa-pause"></i>
+            <button class="controlButtons" [disabled]="!simulating">
+              <i class="fa-solid fa-pause"></i>
+            </button>
           </div>
           <div class="col-4">
             <div class="titleControls">Iniciar</div>
-            <i type="button" (click)="simulate()" class="fa-solid fa-play"></i>
+            <button class="controlButtons" [disabled]="simulating" (click)="simulate()">
+              <i type="button" class="fa-solid fa-play"></i>
+            </button>
           </div>
         </div>
       </div>
       <div class="col-1">
-        <button type="button" (click)="openModalQuickSimulation(quickSimulation)" class="btn btnForward"
+        <button type="button" [disabled]="simulating" (click)="openModalQuickSimulation(quickSimulation)"
+                class="btn btnForward"
                 data-toggle="modal" data-target="#modalSimulation">
           <i class="fa-solid fa-forward"></i>
           Simulación rápida
         </button>
       </div>
       <div class="col-sm-3 col-lg-2 align-self-end save">
-        <button class="btn btnSave" data-toggle="modal" data-target="#modalNewFolder">
+        <button [disabled]="simulating" class="btn btnSave" data-toggle="modal" data-target="#modalNewFolder">
           <i class="fa-regular fa-floppy-disk"></i>
           Guardar
         </button>
@@ -208,8 +215,9 @@
     <div *ngFor="let itemContainer of listItems; let i=index" id="{{itemContainer.item.name}}"
          style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px"
          (click)="newConnection($event,itemContainer)">
-      <svg *ngIf="itemContainer.item.description==='Sink' && (correctSinkShown || sameElement==itemContainer.item.name)"
-           width="200" height="100">
+      <svg
+        *ngIf="itemContainer.item.description==='Sink' && (correctSinkShown || sameElement==itemContainer.item.name || simulating)"
+        width="200" height="100">
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
                 stroke="rgb(0, 0, 0)"
@@ -229,7 +237,7 @@
       </svg>
 
       <svg
-        *ngIf="itemContainer.item.description==='Source' && (correctSourceSown || sameElement==itemContainer.item.name)"
+        *ngIf="itemContainer.item.description==='Source' && (correctSourceSown || sameElement==itemContainer.item.name || simulating)"
         width="200" height="100">
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
@@ -250,7 +258,7 @@
       </svg>
 
       <svg
-        *ngIf="itemContainer.item.description==='Queue' && (correctQueueShown|| sameElement==itemContainer.item.name)"
+        *ngIf="itemContainer.item.description==='Queue' && (correctQueueShown|| sameElement==itemContainer.item.name || simulating)"
         width="200" height="100">
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
@@ -271,7 +279,7 @@
       </svg>
 
       <svg
-        *ngIf="itemContainer.item.description==='Server' && (correctServerShown || sameElement==itemContainer.item.name)"
+        *ngIf="itemContainer.item.description==='Server' && (correctServerShown || sameElement==itemContainer.item.name || simulating)"
         width="200" height="100">
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
@@ -394,7 +402,8 @@
 </div>
 
 <i id="trash" class="fa-solid fa-trash-can trash fa-4x"></i>
-<button class="reset btn btnReset" (click)="resetPositions()"><i class="fa-solid fa-arrows-rotate"></i> Reiniciar
+<button class="reset btn btnReset" [disabled]="simulating" (click)="resetPositions()"><i
+  class="fa-solid fa-arrows-rotate"></i> Reiniciar
   posiciones
 </button>
 

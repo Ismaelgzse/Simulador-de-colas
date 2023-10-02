@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
-import {ActivatedRoute, NavigationEnd,Router} from "@angular/router";
+import {ActivatedRoute, NavigationEnd, NavigationStart, Router} from "@angular/router";
 import {Title} from "@angular/platform-browser";
 import {filter, map} from "rxjs/operators";
 
+export let refresh = false;
 
 @Component({
   selector: 'app-root',
@@ -32,5 +33,11 @@ export class AppComponent {
         this.titleService.setTitle(data);
       }
     });
+    router.events.subscribe(
+      (event) => {
+        if (event instanceof NavigationStart) {
+          refresh = !router.navigated;
+        }
+      });
   }
 }

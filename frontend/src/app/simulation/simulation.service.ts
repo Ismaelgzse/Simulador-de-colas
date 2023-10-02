@@ -12,31 +12,43 @@ declare var Stomp;
 @Injectable()
 export class SimulationService {
   private stompClient;
-  message:string
+  message: string
 
 
   constructor(private httpClient: HttpClient) {
     const ws = new SockJS("https://localhost:8443/ws");
+    this.stompClient = Stomp.over(ws);
 
-    this.stompClient=Stomp.over(ws);
   }
 
-  public connect(simulationId:string){
+  public connectAlt(simulationId: string) {
 
     // @ts-ignore
     this.stompClient.connect({}, (frame) => {
-        // @ts-ignore
+      // @ts-ignore
       this.stompClient.subscribe(`/simulationInfo/${simulationId}`, (message) => {
-          console.log(JSON.parse(message.body));
-        });
+        console.log(JSON.parse(message.body));
+      });
+      this.stompClient.send('/wsAPI/simulateMessage/' + simulationId, {}, JSON.stringify('connect'))
     });
   }
 
-  public sendMessage(simulationId:string){
-    this.stompClient.send('/wsAPI/simulateMessage/'+simulationId,{},JSON.stringify('connect'))
+  public connect(simulationId: string) {
+
+    // @ts-ignore
+    this.stompClient.connect({}, (frame) => {
+      // @ts-ignore
+      this.stompClient.subscribe(`/simulationInfo/${simulationId}`, (message) => {
+        console.log(JSON.parse(message.body));
+      });
+    });
   }
 
-  public closeConnection(){
+  public sendMessage(simulationId: string) {
+    this.stompClient.send('/wsAPI/simulateMessage/' + simulationId, {}, JSON.stringify('connect'))
+  }
+
+  public closeConnection() {
     this.stompClient.disconnect();
   }
 
@@ -60,17 +72,21 @@ export class SimulationService {
     return this.httpClient.put('/api/simulations/' + idSimulation + '/item/all', lista, {withCredentials: true}) as Observable<any>;
   }
 
-  deleteItem(idSimulation:number,idItem:number):Observable<any>{
-    return this.httpClient.delete('/api/simulations/' + idSimulation + '/item/'+idItem,{withCredentials: true}) as Observable<any>;
+  deleteItem(idSimulation: number, idItem: number): Observable<any> {
+    return this.httpClient.delete('/api/simulations/' + idSimulation + '/item/' + idItem, {withCredentials: true}) as Observable<any>;
   }
 
-  newConnection(connection:ConnectionModel):Observable<any>{
-    return this.httpClient.post('/api/connection',connection,{withCredentials: true}) as Observable<any>;
+  newConnection(connection: ConnectionModel): Observable<any> {
+    return this.httpClient.post('/api/connection', connection, {withCredentials: true}) as Observable<any>;
   }
 
-  deleteConnection(idConnection:number):Observable<any>{
-    return this.httpClient.delete('/api/connection/'+idConnection,{withCredentials: true}) as Observable<any>;
+  deleteConnection(idConnection: number): Observable<any> {
+    return this.httpClient.delete('/api/connection/' + idConnection, {withCredentials: true}) as Observable<any>;
 
+  }
+
+  getStatusSimulation(idSimulation: number): Observable<any> {
+    return this.httpClient.get('api/simulation/' + idSimulation + "/isRunning", {withCredentials: true}) as Observable<any>;
   }
 
 
