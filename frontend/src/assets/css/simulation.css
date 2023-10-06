@@ -486,3 +486,34 @@ body {
   background: none;
 }
 
+.timer {
+  top: 175px;
+  transition: all 0.5s;
+  position: absolute;
+  z-index: 3 !important;
+  left: calc(50%);
+  box-sizing: border-box;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 255, 255,0.0);
+  border-radius: 20px;
+  background: rgba(255, 255, 255,0.8);
+  color: rgb(0, 0, 0);
+  visibility: hidden;
+}
+
+.timer.showTimer{
+  visibility: visible;
+}
+
+.simulatingText{
+  font-size: 25px;
+  margin: 7px;
+}
+
+.timerText{
+  font-size: 20px;
+  margin-bottom: 7px;
+  margin-top: 9px;
+  text-align: center;
+}
+

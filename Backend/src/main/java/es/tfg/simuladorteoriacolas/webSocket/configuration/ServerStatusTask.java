@@ -50,4 +50,5 @@ public class ServerStatusTask {
 
         simpMessageSendingOperations.convertAndSend("/simulationInfo/"+simulationId,itemDTOList);
     }
+
 }

@@ -7,12 +7,12 @@ import es.tfg.simuladorteoriacolas.items.Semaphores.SemaphoresTypes;
 import es.tfg.simuladorteoriacolas.items.Semaphores.SmallestQueueDecision;
 import es.tfg.simuladorteoriacolas.items.connections.Connection;
 import es.tfg.simuladorteoriacolas.items.products.Product;
-import es.tfg.simuladorteoriacolas.items.types.Queue;
-import es.tfg.simuladorteoriacolas.items.types.Server;
-import es.tfg.simuladorteoriacolas.items.types.Sink;
-import es.tfg.simuladorteoriacolas.items.types.Source;
+import es.tfg.simuladorteoriacolas.items.types.*;
 import es.tfg.simuladorteoriacolas.simulation.Simulation;
+import es.tfg.simuladorteoriacolas.simulation.SimulationService;
 import org.apache.commons.math3.distribution.*;
+import org.hibernate.sql.ast.tree.expression.CaseSimpleExpression;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,152 +21,40 @@ import java.util.Random;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.Semaphore;
 
-public class Algorithm implements Runnable{
+public class Algorithm implements Runnable {
+
+    private SimpMessageSendingOperations simpMessageSendingOperations;
+
+    private Integer simulationId;
 
     private List<ItemDTO> simulation;
 
-    public Algorithm(List<ItemDTO> simulation){
-        this.simulation=simulation;
+    private ItemTypesService itemTypesService;
+
+    private SimulationService simulationService;
+
+    private List<Boolean> interruptedAndSavedTheadsState = new ArrayList<>();
+
+    private Integer interruptedAndSavedTheadsStateIndex = 0;
+
+    private Semaphore interruptedAndSavedTheadsStateSemaphore = new Semaphore(1, true);
+
+
+    public Algorithm(Integer simulatonId, List<ItemDTO> simulation, ItemTypesService itemTypesService, SimulationService simulationService, SimpMessageSendingOperations simpMessageSendingOperations) {
+        this.simulation = simulation;
+        this.simulationId = simulatonId;
+        this.itemTypesService = itemTypesService;
+        this.simulationService = simulationService;
+        this.simpMessageSendingOperations = simpMessageSendingOperations;
     }
 
-    //ITEMS
-    //Semaforos IN OUT para controlar entradas y salidas de los items
-    //Estos semaforos conectan los dos hilos que conforman el item
-    //Tienen 0 permisos, el semaforo In otorga al OUT los permisos
-    //Semaforo OUT del item sirve para enviar el objeto al siguiente item
-    //Tendrá que haber un OUT por cada posible conexión que tenga la salida de ese item
-    //Tendrá 0 permisos este semaforo ya que los otorga la salida de este indicando que va a salir un objeto
+    private Random random = new Random();
 
-    Double startSimulation;
-
-    Random random = new Random();
-
+    private Double startSimulation;
 
     @Override
     public void run() {
 
-        List<ItemDTO> simulation = new ArrayList<>();
-
-
-        Item item1 = new Item();
-        item1.setDescription("Source");
-        item1.setIdItem(1);
-        item1.setSendToStrategy("A la cola más pequeña (si está llena espera hasta que haya hueco)");
-
-        Source source1 = new Source();
-        source1.setNumberProducts("Ilimitados");
-        source1.setInterArrivalTime("7");
-        source1.setItem(item1);
-
-        Item item2 = new Item();
-        item2.setDescription("Queue");
-        item2.setIdItem(2);
-        item2.setSendToStrategy("Primera conexión disponible");
-
-        Queue queue2 = new Queue();
-        queue2.setItem(item2);
-        queue2.setCapacityQueue("10000000");
-        queue2.setDisciplineQueue("FIFO");
-
-        Item item3 = new Item();
-        item3.setDescription("Queue");
-        item3.setIdItem(3);
-        item3.setSendToStrategy("Primera conexión disponible");
-
-        Queue queue3 = new Queue();
-        queue3.setItem(item3);
-        queue3.setCapacityQueue("Ilimitados");
-        queue3.setDisciplineQueue("FIFO");
-
-
-        Connection connection1 = new Connection();
-        connection1.setOriginItem(item1);
-        connection1.setDestinationItem(item2);
-        connection1.setPercentage(50);
-
-        Connection connection2 = new Connection();
-        connection2.setOriginItem(item1);
-        connection2.setDestinationItem(item3);
-        connection2.setPercentage(50);
-
-
-        ArrayList<Connection> connections1 = new ArrayList();
-        connections1.add(connection1);
-        connections1.add(connection2);
-
-        ItemDTO itemDTO1 = new ItemDTO();
-        itemDTO1.setItem(item1);
-        itemDTO1.setSource(source1);
-        itemDTO1.setConnections(connections1);
-
-
-        Item item4 = new Item();
-        item4.setDescription("Server");
-        item4.setIdItem(4);
-        item4.setSendToStrategy("A la cola más pequeña (si está llena espera hasta que haya hueco)");
-
-        Server server4 = new Server();
-        server4.setItem(item4);
-        server4.setSetupTime("10");
-        server4.setCicleTime("10");
-
-        Connection connection3 = new Connection();
-        connection3.setOriginItem(item2);
-        connection3.setDestinationItem(item4);
-        connection3.setPercentage(100);
-
-        ArrayList<Connection> connections2 = new ArrayList();
-        connections2.add(connection3);
-
-        Connection connection4 = new Connection();
-        connection4.setOriginItem(item3);
-        connection4.setDestinationItem(item4);
-        connection4.setPercentage(100);
-
-        ArrayList<Connection> connections3 = new ArrayList();
-        connections3.add(connection4);
-
-        ItemDTO itemDTO2 = new ItemDTO();
-        itemDTO2.setItem(item2);
-        itemDTO2.setQueue(queue2);
-        itemDTO2.setConnections(connections2);
-
-        ItemDTO itemDTO3 = new ItemDTO();
-        itemDTO3.setItem(item3);
-        itemDTO3.setQueue(queue3);
-        itemDTO3.setConnections(connections3);
-
-        Item item5 = new Item();
-        item5.setDescription("Sink");
-        item5.setIdItem(5);
-        item5.setSendToStrategy("Aleatorio");
-
-        Sink sink5 = new Sink();
-        sink5.setItem(item5);
-
-        Connection connection5 = new Connection();
-        connection5.setOriginItem(item4);
-        connection5.setDestinationItem(item5);
-        connection5.setPercentage(100);
-
-        ArrayList<Connection> connections4 = new ArrayList();
-        connections4.add(connection5);
-
-        ItemDTO itemDTO4 = new ItemDTO();
-        itemDTO4.setItem(item4);
-        itemDTO4.setServer(server4);
-        itemDTO4.setConnections(connections4);
-
-        ItemDTO itemDTO5 = new ItemDTO();
-        itemDTO5.setItem(item5);
-        itemDTO5.setSink(sink5);
-        itemDTO5.setConnections(null);
-
-        simulation.add(itemDTO1);
-        simulation.add(itemDTO2);
-        simulation.add(itemDTO3);
-        simulation.add(itemDTO4);
-        simulation.add(itemDTO5);
 
         List<SemaphoreAsignation> semaphoreAsignationList = new ArrayList<>();
 
@@ -322,7 +210,7 @@ public class Algorithm implements Runnable{
 
                             semaphores = new ArrayList<>();
                             destinationList = new ArrayList<>();
-                            exchangers= new ArrayList<>();
+                            exchangers = new ArrayList<>();
 
                             semaphores2 = new ArrayList<>();
                             destinationList2 = new ArrayList<>();
@@ -331,7 +219,7 @@ public class Algorithm implements Runnable{
 
                         } else {
                             destinationList = newSemaphoresType.getIdDestinationItem();
-                            exchangers=newSemaphoresType.getExchangers();
+                            exchangers = newSemaphoresType.getExchangers();
 
                             semaphores2 = newSemaphoresType2.getSemaphores();
                             destinationList2 = newSemaphoresType2.getIdDestinationItem();
@@ -339,7 +227,7 @@ public class Algorithm implements Runnable{
 
                         Semaphore semaphoreOut = new Semaphore(0, true);
                         Semaphore accessInSemaphore = new Semaphore(0, true);
-                        Exchanger<Product> echanger= new Exchanger<>();
+                        Exchanger<Product> echanger = new Exchanger<>();
 
                         semaphores.add(semaphoreOut);
                         exchangers.add(echanger);
@@ -357,7 +245,7 @@ public class Algorithm implements Runnable{
                         //In de destino de item
                         newSemaphoresType = new SemaphoresTypes();
                         newSemaphoresType.setType("In");
-                        exchangers= new ArrayList<>();
+                        exchangers = new ArrayList<>();
                         semaphores = new ArrayList<>();
                         semaphores.add(semaphoreOut);
                         exchangers.add(echanger);
@@ -381,7 +269,7 @@ public class Algorithm implements Runnable{
                                 semaphoreAsignation = semaphoreAsignationAlreadyExist(id, semaphoreAsignationList);
                                 newSemaphoresType = new SemaphoresTypes();
                                 newSemaphoresType.setType("Out");
-                                exchangers= new ArrayList<>();
+                                exchangers = new ArrayList<>();
                                 semaphores = new ArrayList<>();
                                 destinationList = new ArrayList<>();
                                 destinationList.add(connection.getDestinationItem().getIdItem());
@@ -413,7 +301,9 @@ public class Algorithm implements Runnable{
             }
         }
 
+
         List<Thread> itemList = new ArrayList<>();
+        List<Thread> totalThreads= new ArrayList<>();
         for (var i = 0; i < semaphoreAsignationList.size(); i++) {
             var item = simulation.get(i);
             var semaphoresItem = semaphoreAsignationList.get(i);
@@ -421,8 +311,13 @@ public class Algorithm implements Runnable{
                 case "Source":
                     int finalI = i;
                     var fuente = new Thread(() -> {
-                        ArrayList<Integer> productList= new ArrayList<>();
+                        ArrayList<Integer> productList = new ArrayList<>();
                         var sourceIn = new Thread(() -> {
+                            interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                            interruptedAndSavedTheadsState.add(false);
+                            var indexState = interruptedAndSavedTheadsState.size() - 1;
+                            interruptedAndSavedTheadsStateIndex++;
+                            interruptedAndSavedTheadsStateSemaphore.release();
                             Double sleep;
                             TriangularDistribution triangularDistribution = null;
                             LogNormalDistribution logNormalDistribution = null;
@@ -494,11 +389,11 @@ public class Algorithm implements Runnable{
                                 inOutSemaphore = inOutSemaphoreType.getSemaphores().get(0);
                                 controlSemaphore = controlSemaphoreType.getSemaphores().get(0);
                             }
-                            var isInfinite= item.getSource().getNumberProducts().equals("Ilimitados");
+                            var isInfinite = item.getSource().getNumberProducts().equals("Ilimitados");
                             var numberProducts = isInfinite ? Double.POSITIVE_INFINITY : Double.parseDouble(item.getSource().getNumberProducts());
                             try {
-                                while (isInfinite || numberProducts > 0) {
-                                    if (!isInfinite){
+                                while (isInfinite || numberProducts > 0 || !Thread.interrupted()) {
+                                    if (!isInfinite) {
                                         numberProducts--;
                                     }
                                     switch ((String) strategyTime.keySet().toArray()[0]) {
@@ -553,11 +448,18 @@ public class Algorithm implements Runnable{
                                     inOutSemaphore.release();
                                 }
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                interruptedAndSavedTheadsState.set(indexState, true);
+                                interruptedAndSavedTheadsStateSemaphore.release();
                             }
                         });
 
                         var sourceOut = new Thread(() -> {
+                            interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                            interruptedAndSavedTheadsState.add(false);
+                            var indexState = interruptedAndSavedTheadsState.size() - 1;
+                            interruptedAndSavedTheadsStateIndex++;
+                            interruptedAndSavedTheadsStateSemaphore.release();
                             var sendToStrategy = item.getItem().getSendToStrategy();
                             var percentages = getPercentages(item);
                             List<Semaphore> outSemaphores = null;
@@ -565,7 +467,7 @@ public class Algorithm implements Runnable{
                             var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
                             var outSemaphoresType = getSemaphore(semaphoresItem, "Out");
                             var accessInSemaphoresType = getSemaphore(semaphoresItem, "AccessIn");
-                            var outExchangers= getExchangers(semaphoresItem,"Out");
+                            var outExchangers = getExchangers(semaphoresItem, "Out");
 
                             var queues = semaphoresItem.getSmallestQueueDecisions();
                             Semaphore controlSemaphore = null;
@@ -580,12 +482,12 @@ public class Algorithm implements Runnable{
                             if (inOutSemaphoreType != null) {
                                 inOutSemaphore = inOutSemaphoreType.getSemaphores().get(0);
                             }
+                            var numProducts = 0;
                             try {
-                                var numProducts = 0;
                                 while (true) {
                                     Integer sendTo;
                                     inOutSemaphore.acquire();
-                                    Product product= new Product("Standar",null,null);
+                                    Product product = new Product("Standar", null, null);
                                     switch (sendToStrategy) {
                                         case "Aleatorio (lo manda independientemente de si hay hueco o no)":
                                             sendTo = random.nextInt(outSemaphores.size());
@@ -593,18 +495,18 @@ public class Algorithm implements Runnable{
                                                 controlSemaphore.acquire();
                                                 numProducts++;
                                                 item.getSource().setOutSource(numProducts);
-                                                System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
+                                                //System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
                                                 controlSemaphore.release();
                                             } else {
                                                 controlSemaphore.acquire();
                                                 numProducts++;
                                                 item.getSource().setOutSource(numProducts);
-                                                System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
+                                                //System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
                                                 controlSemaphore.release();
                                                 outExchangers.get(sendTo).exchange(product);
                                                 outSemaphores.get(sendTo).release();
                                             }
-                                            System.out.println("Enviado por la fuente " + finalI);
+                                            //System.out.println("Enviado por la fuente " + finalI);
                                             break;
                                         case "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)":
                                             sendTo = random.nextInt(outSemaphores.size());
@@ -612,11 +514,11 @@ public class Algorithm implements Runnable{
                                             controlSemaphore.acquire();
                                             numProducts++;
                                             item.getSource().setOutSource(numProducts);
-                                            System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
+                                            //System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(product);
                                             outSemaphores.get(sendTo).release();
-                                            System.out.println("Enviado por la fuente " + finalI);
+                                            //System.out.println("Enviado por la fuente " + finalI);
                                             break;
                                         case "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)":
                                             sendTo = 0;
@@ -630,11 +532,11 @@ public class Algorithm implements Runnable{
                                             controlSemaphore.acquire();
                                             numProducts++;
                                             item.getSource().setOutSource(numProducts);
-                                            System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
+                                            //System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(product);
                                             outSemaphores.get(sendTo).release();
-                                            System.out.println("Enviado por la fuente " + finalI);
+                                            //System.out.println("Enviado por la fuente " + finalI);
                                             break;
                                         case "Porcentaje (si no hay hueco se envia aunque se pierda)":
                                             var randomNumber = random.nextInt(100) + 1;
@@ -653,18 +555,18 @@ public class Algorithm implements Runnable{
                                                     controlSemaphore.acquire();
                                                     numProducts++;
                                                     item.getSource().setOutSource(numProducts);
-                                                    System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
+                                                    //System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
                                                     controlSemaphore.release();
                                                 } else {
                                                     controlSemaphore.acquire();
                                                     numProducts++;
                                                     item.getSource().setOutSource(numProducts);
-                                                    System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
+                                                    //System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
                                                     controlSemaphore.release();
                                                     outExchangers.get(sendTo).exchange(product);
                                                     outSemaphores.get(sendTo).release();
                                                 }
-                                                System.out.println("Enviado por la fuente " + finalI);
+                                                //System.out.println("Enviado por la fuente " + finalI);
                                             } catch (InterruptedException e) {
                                                 e.printStackTrace();
                                             }
@@ -686,11 +588,11 @@ public class Algorithm implements Runnable{
                                                 controlSemaphore.acquire();
                                                 numProducts++;
                                                 item.getSource().setOutSource(numProducts);
-                                                System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
+                                                //System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
                                                 controlSemaphore.release();
                                                 outExchangers.get(sendTo).exchange(product);
                                                 outSemaphores.get(sendTo).release();
-                                                System.out.println("Enviado por la fuente " + finalI);
+                                                //System.out.println("Enviado por la fuente " + finalI);
                                             } catch (InterruptedException e) {
                                                 e.printStackTrace();
                                             }
@@ -715,11 +617,11 @@ public class Algorithm implements Runnable{
                                                 controlSemaphore.acquire();
                                                 numProducts++;
                                                 item.getSource().setOutSource(numProducts);
-                                                System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
+                                                //System.out.println("Producto generado por fuente " + finalI + ", producido: " + numProducts);
                                                 controlSemaphore.release();
                                                 outExchangers.get(smallestQueue).exchange(product);
                                                 outSemaphores.get(smallestQueue).release();
-                                                System.out.println("Enviado por la fuente " + finalI);
+                                                //System.out.println("Enviado por la fuente " + finalI);
                                             } catch (InterruptedException e) {
                                                 e.printStackTrace();
                                             }
@@ -727,27 +629,39 @@ public class Algorithm implements Runnable{
                                     }
                                 }
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                interruptedAndSavedTheadsState.set(indexState, true);
+                                item.getSource().setOutSource(numProducts);
+                                interruptedAndSavedTheadsStateSemaphore.release();
                             }
                         });
                         sourceIn.start();
                         sourceOut.start();
+                        totalThreads.add(sourceIn);
+                        totalThreads.add(sourceOut);
                     });
                     itemList.add(fuente);
+                    totalThreads.add(fuente);
                     break;
                 case "Queue":
                     finalI = i;
                     var cola = new Thread(() -> {
-                        List<Product> productList= new ArrayList<>();
+                        List<Product> productList = new ArrayList<>();
                         var colaIn = new Thread(() -> {
+                            interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                            interruptedAndSavedTheadsState.add(false);
+                            var indexState = interruptedAndSavedTheadsState.size() - 1;
+                            interruptedAndSavedTheadsStateIndex++;
+                            interruptedAndSavedTheadsStateSemaphore.release();
                             var total = 0;
                             var inSemaphoreType = getSemaphore(semaphoresItem, "In");
                             var accessOutType = getSemaphore(semaphoresItem, "AccessOut");
                             var capacitySemaphoreType = getSemaphore(semaphoresItem, "Capacity");
                             var inOutSemaphoreType = getSemaphore(semaphoresItem, "InOut");
                             var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
-                            var inExchanger= getExchangers(semaphoresItem,"In").get(0);
+                            var inExchanger = getExchangers(semaphoresItem, "In").get(0);
                             Product inProduct;
+                            var in = false;
 
 
                             Semaphore inOutSemaphore = null;
@@ -763,33 +677,48 @@ public class Algorithm implements Runnable{
                                 capacitySemaphore = capacitySemaphoreType.getSemaphores().get(0);
                                 controlSemaphore = controlSemaphoreType.getSemaphores().get(0);
                             }
-
-                            while (true) {
-                                try {
+                            try {
+                                while (true) {
                                     if (capacitySemaphore.availablePermits() > 0) {
                                         accessOutSemaphore.release();
-                                        inProduct= (Product) inExchanger.exchange(null);
+                                        inProduct = (Product) inExchanger.exchange(null);
                                         inProduct.setArrivalTime((double) System.currentTimeMillis());
                                         inSemaphore.acquire();
                                         capacitySemaphore.acquire();
                                         controlSemaphore.acquire();
+                                        in = true;
                                         productList.add(inProduct);
                                         total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
                                         total++;
                                         item.getQueue().setInQueue(total);
-                                        System.out.println(total + " productos en la cola " + finalI);
+                                        in = false;
+                                        //System.out.println(total + " productos en la cola " + finalI);
                                         controlSemaphore.release();
                                         inOutSemaphore.release();
                                         if (item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                             capacitySemaphore.release();
                                         }
                                     }
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
+
                                 }
+                            } catch (InterruptedException e) {
+                                interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                if (in) {
+                                    total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
+                                    total++;
+                                }
+                                item.getQueue().setInQueue(total);
+                                interruptedAndSavedTheadsState.set(indexState, true);
+                                interruptedAndSavedTheadsStateSemaphore.release();
                             }
                         });
                         var colaOut = new Thread(() -> {
+                            interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                            interruptedAndSavedTheadsState.add(false);
+                            var indexState = interruptedAndSavedTheadsState.size() - 1;
+                            interruptedAndSavedTheadsStateIndex++;
+                            interruptedAndSavedTheadsStateSemaphore.release();
+
                             var sendToStrategy = item.getItem().getSendToStrategy();
 
                             var inOutSemaphoreType = getSemaphore(semaphoresItem, "InOut");
@@ -797,8 +726,8 @@ public class Algorithm implements Runnable{
                             var outSemaphoreType = getSemaphore(semaphoresItem, "Out");
                             var accessInSemaphoreType = getSemaphore(semaphoresItem, "AccessIn");
                             var capacitySemaphoreType = getSemaphore(semaphoresItem, "Capacity");
-                            var outExchangers= getExchangers(semaphoresItem,"Out");
-                            Product outProduct;
+                            var outExchangers = getExchangers(semaphoresItem, "Out");
+                            Product outProduct = null;
 
                             Semaphore inOutSemaphore = null;
                             Semaphore capacitySemaphore = null;
@@ -818,69 +747,82 @@ public class Algorithm implements Runnable{
                             var percentages = getPercentages(item);
                             var totalIn = 0;
                             var totalOut = 0;
-                            while (true) {
-
-                                switch (sendToStrategy) {
-                                    case "Aleatorio":
-                                        var sendTo = random.nextInt(outSemaphore.size());
-                                        try {
+                            try {
+                                while (true) {
+                                    switch (sendToStrategy) {
+                                        case "Aleatorio":
+                                            var sendTo = random.nextInt(outSemaphore.size());
                                             inOutSemaphore.acquire();
                                             accessInSemaphore.get(sendTo).acquire();
                                             controlSemaphore.acquire();
-                                            outProduct= item.getQueue().getDisciplineQueue().equals("FIFO")  ? productList.remove(productList.size()-1) : productList.remove(0);
+                                            switch (item.getQueue().getDisciplineQueue()) {
+                                                case "Fifo":
+                                                    outProduct = productList.remove(0);
+                                                    break;
+                                                case "Lifo":
+                                                    outProduct = productList.remove(productList.size() - 1);
+                                                    break;
+                                                case "Random":
+                                                    var indexProduct = random.nextInt(productList.size());
+                                                    outProduct = productList.remove(indexProduct);
+                                            }
+                                            //System.out.println(totalIn + " productos en la cola " + finalI);
+                                            controlSemaphore.release();
+                                            outExchangers.get(sendTo).exchange(outProduct);
+                                            controlSemaphore.acquire();
                                             totalIn = item.getQueue().getInQueue();
                                             totalIn--;
                                             totalOut++;
                                             item.getQueue().setInQueue(totalIn);
                                             item.getQueue().setOutQueue(totalOut);
-                                            System.out.println(totalIn + " productos en la cola " + finalI);
+                                            controlSemaphore.release();
+                                            outSemaphore.get(sendTo).release();
+                                            if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
+                                                capacitySemaphore.release();
+                                            }
+                                            //System.out.println("Producto enviado al servidor");
+                                            break;
+                                        case "Porcentaje":
+                                            var randomNumber = random.nextInt(100) + 1;
+                                            sendTo = 0;
+                                            for (var index = 0; index < percentages.size(); index++) {
+                                                if (randomNumber < percentages.get(index) && index == 0) {
+                                                    sendTo = index;
+                                                    break;
+                                                } else if (randomNumber < percentages.get(index) && randomNumber > percentages.get(index - 1)) {
+                                                    sendTo = index;
+                                                    break;
+                                                }
+                                            }
+                                            inOutSemaphore.acquire();
+                                            accessInSemaphore.get(sendTo).acquire();
+                                            controlSemaphore.acquire();
+                                            switch (item.getQueue().getDisciplineQueue()) {
+                                                case "Fifo":
+                                                    outProduct = productList.remove(0);
+                                                    break;
+                                                case "Lifo":
+                                                    outProduct = productList.remove(productList.size() - 1);
+                                                    break;
+                                                case "Random":
+                                                    var indexProduct = random.nextInt(productList.size());
+                                                    outProduct = productList.remove(indexProduct);
+                                            }
+                                            totalIn = item.getQueue().getInQueue();
+                                            totalIn--;
+                                            totalOut++;
+                                            item.getQueue().setInQueue(totalIn);
+                                            item.getQueue().setOutQueue(totalOut);
+                                            //System.out.println(totalIn + " productos en la cola " + finalI);
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
                                             outSemaphore.get(sendTo).release();
                                             if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                                 capacitySemaphore.release();
                                             }
-                                            System.out.println("Producto enviado al servidor");
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                        }
-                                        break;
-                                    case "Porcentaje":
-                                        var randomNumber = random.nextInt(100) + 1;
-                                        sendTo = 0;
-                                        for (var index = 0; index < percentages.size(); index++) {
-                                            if (randomNumber < percentages.get(index) && index == 0) {
-                                                sendTo = index;
-                                                break;
-                                            } else if (randomNumber < percentages.get(index) && randomNumber > percentages.get(index - 1)) {
-                                                sendTo = index;
-                                                break;
-                                            }
-                                        }
-                                        try {
-                                            inOutSemaphore.acquire();
-                                            accessInSemaphore.get(sendTo).acquire();
-                                            controlSemaphore.acquire();
-                                            outProduct= item.getQueue().getDisciplineQueue().equals("FIFO")  ? productList.remove(productList.size()-1) : productList.remove(0);
-                                            totalIn = item.getQueue().getInQueue();
-                                            totalIn--;
-                                            totalOut++;
-                                            item.getQueue().setInQueue(totalIn);
-                                            item.getQueue().setOutQueue(totalOut);
-                                            System.out.println(totalIn + " productos en la cola " + finalI);
-                                            controlSemaphore.release();
-                                            outExchangers.get(sendTo).exchange(outProduct);
-                                            outSemaphore.get(sendTo).release();
-                                            if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
-                                                capacitySemaphore.release();
-                                            }
-                                            System.out.println("Producto enviado al servidor");
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                        }
-                                        break;
-                                    case "Primera conexión disponible":
-                                        try {
+                                            //System.out.println("Producto enviado al servidor");
+                                            break;
+                                        case "Primera conexión disponible":
                                             sendTo = 0;
                                             inOutSemaphore.acquire();
                                             while (!accessInSemaphore.get(sendTo).tryAcquire()) {
@@ -891,36 +833,58 @@ public class Algorithm implements Runnable{
                                                 }
                                             }
                                             controlSemaphore.acquire();
-                                            outProduct= item.getQueue().getDisciplineQueue().equals("FIFO")  ? productList.remove(productList.size()-1) : productList.remove(0);
+                                            switch (item.getQueue().getDisciplineQueue()) {
+                                                case "Fifo":
+                                                    outProduct = productList.remove(0);
+                                                    break;
+                                                case "Lifo":
+                                                    outProduct = productList.remove(productList.size() - 1);
+                                                    break;
+                                                case "Random":
+                                                    var indexProduct = random.nextInt(productList.size());
+                                                    outProduct = productList.remove(indexProduct);
+                                            }
                                             totalIn = item.getQueue().getInQueue();
                                             totalIn--;
                                             totalOut++;
                                             item.getQueue().setInQueue(totalIn);
                                             item.getQueue().setOutQueue(totalOut);
-                                            System.out.println(totalIn + " productos en la cola " + finalI);
+                                            //System.out.println(totalIn + " productos en la cola " + finalI);
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
                                             outSemaphore.get(sendTo).release();
                                             if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                                 capacitySemaphore.release();
                                             }
-                                            System.out.println("Producto enviado al servidor");
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                        }
-                                        break;
-
+                                            //System.out.println("Producto enviado al servidor");
+                                            break;
+                                    }
                                 }
+                            } catch (InterruptedException e) {
+                                interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                item.getQueue().setInQueue(totalIn);
+                                item.getQueue().setOutQueue(totalOut);
+                                interruptedAndSavedTheadsState.set(indexState, true);
+                                interruptedAndSavedTheadsStateSemaphore.release();
                             }
                         });
                         colaIn.start();
                         colaOut.start();
+                        totalThreads.add(colaIn);
+                        totalThreads.add(colaOut);
                     });
                     itemList.add(cola);
+                    totalThreads.add(cola);
                     break;
                 case "Server":
                     finalI = i;
                     var server = new Thread(() -> {
+                        interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                        interruptedAndSavedTheadsState.add(false);
+                        var indexState = interruptedAndSavedTheadsState.size() - 1;
+                        interruptedAndSavedTheadsStateIndex++;
+                        interruptedAndSavedTheadsStateSemaphore.release();
+
                         item.getServer().setPctBusyTime(0.0);
                         Double pctBusy = 0.0;
                         Double currentIdle = (double) System.currentTimeMillis();
@@ -1001,8 +965,8 @@ public class Algorithm implements Runnable{
                         var outSemaphoresType = getSemaphore(semaphoresItem, "Out");
                         var accessInSemaphoreType = getSemaphore(semaphoresItem, "AccessIn");
                         var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
-                        var inExchanger= getExchangers(semaphoresItem,"In").get(0);
-                        var outExchanger= getExchangers(semaphoresItem,"Out");
+                        var inExchanger = getExchangers(semaphoresItem, "In").get(0);
+                        var outExchanger = getExchangers(semaphoresItem, "Out");
 
                         List<Semaphore> outSemaphores = null;
                         List<Semaphore> accessInSemaphores = null;
@@ -1077,17 +1041,18 @@ public class Algorithm implements Runnable{
                                 }
 
                                 accessOutSemaphore.release();
-                                product= (Product) inExchanger.exchange(null);
+                                product = (Product) inExchanger.exchange(null);
                                 inSemaphore.acquire();
                                 controlSemaphore.acquire();
                                 in++;
                                 pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
                                 pctBusy = Double.isNaN(pctBusy) ? 0 : pctBusy;
+                                pctBusy= Math.round(pctBusy*100.0)/100.0;
                                 item.getServer().setPctBusyTime(pctBusy);
-                                System.out.println(in + " productos en el servidor " + finalI);
-                                System.out.println("Pct Busy " + item.getServer().getPctBusyTime() + " en el servidor " + finalI);
+                                //System.out.println(in + " productos en el servidor " + finalI);
+                                //System.out.println("Pct Busy " + item.getServer().getPctBusyTime() + " en el servidor " + finalI);
                                 controlSemaphore.release();
-                                System.out.println("SetUp Servidor");
+                                //System.out.println("SetUp Servidor");
                                 /*totalIdle = totalIdle + ((double) System.currentTimeMillis() - currentIdle);
                                 controlSemaphore.acquire();
                                 item.getServer().setBusyTime((totalIdle / (totalBusy + totalIdle)) * 100.0);
@@ -1095,11 +1060,11 @@ public class Algorithm implements Runnable{
                                 currentIdle = ((double) System.currentTimeMillis()) + setUpTimeServer.longValue();
                                  */
                                 Thread.sleep(setUpTimeServer.longValue());
-                                System.out.println("Procesandose por el servidor " + finalI);
+                                //System.out.println("Procesandose por el servidor " + finalI);
                                 controlSemaphore.acquire();
                                 now = (double) System.currentTimeMillis();
                                 totalIdle = totalIdle + (now - currentIdle);
-                                System.out.println("Tiempo idle " + totalIdle / 1000);
+                                //System.out.println("Tiempo idle " + totalIdle / 1000);
                                 currentBusy = now;
                                 idleOrBusy = 1;
                                 item.getServer().setIdleOrBusy(idleOrBusy);
@@ -1110,7 +1075,7 @@ public class Algorithm implements Runnable{
                                 controlSemaphore.acquire();
                                 now = (double) System.currentTimeMillis();
                                 totalBusy = totalBusy + (now - currentBusy);
-                                System.out.println("Tiempo busy " + totalBusy / 1000);
+                                //System.out.println("Tiempo busy " + totalBusy / 1000);
                                 currentIdle = now;
                                 idleOrBusy = 0;
                                 item.getServer().setTotalBusy(totalBusy);
@@ -1135,7 +1100,7 @@ public class Algorithm implements Runnable{
                                             outExchanger.get(sendTo).exchange(product);
                                             outSemaphores.get(sendTo).release();
                                         }
-                                        System.out.println("Producto enviado al sumidero");
+                                        //System.out.println("Producto enviado al sumidero");
                                         break;
                                     case "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)":
                                         var randomNumber = random.nextInt(100) + 1;
@@ -1157,7 +1122,7 @@ public class Algorithm implements Runnable{
                                         controlSemaphore.release();
                                         outExchanger.get(sendTo).exchange(product);
                                         outSemaphores.get(sendTo).release();
-                                        System.out.println("Enviado por el servidor " + finalI);
+                                        //System.out.println("Enviado por el servidor " + finalI);
                                         break;
                                     case "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)":
                                         sendTo = random.nextInt(outSemaphores.size());
@@ -1168,7 +1133,7 @@ public class Algorithm implements Runnable{
                                         item.getServer().setOutServer(total);
                                         controlSemaphore.release();
                                         outSemaphores.get(sendTo).release();
-                                        System.out.println("Enviado por el servidor " + finalI);
+                                        //System.out.println("Enviado por el servidor " + finalI);
                                         break;
                                     case "Primera conexión disponible":
                                         sendTo = 0;
@@ -1186,56 +1151,77 @@ public class Algorithm implements Runnable{
                                         controlSemaphore.release();
                                         outExchanger.get(sendTo).exchange(product);
                                         outSemaphores.get(sendTo).release();
-                                        System.out.println("Enviado por el servidor " + finalI);
+                                        //System.out.println("Enviado por el servidor " + finalI);
                                         break;
                                     case "A la cola más pequeña (si está llena espera hasta que haya hueco)":
-                                        try {
-                                            var products = Double.POSITIVE_INFINITY;
-                                            var queueProducts = 0;
-                                            var smallestQueue = 0;
-                                            for (var index = 0; index < queues.size(); index++) {
-                                                if (queues.get(index).getTypeItem().equals("Queue")) {
-                                                    queues.get(index).getControlDestinationSemaphore().acquire();
-                                                    queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
-                                                    queues.get(index).getControlDestinationSemaphore().release();
-                                                    if (queueProducts < products) {
-                                                        products = queueProducts;
-                                                        smallestQueue = index;
-                                                    }
-                                                } else if (queues.get(index).getTypeItem().equals("Sink")) {
+                                        var products = Double.POSITIVE_INFINITY;
+                                        var queueProducts = 0;
+                                        var smallestQueue = 0;
+                                        for (var index = 0; index < queues.size(); index++) {
+                                            if (queues.get(index).getTypeItem().equals("Queue")) {
+                                                queues.get(index).getControlDestinationSemaphore().acquire();
+                                                queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
+                                                queues.get(index).getControlDestinationSemaphore().release();
+                                                if (queueProducts < products) {
+                                                    products = queueProducts;
                                                     smallestQueue = index;
-                                                    break;
                                                 }
+                                            } else if (queues.get(index).getTypeItem().equals("Sink")) {
+                                                smallestQueue = index;
+                                                break;
                                             }
-                                            accessInSemaphores.get(smallestQueue).acquire();
-                                            controlSemaphore.acquire();
-                                            in--;
-                                            total++;
-                                            item.getServer().setOutServer(total);
-                                            controlSemaphore.release();
-                                            outExchanger.get(smallestQueue).exchange(product);
-                                            outSemaphores.get(smallestQueue).release();
-                                            System.out.println("Enviado por el servidor " + finalI);
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
                                         }
+                                        accessInSemaphores.get(smallestQueue).acquire();
+                                        controlSemaphore.acquire();
+                                        in--;
+                                        total++;
+                                        item.getServer().setOutServer(total);
+                                        controlSemaphore.release();
+                                        outExchanger.get(smallestQueue).exchange(product);
+                                        outSemaphores.get(smallestQueue).release();
+                                        //System.out.println("Enviado por el servidor " + finalI);
                                         break;
                                 }
                             }
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                            totalIdle = item.getServer().getTotalIdle() != null ? item.getServer().getTotalIdle() : 0.0;
+                            totalBusy = item.getServer().getTotalBusy() != null ? item.getServer().getTotalBusy() : 0.0;
+                            var lastTimeIdle = item.getServer().getLastTimeIdle() != null ? item.getServer().getLastTimeIdle() : 0;
+                            var lastTimeBusy = item.getServer().getLastTimeBusy() != null ? item.getServer().getLastTimeBusy() : 0;
+                            pctBusy = 0.0;
+                            if (totalBusy != 0) {
+                                if (item.getServer().getIdleOrBusy() == 0) {
+                                    totalIdle = totalIdle + ((double) System.currentTimeMillis() - lastTimeIdle);
+                                    pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
+                                } else {
+                                    totalBusy = totalBusy + ((double) System.currentTimeMillis() - lastTimeBusy);
+                                    pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
+                                }
+                                pctBusy= Math.round(pctBusy*100.0)/100.0;
+                                item.getServer().setPctBusyTime(pctBusy);
+                            }
+                            interruptedAndSavedTheadsState.set(indexState,true);
+                            interruptedAndSavedTheadsStateSemaphore.release();
                         }
                     });
                     itemList.add(server);
+                    totalThreads.add(server);
                     break;
                 case "Sink":
                     finalI = i;
                     var sink = new Thread(() -> {
-                        var productsInSink=0;
+                        interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                        interruptedAndSavedTheadsState.add(false);
+                        var indexState = interruptedAndSavedTheadsState.size() - 1;
+                        interruptedAndSavedTheadsStateIndex++;
+                        interruptedAndSavedTheadsStateSemaphore.release();
+
+                        var productsInSink = 0;
                         var inSemaphoreType = getSemaphore(semaphoresItem, "In");
                         var accessOutType = getSemaphore(semaphoresItem, "AccessOut");
                         var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
-                        var inExchanger= getExchangers(semaphoresItem,"In").get(0);
+                        var inExchanger = getExchangers(semaphoresItem, "In").get(0);
 
                         Semaphore inSemaphore = null;
                         Semaphore controlSemaphore = null;
@@ -1255,14 +1241,18 @@ public class Algorithm implements Runnable{
                                 controlSemaphore.acquire();
                                 productsInSink++;
                                 item.getSink().setInSink(productsInSink);
-                                System.out.println(productsInSink + " productos en el sumidero " + finalI);
+                                //System.out.println(productsInSink + " productos en el sumidero " + finalI);
                                 controlSemaphore.release();
                             }
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                            item.getSink().setInSink(productsInSink);
+                            interruptedAndSavedTheadsState.set(indexState,true);
+                            interruptedAndSavedTheadsStateSemaphore.release();
                         }
                     });
                     itemList.add(sink);
+                    totalThreads.add(sink);
             }
         }
 
@@ -1273,12 +1263,37 @@ public class Algorithm implements Runnable{
         System.out.println("Simulacion empezada");
         var daemonThread = new Thread(() -> {
             try {
+                String simulating = simulationService.findById(simulationId).get().getStatusSimulation();
                 List<Semaphore> semaphoreList = new ArrayList<>();
                 //Save all control semaphores in order to save the items safely
                 for (SemaphoreAsignation semaphoreAsignation : semaphoreAsignationList) {
                     semaphoreList.add(getSemaphore(semaphoreAsignation, "Control").getSemaphores().get(0));
                 }
-                while (true) {
+                while (simulating.equals("1")) {
+                    for (var i = 0; i < simulation.size(); i++) {
+                        var item = simulation.get(i);
+                        semaphoreList.get(i).acquire();
+                        if (simulation.get(i).getItem().getDescription().equals("Server")){
+                            var totalIdle = item.getServer().getTotalIdle() != null ? item.getServer().getTotalIdle() : 0.0;
+                            var totalBusy = item.getServer().getTotalBusy() != null ? item.getServer().getTotalBusy() : 0.0;
+                            var lastTimeIdle = item.getServer().getLastTimeIdle() != null ? item.getServer().getLastTimeIdle() : 0;
+                            var lastTimeBusy = item.getServer().getLastTimeBusy() != null ? item.getServer().getLastTimeBusy() : 0;
+                            var pctBusy = 0.0;
+                            if (lastTimeBusy != 0) {
+                                if (item.getServer().getIdleOrBusy() == 0) {
+                                    totalIdle = totalIdle + ((double) System.currentTimeMillis() - lastTimeIdle);
+                                    pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
+                                } else {
+                                    totalBusy = totalBusy + ((double) System.currentTimeMillis() - lastTimeBusy);
+                                    pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
+                                }
+                                pctBusy= Math.round(pctBusy*100.0)/100.0;
+                                item.getServer().setPctBusyTime(pctBusy);
+                            }
+                        }
+                        semaphoreList.get(i).release();
+                    }
+                    /*
                     for (var i = 0; i < simulation.size(); i++) {
                         semaphoreList.get(i).acquire();
                         var item = simulation.get(i);
@@ -1319,7 +1334,29 @@ public class Algorithm implements Runnable{
                         }
                         semaphoreList.get(i).release();
                     }
-                    Thread.sleep(1000);
+
+                     */
+                    Thread.sleep(500);
+
+                    simpMessageSendingOperations.convertAndSend("/simulationInfo/"+ simulationId,simulation);
+                    simulating = simulationService.findById(simulationId).get().getStatusSimulation();
+                }
+                for (Thread thread : totalThreads) {
+                    thread.interrupt();
+                }
+                Boolean allStopped= false;
+                while (!allStopped){
+                    interruptedAndSavedTheadsStateSemaphore.acquire();
+                    for (Boolean bool:interruptedAndSavedTheadsState){
+                        if (bool){
+                            allStopped=true;
+                        }else {
+                            allStopped=false;
+                            break;
+                        }
+                    }
+                    interruptedAndSavedTheadsStateSemaphore.release();
+                    Thread.sleep(200);
                 }
 
             } catch (InterruptedException e) {

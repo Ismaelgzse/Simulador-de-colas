@@ -312,8 +312,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   showConnections: boolean;
   inputControls: FormControl[] = [];
   listSendToStrategiesQueue = ["Aleatorio", "Primera conexión disponible", "Porcentaje"];
-  listSendToStrategiesSource = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)", "Porcentaje (si no hay hueco se envia aunque se pierda)", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
-  listSendToStrategiesServer = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)"];
+  listSendToStrategiesSource = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)", "Porcentaje (si no hay hueco se envia aunque se pierda)", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)", "A la cola más pequeña (si está llena espera hasta que haya hueco)"];
+  listSendToStrategiesServer = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)", "A la cola más pequeña (si está llena espera hasta que haya hueco)"];
 
   //Variable related to connection messages
   //0: no error
@@ -337,6 +337,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   //Stores a pair of item that makes a connection
   listItemConnection: ItemModel[];
 
+  startSimulation:number;
+  intervalId:number
+
   listItems: ItemContainerModel[]
   id: number;
   simulationTitle: string;
@@ -348,6 +351,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   itemContainerInfo: ItemContainerModel;
   itemContainerModal: ItemContainerModel;
   listNames: string[];
+  timer:string;
   listProbFunc = ["Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,0.15)", "Max(0,Normal(10,1))",
     "Beta(10,1,1)", "Gamma(10,2)", "Max(0,Logistic(10,1))", "Uniform(5,15)", "Weibull(10,2)",
     "10", "mins(10)", "hr(0.5)"];
@@ -406,8 +410,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
               }
               this.simulationService.closeConnection();
             },
-            error : (err)=>{
-              if (this.simulating){
+            error: (err) => {
+              if (this.simulating) {
                 this.simulationService.sendMessage(this.id.toString());
                 this.simulationService.closeConnection();
               }
@@ -419,6 +423,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.intervalId=0;
+    this.startSimulation=0;
+    this.timer="0:00"
     this.simulating = false;
     this.showConnections = true
     this.errorConnection = 0;
@@ -441,7 +448,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.serverInfo = {
       cicleTime: "",
       outServer: 0,
-      setupTime: ""
+      setupTime: "",
+      pctBusyTime:0
     };
     this.sourceInfo = {
       interArrivalTime: "",
@@ -486,8 +494,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
               if (status) {
                 this.simulationService.connectAlt(this.id.toString());
                 this.simulating = false;
-              }
-              else {
+              } else {
                 this.simulationService.connect(this.id.toString());
 
               }
@@ -768,24 +775,139 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       blackCanvas.classList.toggle("showScreen")
       this.blackScreen = false;
       this.simulating = false;
+      let timerElement = document.getElementById('timer')
+      // @ts-ignore
+      timerElement.classList.toggle("showTimer");
+      clearInterval(this.intervalId);
+      this.startSimulation=0;
       this.simulationService.sendMessage(this.id.toString());
     }
   }
 
-  //TODO
+
   simulate() {
-    if (!this.blackScreen) {
-      //Go back tho the normal screen, removing the blackscreen
-      let blackCanvas = document.getElementById('blackScreen')
+    if (this.checkSimulationStructure(this.listItems)) {
+      if (!this.blackScreen) {
+        //Go back tho the normal screen, removing the blackscreen
+        let blackCanvas = document.getElementById('blackScreen')
+        // @ts-ignore
+        blackCanvas.classList.toggle("showScreen")
+        this.blackScreen = true;
+        this.simulating = true;
+      }
+      let timerElement = document.getElementById('timer')
       // @ts-ignore
-      blackCanvas.classList.toggle("showScreen")
-      this.blackScreen = true;
-      this.simulating = true;
+      timerElement.classList.toggle("showTimer");
+
+      if (this.simulating) {
+        this.startSimulation = Date.now() - (this.startSimulation > 0 ? this.startSimulation : 0);
+        // @ts-ignore
+        this.intervalId = setInterval(() => {
+          this.updateTimer();
+        }, 1000);
+      }
+      this.simulationService.sendMessage(this.id.toString());
     }
+    else {
+      let alertErrorMessage = document.getElementById("cancelConnect");
+      // @ts-ignore
+      let listClasses = alertErrorMessage.classList;
+      if (listClasses.length <= 1) {
+        // @ts-ignore
+        alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+      }
+      this.errorConnection=3;
+    }
+  }
 
-    this.simulationService.sendMessage(this.id.toString());
+  updateTimer(){
+    let currentTime= Date.now()-this.startSimulation;
+    let minutes= Math.floor(currentTime / (60*1000));
+    let seconds=  (Math.floor(currentTime / 1000) % 60);
+    this.timer= `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
 
 
+  //Depth-first search algorithm
+  private checkSimulationStructure(listItems: ItemContainerModel[]) {
+    //Gets all sinks, the project must have at least one sink to be a valid simulation
+    let sinks = this.getSinks(listItems);
+    //Inicialises a list of all visited items
+    let visitedList = this.getVisitedList(listItems)
+    if (sinks.length >= 1) {
+      for (let i = 0; i < listItems.length; i++) {
+        if (visitedList[i] === false && listItems[i].item.description === "Source") {
+          this.checkSimulationStructureRec(listItems, visitedList, i)
+        }
+      }
+      //Checks if all items have been visited
+      if (this.checkAllVisited(visitedList)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  //Checks if all items are visited
+  private checkAllVisited(visitedList: any[]) {
+    for (let i = 0; i < visitedList.length; i++) {
+      if (visitedList[i] !== true) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private checkSimulationStructureRec(listItems: ItemContainerModel[], visitedList: any[], i: number) {
+    if (listItems[i].item.description === "Sink") {
+      visitedList[i] = true;
+    }
+    //If the item has not connections and is not a sink, it means the structure of the simulation is invalid.
+    if (listItems[i].connections !== undefined) {
+      // @ts-ignore
+      if (listItems[i].connections.length > 0) {
+        visitedList[i] = true;
+        // @ts-ignore
+        for (let index = 0; index < listItems[i].connections.length; index++) {
+          // @ts-ignore
+          let indexOfElement = this.getIndexOfElement(listItems[i].connections[index].destinationItem.idItem, listItems)
+          // @ts-ignore
+          if (visitedList[indexOfElement] === false && indexOfElement !== null) {
+            this.checkSimulationStructureRec(listItems, visitedList, indexOfElement)
+          }
+        }
+      }
+    }
+  }
+
+  //Gets the index of an item by its id
+  private getIndexOfElement(idItem: number, listItems: ItemContainerModel[]) {
+    for (let i = 0; i < listItems.length; i++) {
+      if (listItems[i].item.idItem === idItem) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  //Inicialises a list of all visited items
+  private getVisitedList(listItems: ItemContainerModel[]) {
+    let visitedList = [];
+    for (let i = 0; i < listItems.length; i++) {
+      visitedList.push(false);
+    }
+    return visitedList;
+  }
+
+  //Returns a list of the sinks
+  private getSinks(listItems: ItemContainerModel[]) {
+    let sinkList = [];
+    for (let index = 0; index < listItems.length; index++) {
+      if (listItems[index].item.description === "Sink") {
+        sinkList.push(listItems[index]);
+      }
+    }
+    return sinkList;
   }
 
 //When the user cancels the procces of adding a new connection between two items
@@ -817,10 +939,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
 //Returns the connections of a item
-  connectionsOfSelectedItem(itemContainer
-                              :
-                              ItemContainerModel
-  ) {
+  connectionsOfSelectedItem(itemContainer: ItemContainerModel) {
     for (let i = 0; i < this.listItems.length; i++) {
       if (this.listItems[i].item.idItem === itemContainer.item.idItem && this.listItems[i].item.name === itemContainer.item.name) {
         return this.listItems[i].connections;
@@ -830,12 +949,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
 //Returns true if the items are already connected, false otherwise
-  alreadyConnected(origin
-                     :
-                     ItemModel, destination
-                     :
-                     ItemContainerModel
-  ) {
+  alreadyConnected(origin: ItemModel, destination: ItemContainerModel) {
     let originItem: ItemContainerModel;
     for (let i = 0; i < this.listItems.length; i++) {
       // @ts-ignore
@@ -856,16 +970,19 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return false;
   }
 
-  newConnection(event
-                  :
-                  Event, itemContainer
-                  :
-                  ItemContainerModel
-  ) {
+  newConnection(event: Event, itemContainer: ItemContainerModel) {
     //When the user presses the button to add a new connection we add a blackscreen to focus
     this.blackScreen = true;
     // @ts-ignore
     if (event.currentTarget.nodeName != "DIV") {
+      let alertErrorMessage = document.getElementById("cancelConnect");
+      // @ts-ignore
+      let listClasses = alertErrorMessage.classList;
+      if (listClasses.length > 1) {
+        // @ts-ignore
+        alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+      }
+      this.errorConnection=0;
       //We show the new connection message and store the connections and name of the first selected item
       // @ts-ignore
       this.listConnections = this.connectionsOfSelectedItem(itemContainer);
@@ -991,40 +1108,22 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
 //When the user clicks the delete button, we store the connection data, and in case the user confirms the deletion, we will delete the connection
-  openModalDeleteConnection(content
-                              :
-                              any, connection
-                              :
-                              ConnectionModel
-  ) {
+  openModalDeleteConnection(content: any, connection: ConnectionModel) {
     this.connectionModal = connection;
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
 //When the user clicks the delete button, we store the item data, and in case the user confirms the deletion, we will delete the item
-  openModalDeleteItem(content
-                        :
-                        any, itemContainer
-                        :
-                        ItemContainerModel
-  ) {
+  openModalDeleteItem(content: any, itemContainer: ItemContainerModel) {
     this.itemContainerModal = itemContainer;
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
-  openModalQuickSimulation(content
-                             :
-                             any
-  ) {
+  openModalQuickSimulation(content: any) {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
-  addInput(i
-             :
-             number, description
-             :
-             string
-  ) {
+  addInput(i: number, description: string) {
     const control = new FormControl('');
     switch (description) {
       case "Source":
@@ -1040,19 +1139,11 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.inputControls.push(control)
   }
 
-  deleteInput(i
-                :
-                number
-  ) {
+  deleteInput(i: number) {
     this.inputControls.splice(0, 1);
   }
 
-  openModalEdit(content
-                  :
-                  any, itemContainer
-                  :
-                  ItemContainerModel
-  ) {
+  openModalEdit(content: any, itemContainer: ItemContainerModel) {
     //When the user clicks the edit button, we store the item data and its connections
     this.itemContainerModal = itemContainer;
     for (let i = 0; i < this.listItems.length; i++) {
@@ -1275,10 +1366,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return this.editQueueForm.get('sendToStrategyQueue');
   }
 
-  setNumberProducts(option
-                      :
-                      string
-  ) {
+  setNumberProducts(option: string) {
     if (option == "Ilimitados") {
       this.editSourceForm.patchValue({
         numberProductsSource: "Ilimitados"
@@ -1290,29 +1378,20 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  setinterArrivalTime(option
-                        :
-                        string
-  ) {
+  setinterArrivalTime(option: string) {
     this.editSourceForm.patchValue({
       interArrivalTimeSource: option
     });
   }
 
 //Form edit Server
-  setcycletimeServer(option
-                       :
-                       string
-  ) {
+  setcycletimeServer(option: string) {
     this.editServerForm.patchValue({
       cycletimeServer: option
     })
   }
 
-  setCapacityQueue(option
-                     :
-                     string
-  ) {
+  setCapacityQueue(option: string) {
     if (option == "Ilimitados") {
       this.editQueueForm.patchValue({
         capacityQueue: "Ilimitados"
@@ -1324,10 +1403,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  validateQueueDiscipline(control
-                            :
-                            AbstractControl
-  ) {
+  validateQueueDiscipline(control: AbstractControl) {
     let opt = control.value.substring(0, 6).toLowerCase();
     switch (opt) {
       case "fifo":
@@ -1341,10 +1417,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  setQueueDiscipline(option
-                       :
-                       string
-  ) {
+  setQueueDiscipline(option: string) {
     switch (option) {
       case "Fifo":
         this.editQueueForm.patchValue({
@@ -1365,10 +1438,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
 
-  validateFormatNumberProducts(control
-                                 :
-                                 AbstractControl
-  ) {
+  validateFormatNumberProducts(control: AbstractControl) {
     let numberProducts = control.value;
     if (numberProducts === "Ilimitados" || !isNaN(numberProducts)) {
       if (numberProducts === "Ilimitados") {
@@ -1384,12 +1454,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return {invalidFormat: true}
   }
 
-  validateName(control
-                 :
-                 AbstractControl, listNames
-                 :
-                 string[]
-  ) {
+  validateName(control: AbstractControl, listNames: string[]) {
     let name = control.value;
     //The name of the item need to be unique in the simulation
     if (name != '' && name != undefined && this.listNames.length != 0) {
@@ -1401,12 +1466,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
 //Validate the format of the functions
-  validateNumbers(numbers
-                    :
-                    string, func
-                    :
-                    string
-  ):
+  validateNumbers(numbers: string, func: string):
     boolean {
     let posComa = 0;
     for (let i = 0; i < numbers.length; i++) {
@@ -1471,12 +1531,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return false;
   }
 
-  validatePercentages(control
-                        :
-                        AbstractControl, itemContainer
-                        :
-                        ItemContainerModel
-  ) {
+  validatePercentages(control: AbstractControl, itemContainer: ItemContainerModel) {
     let input = control.value;
     if (itemContainer) {
       if (itemContainer.connections && itemContainer.connections.length > 0) {
@@ -1496,12 +1551,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return null;
   }
 
-  validateProbFunc(control
-                     :
-                     AbstractControl, component
-                     :
-                     any
-  ) {
+  validateProbFunc(control: AbstractControl, component: any) {
     let input = control.value;
     if (input.substring(0, 10) === "Triangular") {
       if (input.substring(10, 11) === "(" && input.substring(input.length - 1) === ")") {

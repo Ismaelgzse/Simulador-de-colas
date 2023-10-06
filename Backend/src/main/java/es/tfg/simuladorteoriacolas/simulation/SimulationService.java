@@ -2,13 +2,17 @@ package es.tfg.simuladorteoriacolas.simulation;
 
 import es.tfg.simuladorteoriacolas.folder.Folder;
 import es.tfg.simuladorteoriacolas.folder.FolderService;
+import es.tfg.simuladorteoriacolas.items.ItemDTO;
+import es.tfg.simuladorteoriacolas.items.ItemService;
+import es.tfg.simuladorteoriacolas.items.types.ItemTypesService;
+import es.tfg.simuladorteoriacolas.simulation.algorithm.Algorithm;
 import es.tfg.simuladorteoriacolas.user.UserEntity;
 import es.tfg.simuladorteoriacolas.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +20,16 @@ import java.util.Optional;
 
 @Service
 public class SimulationService {
+
+    @Autowired
+    private SimpMessageSendingOperations simpMessageSendingOperations;
+
+    @Autowired
+    private ItemTypesService itemTypesService;
+
+    @Autowired
+    private ItemService itemService;
+
     @Autowired
     private SimulationRepository simulationRepository;
 
@@ -61,5 +75,14 @@ public class SimulationService {
         UserEntity user= userService.findByNickname(request.getUserPrincipal().getName()).get();
         simulation.setUserCreator(user);
         return simulationRepository.save(simulation);
+    }
+
+    public void simulate(Integer simulationId){
+        Simulation simulation=simulationRepository.findById(simulationId).get();
+        List<ItemDTO> simulationItems= itemService.getSimulationItems(simulation);
+        Algorithm algorithm= new Algorithm(simulationId,simulationItems,itemTypesService,this,simpMessageSendingOperations);
+        Thread thread= new Thread(algorithm);
+
+        thread.start();
     }
 }

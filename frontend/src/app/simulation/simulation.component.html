@@ -169,11 +169,23 @@
 <div *ngIf="blackScreen" class="showScreen leftMenuContainerBlackScreen"></div>
 
 
-<div id="newConnect" class="alertNewConnection">Nueva conexión <i (click)="cancelNewConnection()" type="button"
-                                                                  class="fa-solid fa-xmark"></i></div>
+<div id="newConnect" class="alertNewConnection">Nueva conexión
+  <i (click)="cancelNewConnection()" type="button" class="fa-solid fa-xmark"></i>
+</div>
+
 <div id="cancelConnect" class="alertCancelConnection">
   <span *ngIf="errorConnection===1">No se puede unir a sí mismo, selecciona otro item.</span>
   <span *ngIf="errorConnection===2">Ya existe una conexión entre ambos items.</span>
+  <span *ngIf="errorConnection===3">Estructura de simulación no valida. Todos los elementos deben estar conectados entre sí.</span>
+</div>
+
+<div id="timer" class="timer">
+  <div class="simulatingText">
+    <span *ngIf="simulating">Simulando </span>
+    <span *ngIf="!simulating">Terminando </span>
+    <i class="fas fa-spin fa-circle-notch"></i>
+    <div class="timerText">{{timer}}</div>
+  </div>
 </div>
 
 
@@ -210,8 +222,7 @@
 
   </svg>
 
-
-  <div *ngIf="blackScreen">
+  <div *ngIf="blackScreen && !simulating">
     <div *ngFor="let itemContainer of listItems; let i=index" id="{{itemContainer.item.name}}"
          style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px"
          (click)="newConnection($event,itemContainer)">
@@ -223,8 +234,9 @@
                 stroke="rgb(0, 0, 0)"
                 stroke-width="2.1"></rect>
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-                stroke="none">In:
+                stroke="none">In: {{itemContainer?.sink?.inSink}}
           </text>
+          <circle *ngIf="itemContainer.sink!==undefined && itemContainer.sink.inSink>0" r="10" cx="50%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ff6699"
@@ -244,7 +256,7 @@
                 stroke="rgb(0, 0, 0)"
                 stroke-width="2.1"></rect>
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-                stroke="none">Out:
+                stroke="none">Out: {{itemContainer?.source?.outSource}}
           </text>
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
@@ -265,8 +277,108 @@
                 stroke="rgb(0, 0, 0)"
                 stroke-width="2.1"></rect>
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-                stroke="none">In:
+                stroke="none">In: {{itemContainer?.queue?.inQueue}}
           </text>
+          <!--<text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">Out: {{itemContainer?.queue?.outQueue}}
+          </text>-->
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#00ff99"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+      <svg
+        *ngIf="itemContainer.item.description==='Server' && (correctServerShown || sameElement==itemContainer.item.name || simulating)"
+        width="200" height="100">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="left" text-anchor="left" fill="black"
+                stroke="none">Util: {{itemContainer?.server?.pctBusyTime}}
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ffcc00"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+
+  <div *ngIf="blackScreen && simulating">
+    <div *ngFor="let itemContainer of simulationService.listItemSimulation; let i=index" id="{{itemContainer.item.name}}"
+         style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px"
+         (click)="newConnection($event,itemContainer)">
+      <svg
+        *ngIf="itemContainer.item.description==='Sink' && (correctSinkShown || sameElement==itemContainer.item.name || simulating)"
+        width="200" height="100">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">In: {{itemContainer?.sink?.inSink}}
+          </text>
+          <circle *ngIf="itemContainer.sink!==undefined && itemContainer.sink.inSink>0" r="10" cx="50%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ff6699"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+      <svg
+        *ngIf="itemContainer.item.description==='Source' && (correctSourceSown || sameElement==itemContainer.item.name || simulating)"
+        width="200" height="100">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">Out: {{itemContainer?.source?.outSource}}
+          </text>
+        </g>
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#3399ff"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">{{itemContainer.item.name}}
+          </text>
+        </g>
+      </svg>
+
+      <svg
+        *ngIf="itemContainer.item.description==='Queue' && (correctQueueShown|| sameElement==itemContainer.item.name || simulating)"
+        width="200" height="100">
+        <g stroke="black" stroke-width="1px" fill="white">
+          <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
+                stroke="rgb(0, 0, 0)"
+                stroke-width="2.1"></rect>
+          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">In: {{itemContainer?.queue?.inQueue}}
+          </text>
+          <circle *ngIf="itemContainer.queue!==undefined && itemContainer.queue.inQueue>0" r="10" cx="50%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
+
+          <!--<text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">Out: {{itemContainer?.queue?.outQueue}}
+          </text>-->
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#00ff99"
@@ -286,7 +398,7 @@
                 stroke="rgb(0, 0, 0)"
                 stroke-width="2.1"></rect>
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-                stroke="none">Util:
+                stroke="none">Util: {{itemContainer?.server?.pctBusyTime}}
           </text>
         </g>
         <g stroke="black" stroke-width="1px" fill="white">

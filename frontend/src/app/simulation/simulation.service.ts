@@ -13,12 +13,12 @@ declare var Stomp;
 export class SimulationService {
   private stompClient;
   message: string
+  listItemSimulation: ItemContainerModel[]
 
 
   constructor(private httpClient: HttpClient) {
     const ws = new SockJS("https://localhost:8443/ws");
     this.stompClient = Stomp.over(ws);
-
   }
 
   public connectAlt(simulationId: string) {
@@ -27,7 +27,7 @@ export class SimulationService {
     this.stompClient.connect({}, (frame) => {
       // @ts-ignore
       this.stompClient.subscribe(`/simulationInfo/${simulationId}`, (message) => {
-        console.log(JSON.parse(message.body));
+        this.listItemSimulation=JSON.parse(message.body);
       });
       this.stompClient.send('/wsAPI/simulateMessage/' + simulationId, {}, JSON.stringify('connect'))
     });
@@ -39,7 +39,7 @@ export class SimulationService {
     this.stompClient.connect({}, (frame) => {
       // @ts-ignore
       this.stompClient.subscribe(`/simulationInfo/${simulationId}`, (message) => {
-        console.log(JSON.parse(message.body));
+        this.listItemSimulation=JSON.parse(message.body);
       });
     });
   }

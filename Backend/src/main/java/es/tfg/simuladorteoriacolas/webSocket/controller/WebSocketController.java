@@ -42,7 +42,20 @@ public class WebSocketController {
     @MessageMapping("/simulateMessage/{simulationId}")
     @SendTo("/simulationInfo/{simulatonId}")
     public void handler(@DestinationVariable String simulationId, String activateTask) {
-        scheduleServerStatusMessage(simulationId);
+        //scheduleServerStatusMessage(simulationId);
+
+        //TODO provisional
+        var simulation = simulationService.findById(Integer.valueOf(simulationId)).get();
+        if (simulation.getStatusSimulation().equals("0")) {
+            simulation.setStatusSimulation("1");
+            simulationService.save(simulation);
+            simulationService.simulate(Integer.valueOf(simulationId));
+        }
+        else {
+            simulation.setStatusSimulation("0");
+            simulationService.save(simulation);
+
+        }
     }
 
 
