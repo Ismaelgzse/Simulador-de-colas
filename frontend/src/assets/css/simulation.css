@@ -517,3 +517,14 @@ body {
   text-align: center;
 }
 
+.successProgressBar{
+  background: green;
+}
+
+.warningProgressBar{
+  background: orange;
+}
+
+.dangerProgressBar{
+  background: red;
+}

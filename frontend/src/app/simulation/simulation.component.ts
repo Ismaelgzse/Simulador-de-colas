@@ -449,7 +449,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       cicleTime: "",
       outServer: 0,
       setupTime: "",
-      pctBusyTime:0
+      pctBusyTime:0,
+      inServer:0
     };
     this.sourceInfo = {
       interArrivalTime: "",
@@ -1714,5 +1715,35 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       return null;
     }
     return {invalidFormat: true};
+  }
+
+  progressValue(itemContainer:ItemContainerModel){
+    if (itemContainer.queue!==undefined){
+      if (itemContainer.queue.capacityQueue && itemContainer.queue.inQueue){
+        if (itemContainer.queue.inQueue!==null && itemContainer.queue.capacityQueue!=="Ilimitados"){
+          let result=(itemContainer.queue.inQueue / parseInt(itemContainer.queue.capacityQueue))*100.0;
+          return result.toString()+"%"
+        }
+      }
+    }
+    return "0%";
+  }
+
+  getColor(itemContainer:ItemContainerModel){
+    if (itemContainer.queue!==undefined){
+      if (itemContainer.queue.capacityQueue && itemContainer.queue.inQueue){
+        if (itemContainer.queue.inQueue!==null && itemContainer.queue.capacityQueue!=="Ilimitados"){
+          let ratio=(itemContainer.queue.inQueue / parseInt(itemContainer.queue.capacityQueue))*100.0;
+          if (ratio < 25) {
+            return 'progress-bar progress-bar-striped active successProgressBar';
+          } else if (ratio < 75) {
+            return 'progress-bar progress-bar-striped active warningProgressBar';
+          } else {
+            return 'progress-bar progress-bar-striped active dangerProgressBar';
+          }
+        }
+      }
+    }
+    return 'progress-bar progress-bar-striped active successProgressBar';
   }
 }

@@ -4,5 +4,6 @@ export interface ServerModel {
   setupTime:string,
   cicleTime:string,
   outServer:number,
-  pctBusyTime:number
+  pctBusyTime:number,
+  inServer:number
 }

@@ -331,7 +331,7 @@
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
                 stroke="none">In: {{itemContainer?.sink?.inSink}}
           </text>
-          <circle *ngIf="itemContainer.sink!==undefined && itemContainer.sink.inSink>0" r="10" cx="50%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
+          <circle *ngIf="itemContainer.sink!==undefined && itemContainer.sink.inSink>0" r="10" cx="70%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ff6699"
@@ -371,10 +371,15 @@
           <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
                 stroke="rgb(0, 0, 0)"
                 stroke-width="2.1"></rect>
+          <foreignObject x="27.5" y="29" width="145" height="20">
+            <div class="progress" style="width: 98%;margin: 0 auto;">
+              <div role="progressbar" [style.width]="progressValue(itemContainer)" [ngClass]="getColor(itemContainer)"> </div>
+            </div>
+          </foreignObject>
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
                 stroke="none">In: {{itemContainer?.queue?.inQueue}}
           </text>
-          <circle *ngIf="itemContainer.queue!==undefined && itemContainer.queue.inQueue>0" r="10" cx="50%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
+          <circle *ngIf="itemContainer.queue!==undefined && itemContainer.queue.inQueue>0" r="10" cx="70%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
 
           <!--<text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
                 stroke="none">Out: {{itemContainer?.queue?.outQueue}}
@@ -397,9 +402,10 @@
           <rect x="27.5px" y="1" width="145" height="90" rx="6.93" ry="6.93" fill="rgb(255,255,255)"
                 stroke="rgb(0, 0, 0)"
                 stroke-width="2.1"></rect>
-          <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-                stroke="none">Util: {{itemContainer?.server?.pctBusyTime}}
+          <text x="39%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
+                stroke="none">Util: {{itemContainer?.server?.pctBusyTime}} %
           </text>
+          <circle *ngIf="itemContainer.server!==undefined && itemContainer.server.inServer>0" r="10" cx="70%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ffcc00"

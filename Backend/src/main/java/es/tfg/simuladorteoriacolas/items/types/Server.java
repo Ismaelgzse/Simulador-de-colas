@@ -28,6 +28,16 @@ public class Server {
 
     private Integer idleOrBusy;
 
+    private Integer inServer;
+
+    public Integer getInServer() {
+        return inServer;
+    }
+
+    public void setInServer(Integer inServer) {
+        this.inServer = inServer;
+    }
+
     @OneToOne
     private Item item;
 

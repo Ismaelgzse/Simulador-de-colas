@@ -398,39 +398,45 @@ public class Algorithm implements Runnable {
                                     }
                                     switch ((String) strategyTime.keySet().toArray()[0]) {
                                         case "Triangular":
-                                            sleep = triangularDistribution.sample();
+                                            sleep = triangularDistribution.sample()* 1000.0;
                                             break;
                                         case "LogNormal":
-                                            sleep = logNormalDistribution.sample();
+                                            sleep = logNormalDistribution.sample()* 1000.0;
                                             break;
                                         case "Binomial":
-                                            sleep = (double) binomialDistribution.sample();
+                                            sleep = (double) binomialDistribution.sample()* 1000.0;
                                             break;
                                         case "Max":
                                             if (strategyTime.keySet().toArray()[1].equals("Normal")) {
                                                 sleep = normalDistribution.sample();
                                                 if (sleep < max) {
-                                                    sleep = (double) max;
+                                                    sleep = (double) max* 1000.0;
+                                                }
+                                                else {
+                                                    sleep=sleep* 1000.0;
                                                 }
                                             } else {
                                                 sleep = logisticDistribution.sample();
                                                 if (sleep < max) {
-                                                    sleep = (double) max;
+                                                    sleep = (double) max * 1000.0;
+                                                }
+                                                else {
+                                                    sleep = sleep* 1000.0;
                                                 }
                                             }
                                             break;
                                         case "Beta":
-                                            sleep = betaDistribution.sample();
+                                            sleep = betaDistribution.sample()* 1000.0;
                                             sleep = sleep * max;
                                             break;
                                         case "Gamma":
-                                            sleep = gammaDistribution.sample();
+                                            sleep = gammaDistribution.sample()* 1000.0;
                                             break;
                                         case "Uniform":
-                                            sleep = (double) uniformIntegerDistribution.sample();
+                                            sleep = (double) uniformIntegerDistribution.sample()* 1000.0;
                                             break;
                                         case "Weibull":
-                                            sleep = weibullDistribution.sample();
+                                            sleep = weibullDistribution.sample()* 1000.0;
                                             break;
                                         case "mins":
                                             sleep = max * 60.0 * 1000.0;
@@ -993,39 +999,45 @@ public class Algorithm implements Runnable {
                             while (true) {
                                 switch ((String) strategyTime.keySet().toArray()[0]) {
                                     case "Triangular":
-                                        sleep = triangularDistribution.sample();
+                                        sleep = triangularDistribution.sample()* 1000.0;
                                         break;
                                     case "LogNormal":
-                                        sleep = logNormalDistribution.sample();
+                                        sleep = logNormalDistribution.sample()* 1000.0;
                                         break;
                                     case "Binomial":
-                                        sleep = (double) binomialDistribution.sample();
+                                        sleep = (double) binomialDistribution.sample()* 1000.0;
                                         break;
                                     case "Max":
                                         if (strategyTime.keySet().toArray()[1].equals("Normal")) {
                                             sleep = normalDistribution.sample();
                                             if (sleep < max) {
-                                                sleep = (double) max;
+                                                sleep = (double) max* 1000.0;
+                                            }
+                                            else {
+                                                sleep=sleep* 1000.0;
                                             }
                                         } else {
                                             sleep = logisticDistribution.sample();
                                             if (sleep < max) {
-                                                sleep = (double) max;
+                                                sleep = (double) max* 1000.0;
+                                            }
+                                            else {
+                                                sleep=sleep* 1000.0;
                                             }
                                         }
                                         break;
                                     case "Beta":
-                                        sleep = betaDistribution.sample();
+                                        sleep = betaDistribution.sample()* 1000.0;
                                         sleep = sleep * max;
                                         break;
                                     case "Gamma":
-                                        sleep = gammaDistribution.sample();
+                                        sleep = gammaDistribution.sample()* 1000.0;
                                         break;
                                     case "Uniform":
-                                        sleep = (double) uniformIntegerDistribution.sample();
+                                        sleep = (double) uniformIntegerDistribution.sample()* 1000.0;
                                         break;
                                     case "Weibull":
-                                        sleep = weibullDistribution.sample();
+                                        sleep = weibullDistribution.sample()* 1000.0;
                                         break;
                                     case "mins":
                                         sleep = max * 60.0 * 1000.0;
@@ -1049,6 +1061,7 @@ public class Algorithm implements Runnable {
                                 pctBusy = Double.isNaN(pctBusy) ? 0 : pctBusy;
                                 pctBusy= Math.round(pctBusy*100.0)/100.0;
                                 item.getServer().setPctBusyTime(pctBusy);
+                                item.getServer().setInServer(in);
                                 //System.out.println(in + " productos en el servidor " + finalI);
                                 //System.out.println("Pct Busy " + item.getServer().getPctBusyTime() + " en el servidor " + finalI);
                                 controlSemaphore.release();
@@ -1089,15 +1102,17 @@ public class Algorithm implements Runnable {
                                             controlSemaphore.acquire();
                                             in--;
                                             total++;
+                                            item.getServer().setInServer(in);
                                             item.getServer().setOutServer(total);
                                             controlSemaphore.release();
                                         } else {
+                                            outExchanger.get(sendTo).exchange(product);
                                             controlSemaphore.acquire();
                                             in--;
                                             total++;
+                                            item.getServer().setInServer(in);
                                             item.getServer().setOutServer(total);
                                             controlSemaphore.release();
-                                            outExchanger.get(sendTo).exchange(product);
                                             outSemaphores.get(sendTo).release();
                                         }
                                         //System.out.println("Producto enviado al sumidero");
@@ -1115,21 +1130,24 @@ public class Algorithm implements Runnable {
                                             }
                                         }
                                         accessInSemaphores.get(sendTo).acquire();
+                                        outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
                                         in--;
                                         total++;
+                                        item.getServer().setInServer(in);
                                         item.getServer().setOutServer(total);
                                         controlSemaphore.release();
-                                        outExchanger.get(sendTo).exchange(product);
                                         outSemaphores.get(sendTo).release();
                                         //System.out.println("Enviado por el servidor " + finalI);
                                         break;
                                     case "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)":
                                         sendTo = random.nextInt(outSemaphores.size());
                                         accessInSemaphores.get(sendTo).acquire();
+                                        outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
                                         in--;
                                         total++;
+                                        item.getServer().setInServer(in);
                                         item.getServer().setOutServer(total);
                                         controlSemaphore.release();
                                         outSemaphores.get(sendTo).release();
@@ -1144,12 +1162,13 @@ public class Algorithm implements Runnable {
                                                 sendTo = 0;
                                             }
                                         }
+                                        outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
                                         in--;
                                         total++;
+                                        item.getServer().setInServer(in);
                                         item.getServer().setOutServer(total);
                                         controlSemaphore.release();
-                                        outExchanger.get(sendTo).exchange(product);
                                         outSemaphores.get(sendTo).release();
                                         //System.out.println("Enviado por el servidor " + finalI);
                                         break;
@@ -1172,12 +1191,13 @@ public class Algorithm implements Runnable {
                                             }
                                         }
                                         accessInSemaphores.get(smallestQueue).acquire();
+                                        outExchanger.get(smallestQueue).exchange(product);
                                         controlSemaphore.acquire();
                                         in--;
                                         total++;
+                                        item.getServer().setInServer(in);
                                         item.getServer().setOutServer(total);
                                         controlSemaphore.release();
-                                        outExchanger.get(smallestQueue).exchange(product);
                                         outSemaphores.get(smallestQueue).release();
                                         //System.out.println("Enviado por el servidor " + finalI);
                                         break;
