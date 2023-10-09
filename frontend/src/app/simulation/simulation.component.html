@@ -7,11 +7,18 @@
           <span class="simulationTitle">{{simulationTitle}}</span>
         </div>
       </div>
+      <!--
       <div class="d-sm-none d-lg-block col-lg-1  align-self-center">
 
       </div>
-      <div class="col-sm-3 col-lg-2 align-self-center templateSet ">
+      -->
+      <div class="col-sm-4 col-lg-3 align-self-center templateSet ">
         <div class="templateTitle">Plantillas o ejemplos prediseñados</div>
+        <button [disabled]="simulating" class="btn btnTemplate" data-toggle="modal" data-target="#modalNewFolder">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          Seleccionar una plantilla
+        </button>
+        <!--
         <select class="form-select templateSelector" aria-label="Default select example">
           <option selected>Selecciona para elegir una plantilla</option>
           <option value="1">Ninguno</option>
@@ -20,10 +27,11 @@
           <option value="4">M/M/2/FIFO</option>
           <option value="5">M/M/2/LIFO</option>
         </select>
+        -->
       </div>
       <div class="d-sm-none d-lg-block col-lg-2 align-self-center">
       </div>
-      <div class="col-sm-3 col-lg-2 align-self-center templateSet">
+      <div class="col-sm-4 col-lg-3 align-self-center templateSet">
         <div class="templateTitle">Controles de simulación</div>
         <div class="row">
           <div class="col-4">
@@ -32,20 +40,30 @@
               <i class="fa-solid fa-stop"></i>
             </button>
           </div>
+          <!--
           <div class="col-4">
             <div class="titleControls">Pausar</div>
             <button class="controlButtons" [disabled]="!simulating">
               <i class="fa-solid fa-pause"></i>
             </button>
           </div>
+          -->
           <div class="col-4">
             <div class="titleControls">Iniciar</div>
             <button class="controlButtons" [disabled]="simulating" (click)="simulate()">
               <i type="button" class="fa-solid fa-play"></i>
             </button>
           </div>
+          <div class="col-4">
+            <div class="titleControls">Simulación rápida</div>
+            <button class="controlButtons" [disabled]="simulating" (click)="openModalQuickSimulation(quickSimulation)"
+                    data-toggle="modal" data-target="#modalSimulation">
+              <i class="fa-solid fa-forward"></i>
+            </button>
+          </div>
         </div>
       </div>
+      <!--
       <div class="col-1">
         <button type="button" [disabled]="simulating" (click)="openModalQuickSimulation(quickSimulation)"
                 class="btn btnForward"
@@ -54,10 +72,12 @@
           Simulación rápida
         </button>
       </div>
+      -->
       <div class="col-sm-3 col-lg-2 align-self-end save">
-        <button [disabled]="simulating" class="btn btnSave" data-toggle="modal" data-target="#modalNewFolder">
-          <i class="fa-regular fa-floppy-disk"></i>
-          Guardar
+        <button [disabled]="simulating" class="btn btnReset" data-toggle="modal" data-target="#modalNewFolder"
+                (click)="resetPositions()">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          Reiniciar posiciones
         </button>
       </div>
     </div>
@@ -236,7 +256,8 @@
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
                 stroke="none">In: {{itemContainer?.sink?.inSink}}
           </text>
-          <circle *ngIf="itemContainer.sink!==undefined && itemContainer.sink.inSink>0" r="10" cx="50%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
+          <circle *ngIf="itemContainer.sink!==undefined && itemContainer.sink.inSink>0" r="10" cx="50%" cy="62.5%"
+                  fill="white" stroke="black" stroke-width="1"/>
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ff6699"
@@ -318,7 +339,8 @@
 
 
   <div *ngIf="blackScreen && simulating">
-    <div *ngFor="let itemContainer of simulationService.listItemSimulation; let i=index" id="{{itemContainer.item.name}}"
+    <div *ngFor="let itemContainer of simulationService.listItemSimulation; let i=index"
+         id="{{itemContainer.item.name}}"
          style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px"
          (click)="newConnection($event,itemContainer)">
       <svg
@@ -331,7 +353,8 @@
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
                 stroke="none">In: {{itemContainer?.sink?.inSink}}
           </text>
-          <circle *ngIf="itemContainer.sink!==undefined && itemContainer.sink.inSink>0" r="10" cx="70%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
+          <circle *ngIf="itemContainer.sink!==undefined && itemContainer.sink.inSink>0" r="10" cx="70%" cy="62.5%"
+                  fill="white" stroke="black" stroke-width="1"/>
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ff6699"
@@ -373,13 +396,15 @@
                 stroke-width="2.1"></rect>
           <foreignObject x="27.5" y="29" width="145" height="20">
             <div class="progress" style="width: 98%;margin: 0 auto;">
-              <div role="progressbar" [style.width]="progressValue(itemContainer)" [ngClass]="getColor(itemContainer)"> </div>
+              <div role="progressbar" [style.width]="progressValue(itemContainer)"
+                   [ngClass]="getColor(itemContainer)"></div>
             </div>
           </foreignObject>
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
                 stroke="none">In: {{itemContainer?.queue?.inQueue}}
           </text>
-          <circle *ngIf="itemContainer.queue!==undefined && itemContainer.queue.inQueue>0" r="10" cx="70%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
+          <circle *ngIf="itemContainer.queue!==undefined && itemContainer.queue.inQueue>0" r="10" cx="70%" cy="62.5%"
+                  fill="white" stroke="black" stroke-width="1"/>
 
           <!--<text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
                 stroke="none">Out: {{itemContainer?.queue?.outQueue}}
@@ -405,7 +430,8 @@
           <text x="39%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
                 stroke="none">Util: {{itemContainer?.server?.pctBusyTime}} %
           </text>
-          <circle *ngIf="itemContainer.server!==undefined && itemContainer.server.inServer>0" r="10" cx="70%" cy="62.5%" fill="white" stroke="black" stroke-width="1" />
+          <circle *ngIf="itemContainer.server!==undefined && itemContainer.server.inServer>0" r="10" cx="70%" cy="62.5%"
+                  fill="white" stroke="black" stroke-width="1"/>
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#ffcc00"
@@ -519,11 +545,15 @@
   </div>
 </div>
 
-<i id="trash" class="fa-solid fa-trash-can trash fa-4x"></i>
+<button class="controlButtons help" (click)="openHelpModal(helpModal)">
+  <i class="fa-regular fa-circle-question fa-4x"></i>
+</button>
+<!--
 <button class="reset btn btnReset" [disabled]="simulating" (click)="resetPositions()"><i
   class="fa-solid fa-arrows-rotate"></i> Reiniciar
   posiciones
 </button>
+-->
 
 
 <div class="modal fade" id="modalNewFolder" tabindex="-1" role="dialog" aria-labelledby="modalSave"
@@ -557,6 +587,138 @@
     </div>
   </div>
 </div>
+
+<ng-template #helpModal let-modal class="modal fade">
+  <div class="modal-header">
+    <h5>Menú de ayuda</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>Esta es la pantalla de simulación donde se podrán construir distintos experimentos sobre la simulación de la
+      teoría de colas, a continuación se van a describir las principales posibilidades de esta pantalla.</p>
+    <div class="containerHelpMenu">
+      <div class="leftContainer">
+        <div class="titleHelpMenu">
+          - Menú izquierdo:
+        </div>
+        <p class="textHelpMenu">En este menú se encuentran los distintos tipos de elementos disponibles para la creacion
+          de simulaciones personalizadas. Para empezar a crearlas
+          solamente deberá arrastrar y soltar un item al lienzo en blanco. Los distintos items disponibles son:</p>
+        <div class="subTitleHelpMenu">
+          - Fuente o Source:
+        </div>
+        <p class="subTextHelpMenu">Este tipo de elementos son los encargados de producir o generar los productos.</p>
+        <div class="subTitleHelpMenu">
+          - Cola o Queue:
+        </div>
+        <p class="subTextHelpMenu">Este tipo de elementos son los encargados de almacenar los productos que provienen de
+          las fuentes o procesadores.</p>
+        <div class="subTitleHelpMenu">
+          - Procesador o Server:
+        </div>
+        <p class="subTextHelpMenu">Este tipo de elementos son los encargados de procesar los productos que provienen de
+          las colas.</p>
+        <div class="subTitleHelpMenu">
+          - Desagüe o Sink:
+        </div>
+        <p class="subTextHelpMenu">En este tipo de elementos es donde terminan los productos.</p>
+      </div>
+      <div class="rightContainer imagesContainer">
+        <img class="imageRightContainer" src="assets/png/leftMenu.png">
+      </div>
+    </div>
+
+    <div class="titleHelpMenu" style="margin-top: 5px;">
+      - Menú superior:
+    </div>
+    <p class="textHelpMenu">En este menú se encuentran los controles de la simulación, la restauración de la
+      posición de los elementos de la simulación y el menú de selección de plantillas predefinidas para la
+      simulación.</p>
+
+    <div class="containerHelpMenu"  style="margin-bottom: 7px;">
+      <div class="leftContainer imagesContainer">
+        <img class="imageCustomTemplate" src="assets/png/customTemplate.png">
+      </div>
+      <div class="rightContainer">
+        <div class="subTitleHelpMenu">
+          - Plantillas o ejemplos prediseñados:
+        </div>
+        <p class="subTextHelpMenu">Este botón desplegará un diálogo en el que el usuario tendrá la posibilidad de crear
+          un sistema de colas prediseñado.</p>
+      </div>
+    </div>
+
+    <div class="containerHelpMenu" style="margin-bottom: 7px;">
+      <div class="leftContainer">
+        <div class="subTitleHelpMenu">
+          - Controles de la simulación:
+        </div>
+        <p class="subTextHelpMenu">Estos dos botones tienen la función de terminar y empezar una simulación correspondientemente.</p>
+      </div>
+      <div class="rightContainer imagesContainer">
+        <img class="imageCustomTemplate" style="height: 80px;" src="assets/png/simulationControl.png">
+      </div>
+    </div>
+
+    <div class="containerHelpMenu" style="margin-bottom: 7px;">
+      <div class="leftContainer">
+        <p class="subTextHelpMenu">Adicionalmente, este otro botón desplegará un diálogo con el que realizar una serie de
+          experimentos rápidos de un tiempo determinado para la obtención de resultados. Esto permitirá analizar con más
+          precisión el estado y viabilidad de un sistema de colas.</p>
+      </div>
+      <div class="rightContainer imagesContainer">
+        <img style="height: 50px;" src="assets/png/quickSimulation.png">
+      </div>
+    </div>
+
+    <div class="containerHelpMenu"  style="margin-bottom: 7px;">
+      <div class="leftContainer imagesContainer">
+        <img class="imageCustomTemplate" src="assets/png/resetPositions.png">
+      </div>
+      <div class="rightContainer">
+        <div class="subTitleHelpMenu">
+          - Botón de reinicio de posiciones:
+        </div>
+        <p class="subTextHelpMenu">Este botón será el encargado de reiniciar las posiciones de los diferentes elementos
+          o items de la simulación. Colocará a estos elementos en unas posiciones concretas a fin de prevenir errores y
+          así conseguir que se visualicen todos los elementos correctamente.</p>
+      </div>
+    </div>
+
+    <div class="titleHelpMenu">
+      - Personalización de elementos:
+    </div>
+    <div class="containerHelpMenu">
+      <div class="leftContainer">
+        <p class="textHelpMenu">En el lienzo los items tienen la siguiente forma. Tres botones que sirven para la
+          creación de una nueva conxión, la edición y el borrado del item, corrrespondientemente. Además, se podrá editar
+          la posición del item simplemente arrastrando al item al lugar deseado.</p>
+      </div>
+      <div class="rightContainer imagesContainer">
+        <img class="imageRightContainer" style="width: 150px;height: 125px" src="assets/png/item.png">
+      </div>
+    </div>
+    <p class="textHelpMenu">Para añadir una nueva conexión se deberá pinchar primero en el botón con forma de flecha del item
+      sobre el que se quiere crear el punto de inicio de la conexión. Y luego pinchar sobre el objeto deseado que esté
+      resaltado. Siempre que no sea él mismo, o que el objeto ya esté conectado.</p>
+
+    <div class="containerHelpMenu" style="margin-bottom: 7px;">
+      <div class="leftContainer">
+        <p class="textHelpMenu">Al pulsar el botón de editar un elemento se desplegará un diálogo en el que poder
+          personalizarlo. Notar que en este tipo de campos, si se pulsa en el botón con la punta de flecha
+          hacia abajo, se desplegarán las posibles opciónes, pero además se podrá personalizar la opción
+          seleccionada pinchando en el recuadro que muestra la opción y escribiendo los valores deseados mientras cumplan con el formato.
+        Si no se tiene claro el formato de la opción selecionado, se podrá consultar dejando el cursor sobre la interrogación.</p>
+      </div>
+      <div class="rightContainer imagesContainer">
+        <img style="width: 300px;" src="assets/png/editItem.png">
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-danger" (click)="modal.dismiss()">Cerrar</button>
+  </div>
+</ng-template>
 
 <ng-template #deleteConnection let-modal class="modal fade">
   <div class="modal-header">

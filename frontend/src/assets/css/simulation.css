@@ -151,7 +151,7 @@
   color: black;
 }
 
-.trash {
+.help {
   z-index: 3;
   position: absolute;
   bottom: 50px;
@@ -184,12 +184,13 @@
   background-color: #006680;
 }
 
-.btnSave {
+.btnTemplate {
+  margin-top: 15px;
   background-color: #e65c00;
   font-size: 17px;
 }
 
-.btnSave:hover {
+.btnTemplate:hover {
   background-color: #cc5200;
 }
 
@@ -527,4 +528,54 @@ body {
 
 .dangerProgressBar{
   background: red;
+}
+
+.titleHelpMenu{
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.subTitleHelpMenu{
+  font-size: 15px;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.subTextHelpMenu{
+  font-size: 15px;
+  margin-left: 8px;
+  margin-bottom: 5px !important;
+}
+
+.textHelpMenu{
+  margin-bottom: 5px !important;
+  margin-top: 5px;
+  margin-left: 5px;
+}
+
+.containerHelpMenu{
+  display: flex;
+  justify-content: space-between;
+  align-items: center
+}
+
+.leftContainer{
+  width: 50%;
+}
+
+.rightContainer{
+  width: 50%;
+}
+
+.imageRightContainer{
+  height: 450px;
+}
+
+.imageCustomTemplate{
+  width: 300px;
+}
+
+.imagesContainer{
+  display: flex;
+  justify-content: center;
 }

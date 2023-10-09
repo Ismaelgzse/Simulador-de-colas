@@ -1124,6 +1124,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
+  openHelpModal(content:any){
+    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title',size: 'lg',scrollable: true});
+  }
+
   addInput(i: number, description: string) {
     const control = new FormControl('');
     switch (description) {
@@ -1405,13 +1409,12 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   validateQueueDiscipline(control: AbstractControl) {
-    let opt = control.value.substring(0, 6).toLowerCase();
-    switch (opt) {
-      case "fifo":
+    switch (control.value) {
+      case "Fifo":
         return null;
-      case "lifo":
+      case "Lifo":
         return null;
-      case "random":
+      case "Random":
         return null;
       default:
         return {invalidFormat: true}
