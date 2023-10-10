@@ -319,6 +319,8 @@ public class Algorithm implements Runnable {
                             interruptedAndSavedTheadsStateIndex++;
                             interruptedAndSavedTheadsStateSemaphore.release();
                             Double sleep;
+
+                            PoissonDistribution poissonDistribution=null;
                             TriangularDistribution triangularDistribution = null;
                             LogNormalDistribution logNormalDistribution = null;
                             BinomialDistribution binomialDistribution = null;
@@ -332,8 +334,12 @@ public class Algorithm implements Runnable {
 
                             var strategyTime = getTimeStrategy(item.getSource().getInterArrivalTime());
                             switch ((String) strategyTime.keySet().toArray()[0]) {
+                                case "Poisson":
+                                    var numbers= strategyTime.get("Poisson");
+                                    poissonDistribution = new PoissonDistribution(numbers.get(0));
+                                    break;
                                 case "Triangular":
-                                    var numbers = strategyTime.get("Triangular");
+                                    numbers = strategyTime.get("Triangular");
                                     triangularDistribution = new TriangularDistribution(numbers.get(0), numbers.get(2), numbers.get(1));
                                     break;
                                 case "LogNormal":
@@ -397,6 +403,9 @@ public class Algorithm implements Runnable {
                                         numberProducts--;
                                     }
                                     switch ((String) strategyTime.keySet().toArray()[0]) {
+                                        case "Poisson":
+                                            sleep = poissonDistribution.sample() * 1000.0;
+                                            break;
                                         case "Triangular":
                                             sleep = triangularDistribution.sample()* 1000.0;
                                             break;
@@ -902,6 +911,7 @@ public class Algorithm implements Runnable {
                         Double totalIdle = 0.0;
                         Double totalBusy = 0.0;
                         Double sleep;
+                        PoissonDistribution poissonDistribution = null;
                         TriangularDistribution triangularDistribution = null;
                         LogNormalDistribution logNormalDistribution = null;
                         BinomialDistribution binomialDistribution = null;
@@ -915,8 +925,12 @@ public class Algorithm implements Runnable {
 
                         var strategyTime = getTimeStrategy(item.getServer().getCicleTime());
                         switch ((String) strategyTime.keySet().toArray()[0]) {
+                            case "Poisson":
+                                var numbers= strategyTime.get("Poisson");
+                                poissonDistribution= new PoissonDistribution(numbers.get(0));
+                                break;
                             case "Triangular":
-                                var numbers = strategyTime.get("Triangular");
+                                numbers = strategyTime.get("Triangular");
                                 triangularDistribution = new TriangularDistribution(numbers.get(0), numbers.get(2), numbers.get(1));
                                 break;
                             case "LogNormal":
@@ -998,6 +1012,9 @@ public class Algorithm implements Runnable {
                             Double setUpTimeServer = Double.parseDouble(item.getServer().getSetupTime()) * 1000.0;
                             while (true) {
                                 switch ((String) strategyTime.keySet().toArray()[0]) {
+                                    case "Poisson":
+                                        sleep = poissonDistribution.sample()*1000.0;
+                                        break;
                                     case "Triangular":
                                         sleep = triangularDistribution.sample()* 1000.0;
                                         break;
@@ -1528,6 +1545,14 @@ public class Algorithm implements Runnable {
             var numberList = getNumbers(numbers);
             timeStrategyMap.put("Weibull", numberList);
             return timeStrategyMap;
+        }
+        else if (timeStrategy.length() > 8 && timeStrategy.substring(0,7).equals("Poisson")){
+            var numbers = timeStrategy.substring(8, timeStrategy.length() - 1);
+            var numberList= new ArrayList<Integer>();
+            numberList.add(Integer.valueOf(numbers));
+            timeStrategyMap.put("Poisson",numberList);
+            return timeStrategyMap;
+
         } else if (timeStrategy.length() > 4 && timeStrategy.substring(0, 4).equals("mins")) {
             var number = timeStrategy.substring(5, timeStrategy.length() - 1);
             var numberInt = Integer.valueOf(number);
