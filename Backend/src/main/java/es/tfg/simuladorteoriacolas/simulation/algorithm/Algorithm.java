@@ -331,11 +331,16 @@ public class Algorithm implements Runnable {
                             GammaDistribution gammaDistribution = null;
                             UniformIntegerDistribution uniformIntegerDistribution = null;
                             WeibullDistribution weibullDistribution = null;
+                            ExponentialDistribution exponentialDistribution= null;
 
                             var strategyTime = getTimeStrategy(item.getSource().getInterArrivalTime());
                             switch ((String) strategyTime.keySet().toArray()[0]) {
+                                case "NegExp":
+                                    var numbers= strategyTime.get("NegExp");
+                                    exponentialDistribution = new ExponentialDistribution(numbers.get(0));
+                                    break;
                                 case "Poisson":
-                                    var numbers= strategyTime.get("Poisson");
+                                    numbers= strategyTime.get("Poisson");
                                     poissonDistribution = new PoissonDistribution(numbers.get(0));
                                     break;
                                 case "Triangular":
@@ -403,6 +408,9 @@ public class Algorithm implements Runnable {
                                         numberProducts--;
                                     }
                                     switch ((String) strategyTime.keySet().toArray()[0]) {
+                                        case "NegExp":
+                                            sleep = exponentialDistribution.sample()*1000.0;
+                                            break;
                                         case "Poisson":
                                             sleep = poissonDistribution.sample() * 1000.0;
                                             break;
@@ -912,6 +920,7 @@ public class Algorithm implements Runnable {
                         Double totalBusy = 0.0;
                         Double sleep;
                         PoissonDistribution poissonDistribution = null;
+                        ExponentialDistribution exponentialDistribution = null;
                         TriangularDistribution triangularDistribution = null;
                         LogNormalDistribution logNormalDistribution = null;
                         BinomialDistribution binomialDistribution = null;
@@ -925,8 +934,12 @@ public class Algorithm implements Runnable {
 
                         var strategyTime = getTimeStrategy(item.getServer().getCicleTime());
                         switch ((String) strategyTime.keySet().toArray()[0]) {
+                            case "NegExp":
+                                var numbers= strategyTime.get("NegExp");
+                                exponentialDistribution= new ExponentialDistribution(numbers.get(0));
+                                break;
                             case "Poisson":
-                                var numbers= strategyTime.get("Poisson");
+                                numbers= strategyTime.get("Poisson");
                                 poissonDistribution= new PoissonDistribution(numbers.get(0));
                                 break;
                             case "Triangular":
@@ -1012,6 +1025,9 @@ public class Algorithm implements Runnable {
                             Double setUpTimeServer = Double.parseDouble(item.getServer().getSetupTime()) * 1000.0;
                             while (true) {
                                 switch ((String) strategyTime.keySet().toArray()[0]) {
+                                    case "NegExp":
+                                        sleep = exponentialDistribution.sample()*1000.0;
+                                        break;
                                     case "Poisson":
                                         sleep = poissonDistribution.sample()*1000.0;
                                         break;
@@ -1552,7 +1568,12 @@ public class Algorithm implements Runnable {
             numberList.add(Integer.valueOf(numbers));
             timeStrategyMap.put("Poisson",numberList);
             return timeStrategyMap;
-
+        } else if (timeStrategy.length() > 7 && timeStrategy.substring(0,6).equals("NegExp")){
+            var numbers = timeStrategy.substring(7, timeStrategy.length() - 1);
+            var numberList= new ArrayList<Integer>();
+            numberList.add(Integer.valueOf(numbers));
+            timeStrategyMap.put("NegExp",numberList);
+            return timeStrategyMap;
         } else if (timeStrategy.length() > 4 && timeStrategy.substring(0, 4).equals("mins")) {
             var number = timeStrategy.substring(5, timeStrategy.length() - 1);
             var numberInt = Integer.valueOf(number);

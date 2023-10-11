@@ -337,8 +337,18 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   //Stores a pair of item that makes a connection
   listItemConnection: ItemModel[];
 
-  startSimulation:number;
-  intervalId:number
+  startSimulation: number;
+  intervalId: number;
+
+  typeInterArrivalTime: number;
+  typeServiceTime: number;
+
+  sourceItemAuxForm: ItemModel;
+  queueItemAuxForm: ItemModel;
+  sinkItemAuxForm: ItemModel;
+
+  listItemsTemplate: ItemContainerModel[];
+
 
   listItems: ItemContainerModel[]
   id: number;
@@ -351,12 +361,18 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   itemContainerInfo: ItemContainerModel;
   itemContainerModal: ItemContainerModel;
   listNames: string[];
-  timer:string;
-  listProbFunc = ["Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,0.15)", "Max(0,Normal(10,1))",
+  timer: string;
+  listInterArrivalTypes = ["Determinista", "Exponencial", "General"];
+  listProbDeterministicFunc = ["10", "mins(10)", "hr(0.5)"];
+  listProbExpFunc = ["NegExp(10)"];
+  listProbGeneralFunc = ["Poisson(10)", "Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,0.15)", "Max(0,Normal(10,1))",
+    "Beta(10,1,1)", "Gamma(10,2)", "Max(0,Logistic(10,1))", "Uniform(5,15)", "Weibull(10,2)"];
+
+  listProbFunc = ["NegExp(10)", "Poisson(10)", "Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,0.15)", "Max(0,Normal(10,1))",
     "Beta(10,1,1)", "Gamma(10,2)", "Max(0,Logistic(10,1))", "Uniform(5,15)", "Weibull(10,2)",
     "10", "mins(10)", "hr(0.5)"];
 
-  listProbFuncGuide = ["Triangular(Límite inferior,Modo,Límite superior)", "LogNormal(Escala,Forma)", "Binomial(Ensayos,p)", "Max(0,Normal(Media,Desviación típica))",
+  listProbFuncGuide = ["NegExp(Media)", "Poisson(Lambda)", "Triangular(Límite inferior,Modo,Límite superior)", "LogNormal(Escala,Forma)", "Binomial(Ensayos,p)", "Max(0,Normal(Media,Desviación típica))",
     "Beta(Alfa,Beta,Max. valor)", "Gamma(Escala,Forma)", "Max(0,Logistic(mu,s))", "Uniform(Min. valor,Max. valor)", "Weibull(Alfa,Beta)",
     "Valor entero (segundos)", "mins(Número minutos)", "hr(Número de horas)"];
 
@@ -377,7 +393,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
   editServerForm = new FormGroup({
     nameServer: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), (control) => this.validateName(control, this.listNames)])),
-    setUpTimeServer: new FormControl('', Validators.compose([Validators.required, Validators.min(0)])),
+    setUpTimeServer: new FormControl('', Validators.compose([Validators.required, Validators.min(0), Validators.pattern("^[0-9]*$")])),
     cycletimeServer: new FormControl('', Validators.compose([Validators.required, (control) => this.validateProbFunc(control, this)])),
     sendToStrategyServer: new FormControl('', Validators.compose([Validators.required, totalAmountStrategyServer(100, this)])),
     percentagesServer: new FormGroup({}, totalAmountServer(100, this))
@@ -393,6 +409,16 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
   editSinkForm = new FormGroup({
     nameSink: new FormControl('', Validators.compose([Validators.required, Validators.minLength(1), Validators.maxLength(10), , (control) => this.validateName(control, this.listNames)]))
+  })
+
+  customTemplateForm = new FormGroup({
+    interArrivalTimeSourceType: new FormControl('', Validators.compose([Validators.required])),
+    interArrivalTimeSourceCkeck: new FormControl('', Validators.compose([Validators.required, (control) => this.validateProbFunc(control, this)])),
+    serviceTimeType: new FormControl('', Validators.compose([Validators.required])),
+    serviceTime: new FormControl('', Validators.compose([Validators.required, (control) => this.validateProbFunc(control, this)])),
+    numberOfServers: new FormControl('', Validators.compose([Validators.required, Validators.min(1), Validators.max(5), Validators.pattern("^[0-9]*$")])),
+    capacityQueueCheck: new FormControl('', Validators.compose([Validators.required, this.validateFormatNumberProducts])),
+    queueDisciplineCheck: new FormControl('', Validators.compose([Validators.required, this.validateQueueDiscipline]))
   })
 
 
@@ -423,9 +449,12 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.intervalId=0;
-    this.startSimulation=0;
-    this.timer="0:00"
+    this.listItemsTemplate = []
+    this.typeServiceTime = -1;
+    this.typeInterArrivalTime = -1;
+    this.intervalId = 0;
+    this.startSimulation = 0;
+    this.timer = "0:00"
     this.simulating = false;
     this.showConnections = true
     this.errorConnection = 0;
@@ -449,8 +478,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       cicleTime: "",
       outServer: 0,
       setupTime: "",
-      pctBusyTime:0,
-      inServer:0
+      pctBusyTime: 0,
+      inServer: 0
     };
     this.sourceInfo = {
       interArrivalTime: "",
@@ -768,6 +797,231 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  resetServer() {
+    this.serverInfo = {
+      cicleTime: "",
+      outServer: 0,
+      setupTime: "",
+      pctBusyTime: 0,
+      inServer: 0
+    };
+    this.itemInfo = {
+      description: "",
+      name: "",
+      positionX: 0,
+      positionY: 0,
+      sendToStrategy: "Primera conexión disponible"
+    };
+    this.itemContainerModal = {
+      item: this.itemInfo,
+      queue: this.queueInfo,
+      server: this.serverInfo,
+      sink: this.sinkInfo,
+      source: this.sourceInfo
+    }
+  }
+
+  resetSource() {
+    this.sourceInfo = {
+      interArrivalTime: "",
+      numberProducts: "",
+      outSource: 0
+    };
+    this.itemInfo = {
+      description: "",
+      name: "",
+      positionX: 0,
+      positionY: 0,
+      sendToStrategy: "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)"
+    };
+    this.itemContainerModal = {
+      item: this.itemInfo,
+      queue: this.queueInfo,
+      server: this.serverInfo,
+      sink: this.sinkInfo,
+      source: this.sourceInfo
+    }
+  }
+
+  resetQueue() {
+    this.queueInfo = {
+      outQueue: 0,
+      capacityQueue: "",
+      disciplineQueue: "",
+      inQueue: 0
+    };
+    this.itemInfo = {
+      description: "",
+      name: "",
+      positionX: 0,
+      positionY: 0,
+      sendToStrategy: "Primera conexión disponible"
+    };
+    this.itemContainerModal = {
+      item: this.itemInfo,
+      queue: this.queueInfo,
+      server: this.serverInfo,
+      sink: this.sinkInfo,
+      source: this.sourceInfo
+    }
+  }
+
+  resetSink() {
+    this.sinkInfo = {
+      inSink: 0
+    };
+    this.itemInfo = {
+      description: "",
+      name: "",
+      positionX: 0,
+      positionY: 0,
+      sendToStrategy: "Random"
+    };
+    this.itemContainerModal = {
+      item: this.itemInfo,
+      queue: this.queueInfo,
+      server: this.serverInfo,
+      sink: this.sinkInfo,
+      source: this.sourceInfo
+    }
+  }
+
+  customTemplateFormSubmit() {
+    this.sourceInfo.outSource = 0;
+    this.sourceInfo.numberProducts = 'Ilimitados';
+    // @ts-ignore
+    this.sourceInfo.interArrivalTime = this.customTemplateForm.value.interArrivalTimeSourceCkeck;
+    this.itemInfo.name = '';
+    this.itemInfo.description = 'Source';
+    this.itemContainerInfo.item = this.itemInfo;
+    this.itemContainerInfo.item.sendToStrategy = "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)";
+    this.itemContainerInfo.source = this.sourceInfo;
+    this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
+      next: (item) => {
+        this.listItemsTemplate.push(item);
+
+        this.sourceItemAuxForm = item.item;
+        this.resetSource();
+        // @ts-ignore
+        this.queueInfo.capacityQueue = this.customTemplateForm.value.capacityQueueCheck;
+        // @ts-ignore
+        this.queueInfo.disciplineQueue = this.customTemplateForm.value.queueDisciplineCheck;
+        this.queueInfo.inQueue = 0;
+        this.queueInfo.outQueue = 0;
+        this.itemInfo.name = '';
+        this.itemInfo.description = 'Queue';
+        this.itemContainerInfo.item = this.itemInfo;
+        this.itemContainerInfo.item.sendToStrategy = "Primera conexión disponible";
+        this.itemContainerInfo.queue = this.queueInfo;
+        this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
+          next: (item) => {
+            this.listItemsTemplate.push(item)
+
+            this.queueItemAuxForm = item.item;
+            this.connectionInfo.originItem = this.sourceItemAuxForm;
+            this.connectionInfo.destinationItem = this.queueItemAuxForm;
+            this.simulationService.newConnection(this.connectionInfo).subscribe({
+              next: (connection) => {
+                this.resetQueue();
+                this.sinkInfo.inSink = 0;
+                this.itemInfo.name = '';
+                this.itemInfo.description = 'Sink';
+                this.itemContainerInfo.item = this.itemInfo;
+                this.itemContainerInfo.sink = this.sinkInfo;
+                this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
+                  next: async (item) => {
+                    this.listItemsTemplate.push(item);
+
+                    this.sinkItemAuxForm = item.item;
+                    this.resetSink();
+                    // @ts-ignore
+                    for (let i = 0; i < this.customTemplateForm.value.numberOfServers; i++) {
+                      this.serverInfo.outServer = 0;
+                      // @ts-ignore
+                      this.serverInfo.cicleTime = this.customTemplateForm.value.serviceTime;
+                      this.serverInfo.setupTime = '0'
+                      this.itemInfo.name = '';
+                      this.itemInfo.description = 'Server';
+                      this.itemContainerInfo.item = this.itemInfo;
+                      this.itemContainerInfo.item.sendToStrategy = "Primera conexión disponible";
+                      this.itemContainerInfo.server = this.serverInfo;
+
+                      await new Promise<void>((resolve) => {
+                        this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
+                          next: (item) => {
+                            this.listItemsTemplate.push(item);
+                            this.connectionInfo.originItem = item.item;
+                            this.connectionInfo.destinationItem = this.sinkItemAuxForm;
+                            this.simulationService.newConnection(this.connectionInfo).subscribe({
+                              next: (connection) => {
+                                this.connectionInfo.destinationItem = this.connectionInfo.originItem;
+                                this.connectionInfo.originItem = this.queueItemAuxForm;
+                                this.simulationService.newConnection(this.connectionInfo).subscribe({
+                                  next: (connection) => {
+                                    this.resetServer();
+                                    resolve();
+                                  }
+                                })
+                              }
+                            })
+                          }
+                        });
+                      });
+                    }
+
+                    this.resetPositionsTemplate(this.listItemsTemplate);
+                    this.ngOnInit();
+                  },
+                  error: (err) => {
+                    this.router.navigate(['error500']);
+                  }
+                })
+              }
+            })
+          },
+          error: (err) => {
+            this.router.navigate(['error500']);
+          }
+        })
+      },
+      error: (err) => {
+        this.router.navigate(['error500']);
+      }
+    })
+
+
+  }
+
+  resetPositionsTemplate(listItemsTemplate: ItemContainerModel[]) {
+    let x = -15;
+    let y = 30;
+
+    for (let i = 0; i < listItemsTemplate.length; i++) {
+      if (listItemsTemplate[i].item.description === "Sink") {
+        let x2 = x + 200
+        listItemsTemplate[i].item.positionX = x2;
+        listItemsTemplate[i].item.positionY = y;
+      } else if (listItemsTemplate[i].item.description === "Server") {
+        listItemsTemplate[i].item.positionX = x;
+        listItemsTemplate[i].item.positionY = y;
+        y = y + 150;
+      } else {
+        listItemsTemplate[i].item.positionX = x;
+        listItemsTemplate[i].item.positionY = y;
+        x = x + 200
+      }
+    }
+    //When we already placed the positions of the items we save and update them
+    this.simulationService.updateAllItems(this.id, listItemsTemplate).subscribe({
+      next: (listaItems) => {
+        this.ngOnInit();
+      },
+      error: (err) => {
+        this.router.navigate(['error500']);
+      }
+    })
+  }
+
   stopSimulating() {
     if (this.simulating) {
       //Go back tho the normal screen, removing the blackscreen
@@ -780,7 +1034,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       // @ts-ignore
       timerElement.classList.toggle("showTimer");
       clearInterval(this.intervalId);
-      this.startSimulation=0;
+      this.startSimulation = 0;
       this.simulationService.sendMessage(this.id.toString());
     }
   }
@@ -808,8 +1062,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         }, 1000);
       }
       this.simulationService.sendMessage(this.id.toString());
-    }
-    else {
+    } else {
       let alertErrorMessage = document.getElementById("cancelConnect");
       // @ts-ignore
       let listClasses = alertErrorMessage.classList;
@@ -817,15 +1070,15 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         // @ts-ignore
         alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
       }
-      this.errorConnection=3;
+      this.errorConnection = 3;
     }
   }
 
-  updateTimer(){
-    let currentTime= Date.now()-this.startSimulation;
-    let minutes= Math.floor(currentTime / (60*1000));
-    let seconds=  (Math.floor(currentTime / 1000) % 60);
-    this.timer= `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  updateTimer() {
+    let currentTime = Date.now() - this.startSimulation;
+    let minutes = Math.floor(currentTime / (60 * 1000));
+    let seconds = (Math.floor(currentTime / 1000) % 60);
+    this.timer = `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
 
@@ -983,7 +1236,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         // @ts-ignore
         alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
       }
-      this.errorConnection=0;
+      this.errorConnection = 0;
       //We show the new connection message and store the connections and name of the first selected item
       // @ts-ignore
       this.listConnections = this.connectionsOfSelectedItem(itemContainer);
@@ -1124,8 +1377,12 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
-  openHelpModal(content:any){
-    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title',size: 'lg',scrollable: true});
+  openHelpModal(content: any) {
+    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title', size: 'lg', scrollable: true});
+  }
+
+  openModalCustomTemplate(content: any) {
+    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title', size: 'xl', scrollable: true});
   }
 
   addInput(i: number, description: string) {
@@ -1441,6 +1698,145 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  //Custom Template form
+  setTypeInterArrivalTime(option: any) {
+    this.customTemplateForm.patchValue({
+      interArrivalTimeSourceType: this.listInterArrivalTypes[option]
+    })
+    this.typeInterArrivalTime = option;
+    switch (this.listInterArrivalTypes[option]) {
+      case "Determinista":
+        // @ts-ignore
+        if (!this.listProbDeterministicFunc.includes(this.customTemplateForm.value.interArrivalTimeSourceCkeck)) {
+          this.customTemplateForm.patchValue({
+            interArrivalTimeSourceCkeck: ''
+          })
+        }
+        break;
+      case "Exponencial":
+        // @ts-ignore
+        if (!this.listProbExpFunc.includes(this.customTemplateForm.value.interArrivalTimeSourceCkeck)) {
+          this.customTemplateForm.patchValue({
+            interArrivalTimeSourceCkeck: ''
+          })
+        }
+        break;
+      case "General":
+        // @ts-ignore
+        if (!this.listProbGeneralFunc.includes(this.customTemplateForm.value.interArrivalTimeSourceCkeck)) {
+          this.customTemplateForm.patchValue({
+            interArrivalTimeSourceCkeck: ''
+          })
+        }
+        break;
+    }
+  }
+
+  setInterArrivalTimeSourceCkeck(option: string) {
+    this.customTemplateForm.patchValue({
+      interArrivalTimeSourceCkeck: option
+    })
+  }
+
+  setServiceTime(option: string) {
+    this.customTemplateForm.patchValue({
+      serviceTime: option
+    })
+  }
+
+  setServiceTimeType(option: any) {
+    this.customTemplateForm.patchValue({
+      serviceTimeType: this.listInterArrivalTypes[option]
+    })
+    this.typeServiceTime = option;
+    switch (this.listInterArrivalTypes[option]) {
+      case "Determinista":
+        // @ts-ignore
+        if (!this.listProbDeterministicFunc.includes(this.customTemplateForm.value.serviceTime)) {
+          this.customTemplateForm.patchValue({
+            serviceTime: ''
+          })
+        }
+        break;
+      case "Exponencial":
+        // @ts-ignore
+        if (!this.listProbExpFunc.includes(this.customTemplateForm.value.serviceTime)) {
+          this.customTemplateForm.patchValue({
+            serviceTime: ''
+          })
+        }
+        break;
+      case "General":
+        // @ts-ignore
+        if (!this.listProbGeneralFunc.includes(this.customTemplateForm.value.serviceTime)) {
+          this.customTemplateForm.patchValue({
+            serviceTime: ''
+          })
+        }
+        break;
+    }
+  }
+
+  setCapacityQueueCheck(option: string) {
+    if (option == "Ilimitados") {
+      this.customTemplateForm.patchValue({
+        capacityQueueCheck: "Ilimitados"
+      })
+    } else {
+      this.customTemplateForm.patchValue({
+        capacityQueueCheck: "1"
+      })
+    }
+  }
+
+  setDisciplineQueueCheck(option: string) {
+    switch (option) {
+      case "Fifo":
+        this.customTemplateForm.patchValue({
+          queueDisciplineCheck: "Fifo"
+        });
+        break;
+      case "Lifo":
+        this.customTemplateForm.patchValue({
+          queueDisciplineCheck: "Lifo"
+        });
+        break;
+      case "Random":
+        this.customTemplateForm.patchValue({
+          queueDisciplineCheck: "Random"
+        })
+        break;
+    }
+  }
+
+  get interArrivalTimeSourceType() {
+    return this.customTemplateForm.get('interArrivalTimeSourceType');
+  }
+
+  get interArrivalTimeSourceCkeck() {
+    return this.customTemplateForm.get('interArrivalTimeSourceCkeck');
+  }
+
+  get serviceTimeType() {
+    return this.customTemplateForm.get('serviceTimeType');
+  }
+
+  get serviceTime() {
+    return this.customTemplateForm.get('serviceTime');
+  }
+
+  get numberOfServers() {
+    return this.customTemplateForm.get('numberOfServers');
+  }
+
+  get capacityQueueCheck() {
+    return this.customTemplateForm.get('capacityQueueCheck');
+  }
+
+  get queueDisciplineCheck() {
+    return this.customTemplateForm.get('queueDisciplineCheck');
+  }
+
 
   validateFormatNumberProducts(control: AbstractControl) {
     let numberProducts = control.value;
@@ -1484,7 +1880,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       let secondNumber = numbers.substring(posComa + 1);
       let firstNumberInt = Number(firstNumber)
       let secondNumberInt = Number(secondNumber);
-      if (!isNaN(firstNumberInt) && !isNaN(secondNumberInt)) {
+      if (!isNaN(firstNumberInt) && !isNaN(secondNumberInt) && firstNumber.length > 0 && secondNumber.length > 0) {
         switch (func) {
           case "LogNormal":
             if (secondNumberInt > 0) {
@@ -1557,6 +1953,30 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
   validateProbFunc(control: AbstractControl, component: any) {
     let input = control.value;
+    if (input.substring(0, 6) === "NegExp") {
+      if (input.substring(6, 7) === "(" && input.substring(input.length - 1) === ")") {
+        let number = input.substring(7, input.length - 1);
+        if (number.length !== 0) {
+          let numberInt = Number(number);
+          if (!isNaN(numberInt) && numberInt >= 0) {
+            return null;
+          }
+        }
+        return {invalidFormat: true};
+      }
+    }
+    if (input.substring(0, 7) === "Poisson") {
+      if (input.substring(7, 8) === "(" && input.substring(input.length - 1) === ")") {
+        let number = input.substring(8, input.length - 1);
+        if (number.length !== 0) {
+          let numberInt = Number(number);
+          if (!isNaN(numberInt) && numberInt >= 0) {
+            return null;
+          }
+        }
+        return {invalidFormat: true};
+      }
+    }
     if (input.substring(0, 10) === "Triangular") {
       if (input.substring(10, 11) === "(" && input.substring(input.length - 1) === ")") {
         let numbers = input.substring(11, input.length - 1)
@@ -1617,7 +2037,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         let firstNumber = subInput.substring(0, posComa);
         let secondSubInput = subInput.substring(posComa + 1);
         let firstNumberInt = Number(firstNumber);
-        if (!isNaN(firstNumberInt) && firstNumberInt >= 0) {
+        if (!isNaN(firstNumberInt) && firstNumberInt >= 0 && firstNumber.length > 0) {
           if (secondSubInput.substring(0, 6) === "Normal" && secondSubInput.substring(6, 7) === "(" && secondSubInput.substring(secondSubInput.length - 1) === ")") {
             let numbers = secondSubInput.substring(7, secondSubInput.length - 1)
             if (component.validateNumbers(numbers, "Normal")) {
@@ -1720,23 +2140,23 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     return {invalidFormat: true};
   }
 
-  progressValue(itemContainer:ItemContainerModel){
-    if (itemContainer.queue!==undefined){
-      if (itemContainer.queue.capacityQueue && itemContainer.queue.inQueue){
-        if (itemContainer.queue.inQueue!==null && itemContainer.queue.capacityQueue!=="Ilimitados"){
-          let result=(itemContainer.queue.inQueue / parseInt(itemContainer.queue.capacityQueue))*100.0;
-          return result.toString()+"%"
+  progressValue(itemContainer: ItemContainerModel) {
+    if (itemContainer.queue !== undefined) {
+      if (itemContainer.queue.capacityQueue && itemContainer.queue.inQueue) {
+        if (itemContainer.queue.inQueue !== null && itemContainer.queue.capacityQueue !== "Ilimitados") {
+          let result = (itemContainer.queue.inQueue / parseInt(itemContainer.queue.capacityQueue)) * 100.0;
+          return result.toString() + "%"
         }
       }
     }
     return "0%";
   }
 
-  getColor(itemContainer:ItemContainerModel){
-    if (itemContainer.queue!==undefined){
-      if (itemContainer.queue.capacityQueue && itemContainer.queue.inQueue){
-        if (itemContainer.queue.inQueue!==null && itemContainer.queue.capacityQueue!=="Ilimitados"){
-          let ratio=(itemContainer.queue.inQueue / parseInt(itemContainer.queue.capacityQueue))*100.0;
+  getColor(itemContainer: ItemContainerModel) {
+    if (itemContainer.queue !== undefined) {
+      if (itemContainer.queue.capacityQueue && itemContainer.queue.inQueue) {
+        if (itemContainer.queue.inQueue !== null && itemContainer.queue.capacityQueue !== "Ilimitados") {
+          let ratio = (itemContainer.queue.inQueue / parseInt(itemContainer.queue.capacityQueue)) * 100.0;
           if (ratio < 25) {
             return 'progress-bar progress-bar-striped active successProgressBar';
           } else if (ratio < 75) {

@@ -223,8 +223,8 @@
 }
 
 .selectMenu {
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  align-items: center !important;
 }
 
 .ddbutton {
@@ -244,6 +244,11 @@
 .menuDropdown > .show {
   width: 100%;
   transform: translate3d(0px, 45px, 0px) !important;
+}
+
+.menuDropdown2 > .show {
+  width: 20%;
+  transform: translate3d(450px, 45px, 0px) !important;
 }
 
 .fa-x {

@@ -14,7 +14,8 @@
       -->
       <div class="col-sm-4 col-lg-3 align-self-center templateSet ">
         <div class="templateTitle">Plantillas o ejemplos prediseñados</div>
-        <button [disabled]="simulating" class="btn btnTemplate" data-toggle="modal" data-target="#modalNewFolder">
+        <button [disabled]="simulating" class="btn btnTemplate" data-toggle="modal" data-target="#modalNewFolder"
+                (click)="openModalCustomTemplate(customTemplate)">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
           Seleccionar una plantilla
         </button>
@@ -635,7 +636,7 @@
       posición de los elementos de la simulación y el menú de selección de plantillas predefinidas para la
       simulación.</p>
 
-    <div class="containerHelpMenu"  style="margin-bottom: 7px;">
+    <div class="containerHelpMenu" style="margin-bottom: 7px;">
       <div class="leftContainer imagesContainer">
         <img class="imageCustomTemplate" src="assets/png/customTemplate.png">
       </div>
@@ -653,7 +654,8 @@
         <div class="subTitleHelpMenu">
           - Controles de la simulación:
         </div>
-        <p class="subTextHelpMenu">Estos dos botones tienen la función de terminar y empezar una simulación correspondientemente.</p>
+        <p class="subTextHelpMenu">Estos dos botones tienen la función de terminar y empezar una simulación
+          correspondientemente.</p>
       </div>
       <div class="rightContainer imagesContainer">
         <img class="imageCustomTemplate" style="height: 80px;" src="assets/png/simulationControl.png">
@@ -662,7 +664,8 @@
 
     <div class="containerHelpMenu" style="margin-bottom: 7px;">
       <div class="leftContainer">
-        <p class="subTextHelpMenu">Adicionalmente, este otro botón desplegará un diálogo con el que realizar una serie de
+        <p class="subTextHelpMenu">Adicionalmente, este otro botón desplegará un diálogo con el que realizar una serie
+          de
           experimentos rápidos de un tiempo determinado para la obtención de resultados. Esto permitirá analizar con más
           precisión el estado y viabilidad de un sistema de colas.</p>
       </div>
@@ -671,7 +674,7 @@
       </div>
     </div>
 
-    <div class="containerHelpMenu"  style="margin-bottom: 7px;">
+    <div class="containerHelpMenu" style="margin-bottom: 7px;">
       <div class="leftContainer imagesContainer">
         <img class="imageCustomTemplate" src="assets/png/resetPositions.png">
       </div>
@@ -691,14 +694,16 @@
     <div class="containerHelpMenu">
       <div class="leftContainer">
         <p class="textHelpMenu">En el lienzo los items tienen la siguiente forma. Tres botones que sirven para la
-          creación de una nueva conxión, la edición y el borrado del item, corrrespondientemente. Además, se podrá editar
+          creación de una nueva conxión, la edición y el borrado del item, corrrespondientemente. Además, se podrá
+          editar
           la posición del item simplemente arrastrando al item al lugar deseado.</p>
       </div>
       <div class="rightContainer imagesContainer">
         <img class="imageRightContainer" style="width: 150px;height: 125px" src="assets/png/item.png">
       </div>
     </div>
-    <p class="textHelpMenu">Para añadir una nueva conexión se deberá pinchar primero en el botón con forma de flecha del item
+    <p class="textHelpMenu">Para añadir una nueva conexión se deberá pinchar primero en el botón con forma de flecha del
+      item
       sobre el que se quiere crear el punto de inicio de la conexión. Y luego pinchar sobre el objeto deseado que esté
       resaltado. Siempre que no sea él mismo, o que el objeto ya esté conectado.</p>
 
@@ -707,8 +712,10 @@
         <p class="textHelpMenu">Al pulsar el botón de editar un elemento se desplegará un diálogo en el que poder
           personalizarlo. Notar que en este tipo de campos, si se pulsa en el botón con la punta de flecha
           hacia abajo, se desplegarán las posibles opciónes, pero además se podrá personalizar la opción
-          seleccionada pinchando en el recuadro que muestra la opción y escribiendo los valores deseados mientras cumplan con el formato.
-        Si no se tiene claro el formato de la opción selecionado, se podrá consultar dejando el cursor sobre la interrogación.</p>
+          seleccionada pinchando en el recuadro que muestra la opción y escribiendo los valores deseados mientras
+          cumplan con el formato.
+          Si no se tiene claro el formato de la opción selecionado, se podrá consultar dejando el cursor sobre la
+          interrogación.</p>
       </div>
       <div class="rightContainer imagesContainer">
         <img style="width: 300px;" src="assets/png/editItem.png">
@@ -733,6 +740,327 @@
     <button type="button" class="btn btn-danger" (click)="[modal.dismiss(),deleteConnectionFunction()]">Confirmar
     </button>
   </div>
+</ng-template>
+
+<ng-template #customTemplate let-modal class="modal fade">
+  <div class="modal-header">
+    <h5>Creación de plantilla personalizada</h5>
+  </div>
+  <form [formGroup]="customTemplateForm" (ngSubmit)="customTemplateFormSubmit()">
+    <div class="modal-body">
+      <p>En este menú podrás crear un sistema de colas rápidamente.</p>
+      <div class="titleHelpMenu">
+        - Tiempo entre llegadas:
+        <span class="asterisk">*</span>
+      </div>
+
+      <div class="containerHelpMenu" style="margin-bottom: 20px;">
+        <div class="leftContainer">
+          <div class="subTitleHelpMenu">
+            Elige el tipo de tiempo entre llegada de los productos.
+          </div>
+        </div>
+        <div class="rightContainer">
+          <div ngbDropdown class="dropdown menuDropdown selectMenu">
+            <input class="form-control" formControlName="interArrivalTimeSourceType">
+            <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
+            <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+              <div *ngFor="let types of listInterArrivalTypes; let i=index">
+                <li ngbDropdownItem>
+                  <button class="btnElem" type="button" (click)="setTypeInterArrivalTime(i)">
+                    <div>
+                      {{types}}
+                    </div>
+                  </button>
+                </li>
+                <div *ngIf="i!=listInterArrivalTypes.length-1" class="dropdown-divider"></div>
+              </div>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="imagesContainer">
+        <span *ngIf="interArrivalTimeSourceType && interArrivalTimeSourceType.invalid" class="errorMessage">Debe estar seleccionada una opción.</span>
+      </div>
+
+      <div *ngIf="typeInterArrivalTime!==-1" class="imagesContainer" style="margin-bottom: 20px;">
+        <div class="subTitleHelpMenu">
+          Personaliza cada cuanto quieres que lleguen los productos
+        </div>
+      </div>
+      <div *ngIf="typeInterArrivalTime===0" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
+        <input class="form-control" style="width: 20%" formControlName="interArrivalTimeSourceCkeck">
+        <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
+        <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+          <div *ngFor="let probFunc of listProbDeterministicFunc; let i=index">
+            <li ngbDropdownItem>
+              <button class="btnElem" type="button" (click)="setInterArrivalTimeSourceCkeck(probFunc)">
+                <div>
+                  {{probFunc}}
+                </div>
+              </button>
+            </li>
+            <div *ngIf="i!=listProbDeterministicFunc.length-1" class="dropdown-divider"></div>
+          </div>
+        </ul>
+      </div>
+      <div *ngIf="typeInterArrivalTime===1" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
+        <input class="form-control" style="width: 20%" formControlName="interArrivalTimeSourceCkeck">
+        <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
+        <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+          <div *ngFor="let probFunc of listProbExpFunc; let i=index">
+            <li ngbDropdownItem>
+              <button class="btnElem" type="button" (click)="setInterArrivalTimeSourceCkeck(probFunc)">
+                <div>
+                  {{probFunc}}
+                </div>
+              </button>
+            </li>
+            <div *ngIf="i!=listProbExpFunc.length-1" class="dropdown-divider"></div>
+          </div>
+        </ul>
+      </div>
+      <div *ngIf="typeInterArrivalTime===2" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
+        <input class="form-control" style="width: 20%" formControlName="interArrivalTimeSourceCkeck">
+        <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
+        <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+          <div *ngFor="let probFunc of listProbGeneralFunc; let i=index">
+            <li ngbDropdownItem>
+              <button class="btnElem" type="button" (click)="setInterArrivalTimeSourceCkeck(probFunc)">
+                <div>
+                  {{probFunc}}
+                </div>
+              </button>
+            </li>
+            <div *ngIf="i!=listProbGeneralFunc.length-1" class="dropdown-divider"></div>
+          </div>
+        </ul>
+      </div>
+
+      <div *ngIf="typeInterArrivalTime!==-1" class="imagesContainer">
+        <span *ngIf="interArrivalTimeSourceCkeck && interArrivalTimeSourceCkeck.invalid" class="errorMessage">Debe estar seleccionada una opción y tener un formato correcto.</span>
+      </div>
+
+      <div class="titleHelpMenu">
+        - Tiempo de servicio de servidores:
+        <span class="asterisk">*</span>
+      </div>
+      <div class="containerHelpMenu" style="margin-bottom: 20px;">
+        <div class="leftContainer">
+          <div class="subTitleHelpMenu">
+            Elige el tipo de tiempo que se tardan los productos en procesarse en los elementos.
+          </div>
+        </div>
+        <div class="rightContainer">
+          <div ngbDropdown class="dropdown menuDropdown selectMenu">
+            <input class="form-control" formControlName="serviceTimeType">
+            <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
+            <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+              <div *ngFor="let types of listInterArrivalTypes; let i=index">
+                <li ngbDropdownItem>
+                  <button class="btnElem" type="button" (click)="setServiceTimeType(i)">
+                    <div>
+                      {{types}}
+                    </div>
+                  </button>
+                </li>
+                <div *ngIf="i!=listInterArrivalTypes.length-1" class="dropdown-divider"></div>
+              </div>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="imagesContainer">
+        <span *ngIf="serviceTimeType && serviceTimeType.invalid" class="errorMessage">Debe estar seleccionada una opción.</span>
+      </div>
+
+      <div *ngIf="typeServiceTime!==-1" class="imagesContainer" style="margin-bottom: 20px;">
+        <div class="subTitleHelpMenu">
+          Personaliza cada cuanto quieres que se procesen los productos
+        </div>
+      </div>
+      <div *ngIf="typeServiceTime===0" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
+        <input class="form-control" style="width: 20%" formControlName="serviceTime">
+        <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
+        <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+          <div *ngFor="let probFunc of listProbDeterministicFunc; let i=index">
+            <li ngbDropdownItem>
+              <button class="btnElem" type="button" (click)="setServiceTime(probFunc)">
+                <div>
+                  {{probFunc}}
+                </div>
+              </button>
+            </li>
+            <div *ngIf="i!=listProbDeterministicFunc.length-1" class="dropdown-divider"></div>
+          </div>
+        </ul>
+      </div>
+      <div *ngIf="typeServiceTime===1" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
+        <input class="form-control" style="width: 20%" formControlName="serviceTime">
+        <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
+        <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+          <div *ngFor="let probFunc of listProbExpFunc; let i=index">
+            <li ngbDropdownItem>
+              <button class="btnElem" type="button" (click)="setServiceTime(probFunc)">
+                <div>
+                  {{probFunc}}
+                </div>
+              </button>
+            </li>
+            <div *ngIf="i!=listProbExpFunc.length-1" class="dropdown-divider"></div>
+          </div>
+        </ul>
+      </div>
+      <div *ngIf="typeServiceTime===2" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
+        <input class="form-control" style="width: 20%" formControlName="serviceTime">
+        <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
+        <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
+          <div *ngFor="let probFunc of listProbGeneralFunc; let i=index">
+            <li ngbDropdownItem>
+              <button class="btnElem" type="button" (click)="setServiceTime(probFunc)">
+                <div>
+                  {{probFunc}}
+                </div>
+              </button>
+            </li>
+            <div *ngIf="i!=listProbGeneralFunc.length-1" class="dropdown-divider"></div>
+          </div>
+        </ul>
+      </div>
+
+      <div *ngIf="typeServiceTime!==-1" class="imagesContainer">
+        <span *ngIf="serviceTime && serviceTime.invalid" class="errorMessage">Debe estar seleccionada una opción y tener un formato correcto.</span>
+      </div>
+
+      <div class="titleHelpMenu">
+        - Número de servidores:
+        <span class="asterisk">*</span>
+      </div>
+      <div class="containerHelpMenu" style="margin-bottom: 20px;">
+        <div class="leftContainer">
+          <div class="subTitleHelpMenu">
+            Elige el número de servidores de la simulación.
+          </div>
+        </div>
+        <div class="rightContainer">
+          <input type="number" class="form-control" formControlName="numberOfServers">
+        </div>
+      </div>
+      <div class="imagesContainer">
+        <span *ngIf="numberOfServers && numberOfServers.invalid" class="errorMessage">Debe tener un valor mayor que 0 y menor que 5.</span>
+      </div>
+
+      <div class="titleHelpMenu">
+        - Capacidad de las cola:
+        <span class="asterisk">*</span>
+      </div>
+      <div class="containerHelpMenu" style="margin-bottom: 20px;">
+        <div class="leftContainer">
+          <div class="subTitleHelpMenu">
+            Elige el número de productos que puede tener la cola de la simulación.
+          </div>
+        </div>
+        <div class="rightContainer">
+          <div ngbDropdown class="dropdown menuDropdown selectMenu">
+            <input type="text" class="form-control customizeInput"
+                   placeholder="Selecciona o introduce una cantidad" formControlName="capacityQueueCheck">
+            <button ngbDropdownToggle class="btn ddbutton" type="button">
+            </button>
+            <ul ngbDropdownMenu class="dropdown-menu ">
+              <li ngbDropdownItem>
+                <button class="btnElem" type="button" (click)="setCapacityQueueCheck('Limitados')">
+                  <div>
+                    <i class="fa-solid fa-x"></i>Limitados
+                  </div>
+                </button>
+              </li>
+              <div class="dropdown-divider"></div>
+              <li ngbDropdownItem>
+                <button class="btnElem" type="button"
+                        (click)="setCapacityQueueCheck('Ilimitados')">
+                  <div>
+                    <i class="fa-solid fa-infinity"></i>Ilimitados
+                  </div>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="imagesContainer">
+        <span *ngIf="capacityQueueCheck && capacityQueueCheck.invalid" class="errorMessage">Debe tener un valor entero o ser Ilimiados.</span>
+      </div>
+
+      <div class="titleHelpMenu">
+        - Disciplina de la cola:
+        <span class="asterisk">*</span>
+      </div>
+      <div class="containerHelpMenu" style="margin-bottom: 20px;">
+        <div class="leftContainer">
+          <div class="subTitleHelpMenu">
+            Elige la disciplina de la cola.
+          </div>
+        </div>
+        <div class="rightContainer">
+          <div ngbDropdown class="dropdown menuDropdown selectMenu">
+            <input type="text" class="form-control customizeInput"
+                   placeholder="Selecciona una disciplina" formControlName="queueDisciplineCheck">
+            <button ngbDropdownToggle class="btn ddbutton" type="button">
+            </button>
+            <ul ngbDropdownMenu class="dropdown-menu ">
+              <li ngbDropdownItem>
+                <button class="btnElem" type="button" (click)="setDisciplineQueueCheck('Fifo')">
+                  <div>
+                    Fifo (First In First Out)
+                  </div>
+                </button>
+              </li>
+              <div class="dropdown-divider"></div>
+              <li ngbDropdownItem>
+                <button class="btnElem" type="button" (click)="setDisciplineQueueCheck('Lifo')">
+                  <div>
+                    Lifo (Last In First Out)
+                  </div>
+                </button>
+              </li>
+              <div class="dropdown-divider"></div>
+              <li ngbDropdownItem>
+                <button class="btnElem" type="button" (click)="setDisciplineQueueCheck('Random')">
+                  <div>
+                    Random
+                  </div>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="imagesContainer">
+        <span *ngIf="queueDisciplineCheck && queueDisciplineCheck.invalid" class="errorMessage">Debe estar seleccionada una opción.</span>
+      </div>
+
+      <div *ngIf="!customTemplateForm.invalid" style="margin-top: 20px" class="titleHelpMenu imagesContainer">
+        Sistema de colas elegido:
+      </div>
+      <div *ngIf="!customTemplateForm.invalid" class="titleHelpMenu imagesContainer" style="margin-top: 10px; font-size: 20px;">
+        <span *ngIf="customTemplateForm.value.interArrivalTimeSourceType==='Determinista'">D/</span>
+        <span *ngIf="customTemplateForm.value.interArrivalTimeSourceType==='Exponencial'">M/</span>
+        <span *ngIf="customTemplateForm.value.interArrivalTimeSourceType==='General'">G/</span>
+        <span *ngIf="customTemplateForm.value.serviceTimeType==='Determinista'">D/</span>
+        <span *ngIf="customTemplateForm.value.serviceTimeType==='Exponencial'">M/</span>
+        <span *ngIf="customTemplateForm.value.serviceTimeType==='General'">G/</span>
+        <span>{{customTemplateForm.value.numberOfServers}}/</span>
+        <span>{{customTemplateForm.value.capacityQueueCheck}}/</span>
+        <span>{{customTemplateForm.value.queueDisciplineCheck}}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cerrar</button>
+      <button type="submit" class="btn btn-danger" [disabled]="customTemplateForm.invalid" (click)="[modal.dismiss()]">Confirmar</button>
+    </div>
+  </form>
 </ng-template>
 
 <ng-template #quickSimulation let-modal class="modal fade">
