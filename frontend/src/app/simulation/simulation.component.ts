@@ -449,6 +449,14 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    let alertErrorMessage = document.getElementById("cancelConnect");
+    // @ts-ignore
+    let listClasses = alertErrorMessage.classList;
+    if (listClasses.length > 1) {
+      // @ts-ignore
+      alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+      this.errorConnection=0;
+    }
     this.listItemsTemplate = []
     this.typeServiceTime = -1;
     this.typeInterArrivalTime = -1;
@@ -970,7 +978,15 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                     }
 
                     this.resetPositionsTemplate(this.listItemsTemplate);
-                    this.ngOnInit();
+                    this.customTemplateForm.patchValue({
+                      interArrivalTimeSourceType: '',
+                      interArrivalTimeSourceCkeck: '',
+                      numberOfServers: '',
+                      serviceTime: '',
+                      serviceTimeType: '',
+                      queueDisciplineCheck: '',
+                      capacityQueueCheck: ''
+                    })
                   },
                   error: (err) => {
                     this.router.navigate(['error500']);
