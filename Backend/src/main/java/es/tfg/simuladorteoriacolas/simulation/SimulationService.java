@@ -6,6 +6,7 @@ import es.tfg.simuladorteoriacolas.items.ItemDTO;
 import es.tfg.simuladorteoriacolas.items.ItemService;
 import es.tfg.simuladorteoriacolas.items.types.ItemTypesService;
 import es.tfg.simuladorteoriacolas.simulation.algorithm.Algorithm;
+import es.tfg.simuladorteoriacolas.simulation.algorithm.QuickSimulationAlgorithm;
 import es.tfg.simuladorteoriacolas.user.UserEntity;
 import es.tfg.simuladorteoriacolas.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,10 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.ls.LSException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.*;
 
 @Service
 public class SimulationService {
@@ -84,5 +89,30 @@ public class SimulationService {
         Thread thread= new Thread(algorithm);
 
         thread.start();
+    }
+
+    @Async
+    public CompletableFuture<List<ItemDTO>> operation(Integer simulationId, Double timeSimulation, Integer numberSimulations){
+        try {
+            Simulation simulation=simulationRepository.findById(simulationId).get();
+            List<ItemDTO> simulationItems=itemService.getSimulationItems(simulation);
+            var multiplierTime= (timeSimulation*3600000)/30000;
+            QuickSimulationAlgorithm quickSimulationAlgorithm= new QuickSimulationAlgorithm(simulationItems,timeSimulation,multiplierTime);
+            ExecutorService executorService= Executors.newCachedThreadPool();
+            List<List<ItemDTO>> allSimulations= new ArrayList<>();
+            List<Future<List<ItemDTO>>> futureList= new ArrayList<>();
+            for (var i=0;i<numberSimulations;i++){
+                futureList.add(executorService.submit(quickSimulationAlgorithm));
+            }
+            for (Future<List<ItemDTO>> future: futureList) {
+                var futureAux=future.get();
+                allSimulations.add(futureAux);
+            }
+
+            return CompletableFuture.completedFuture(allSimulations.get(0));
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+        }
+        return CompletableFuture.completedFuture(null);
     }
 }

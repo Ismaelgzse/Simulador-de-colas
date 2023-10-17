@@ -2,8 +2,10 @@ package es.tfg.simuladorteoriacolas.simulation;
 
 import es.tfg.simuladorteoriacolas.folder.FolderService;
 import es.tfg.simuladorteoriacolas.items.Item;
+import es.tfg.simuladorteoriacolas.items.ItemDTO;
 import es.tfg.simuladorteoriacolas.items.ItemService;
 import es.tfg.simuladorteoriacolas.items.connections.Connection;
+import es.tfg.simuladorteoriacolas.simulation.algorithm.QuickSimulationDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -27,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentRequest;
 
@@ -323,6 +327,28 @@ public class SimulationAPIController {
             }
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @PostMapping("simulation/{idSimulation}/quickSimulation")
+    public ResponseEntity<List<ItemDTO>> quickSimulation(@PathVariable Integer idSimulation,
+                                                   @RequestBody QuickSimulationDTO quickSimulationDTO,
+                                                   HttpServletRequest request) throws ExecutionException, InterruptedException {
+        var simulation = simulationService.findById(idSimulation).get();
+        if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
+            if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
+                if (!simulation.getStatusSimulation().equals("1")) {
+
+                    CompletableFuture<List<ItemDTO>> future = simulationService.operation(idSimulation,quickSimulationDTO.getTimeSimulation(),quickSimulationDTO.getNumberSimulations());
+
+                    List<ItemDTO> simulationResult=future.get();
+
+                    return ResponseEntity.ok(simulationResult);
+                }
+                return ResponseEntity.ok(null);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
     }
 
 }

@@ -1,37 +1,28 @@
 package es.tfg.simuladorteoriacolas.simulation.algorithm;
 
-import es.tfg.simuladorteoriacolas.items.Item;
 import es.tfg.simuladorteoriacolas.items.ItemDTO;
 import es.tfg.simuladorteoriacolas.items.Semaphores.SemaphoreAsignation;
 import es.tfg.simuladorteoriacolas.items.Semaphores.SemaphoresTypes;
 import es.tfg.simuladorteoriacolas.items.Semaphores.SmallestQueueDecision;
 import es.tfg.simuladorteoriacolas.items.connections.Connection;
 import es.tfg.simuladorteoriacolas.items.products.Product;
-import es.tfg.simuladorteoriacolas.items.types.*;
-import es.tfg.simuladorteoriacolas.simulation.Simulation;
-import es.tfg.simuladorteoriacolas.simulation.SimulationService;
 import org.apache.commons.math3.distribution.*;
-import org.hibernate.sql.ast.tree.expression.CaseSimpleExpression;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.Semaphore;
 
-public class Algorithm implements Runnable {
-
-    private SimpMessageSendingOperations simpMessageSendingOperations;
-
-    private Integer simulationId;
+public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
 
     private List<ItemDTO> simulation;
 
-    private ItemTypesService itemTypesService;
+    private Double timeOfSimulation;
 
-    private SimulationService simulationService;
+    private Double multiplierTime;
 
     private List<Boolean> interruptedAndSavedTheadsState = new ArrayList<>();
 
@@ -39,22 +30,18 @@ public class Algorithm implements Runnable {
 
     private Semaphore interruptedAndSavedTheadsStateSemaphore = new Semaphore(1, true);
 
-
-    public Algorithm(Integer simulatonId, List<ItemDTO> simulation, ItemTypesService itemTypesService, SimulationService simulationService, SimpMessageSendingOperations simpMessageSendingOperations) {
-        this.simulation = simulation;
-        this.simulationId = simulatonId;
-        this.itemTypesService = itemTypesService;
-        this.simulationService = simulationService;
-        this.simpMessageSendingOperations = simpMessageSendingOperations;
-    }
-
     private Random random = new Random();
 
     private Double startSimulation;
 
-    @Override
-    public void run() {
+    public QuickSimulationAlgorithm(List<ItemDTO> simulation, Double timeOfSimulation, Double multiplierTime) {
+        this.simulation = simulation;
+        this.timeOfSimulation = timeOfSimulation * 60 * 60 * 1000;
+        this.multiplierTime = multiplierTime;
+    }
 
+    @Override
+    public List<ItemDTO> call() throws Exception {
 
         List<SemaphoreAsignation> semaphoreAsignationList = new ArrayList<>();
 
@@ -142,7 +129,6 @@ public class Algorithm implements Runnable {
                 semaphoreAsignationList.add(semaphoreAsignation);
             }
         }
-
 
         for (ItemDTO itemDTO : simulation) {
             List<Connection> connectionList = itemDTO.getConnections();
@@ -301,9 +287,8 @@ public class Algorithm implements Runnable {
             }
         }
 
-
         List<Thread> itemList = new ArrayList<>();
-        List<Thread> totalThreads= new ArrayList<>();
+        List<Thread> totalThreads = new ArrayList<>();
         for (var i = 0; i < semaphoreAsignationList.size(); i++) {
             var item = simulation.get(i);
             var semaphoresItem = semaphoreAsignationList.get(i);
@@ -320,7 +305,7 @@ public class Algorithm implements Runnable {
                             interruptedAndSavedTheadsStateSemaphore.release();
                             Double sleep;
 
-                            PoissonDistribution poissonDistribution=null;
+                            PoissonDistribution poissonDistribution = null;
                             TriangularDistribution triangularDistribution = null;
                             LogNormalDistribution logNormalDistribution = null;
                             BinomialDistribution binomialDistribution = null;
@@ -331,16 +316,16 @@ public class Algorithm implements Runnable {
                             GammaDistribution gammaDistribution = null;
                             UniformIntegerDistribution uniformIntegerDistribution = null;
                             WeibullDistribution weibullDistribution = null;
-                            ExponentialDistribution exponentialDistribution= null;
+                            ExponentialDistribution exponentialDistribution = null;
 
                             var strategyTime = getTimeStrategy(item.getSource().getInterArrivalTime());
                             switch ((String) strategyTime.keySet().toArray()[0]) {
                                 case "NegExp":
-                                    var numbers= strategyTime.get("NegExp");
+                                    var numbers = strategyTime.get("NegExp");
                                     exponentialDistribution = new ExponentialDistribution(numbers.get(0));
                                     break;
                                 case "Poisson":
-                                    numbers= strategyTime.get("Poisson");
+                                    numbers = strategyTime.get("Poisson");
                                     poissonDistribution = new PoissonDistribution(numbers.get(0));
                                     break;
                                 case "Triangular":
@@ -403,57 +388,55 @@ public class Algorithm implements Runnable {
                             var isInfinite = item.getSource().getNumberProducts().equals("Ilimitados");
                             var numberProducts = isInfinite ? Double.POSITIVE_INFINITY : Double.parseDouble(item.getSource().getNumberProducts());
                             try {
-                                while (isInfinite || numberProducts > 0 || !Thread.interrupted()) {
+                                while (isInfinite || numberProducts > 0) {
                                     if (!isInfinite) {
                                         numberProducts--;
                                     }
                                     switch ((String) strategyTime.keySet().toArray()[0]) {
                                         case "NegExp":
-                                            sleep = exponentialDistribution.sample()*1000.0;
+                                            sleep = exponentialDistribution.sample() * 1000.0;
                                             break;
                                         case "Poisson":
                                             sleep = poissonDistribution.sample() * 1000.0;
                                             break;
                                         case "Triangular":
-                                            sleep = triangularDistribution.sample()* 1000.0;
+                                            sleep = triangularDistribution.sample() * 1000.0;
                                             break;
                                         case "LogNormal":
-                                            sleep = logNormalDistribution.sample()* 1000.0;
+                                            sleep = logNormalDistribution.sample() * 1000.0;
                                             break;
                                         case "Binomial":
-                                            sleep = (double) binomialDistribution.sample()* 1000.0;
+                                            sleep = (double) binomialDistribution.sample() * 1000.0;
                                             break;
                                         case "Max":
                                             if (strategyTime.keySet().toArray()[1].equals("Normal")) {
                                                 sleep = normalDistribution.sample();
                                                 if (sleep < max) {
-                                                    sleep = (double) max* 1000.0;
-                                                }
-                                                else {
-                                                    sleep=sleep* 1000.0;
+                                                    sleep = (double) max * 1000.0;
+                                                } else {
+                                                    sleep = sleep * 1000.0;
                                                 }
                                             } else {
                                                 sleep = logisticDistribution.sample();
                                                 if (sleep < max) {
                                                     sleep = (double) max * 1000.0;
-                                                }
-                                                else {
-                                                    sleep = sleep* 1000.0;
+                                                } else {
+                                                    sleep = sleep * 1000.0;
                                                 }
                                             }
                                             break;
                                         case "Beta":
-                                            sleep = betaDistribution.sample()* 1000.0;
+                                            sleep = betaDistribution.sample() * 1000.0;
                                             sleep = sleep * max;
                                             break;
                                         case "Gamma":
-                                            sleep = gammaDistribution.sample()* 1000.0;
+                                            sleep = gammaDistribution.sample() * 1000.0;
                                             break;
                                         case "Uniform":
-                                            sleep = (double) uniformIntegerDistribution.sample()* 1000.0;
+                                            sleep = (double) uniformIntegerDistribution.sample() * 1000.0;
                                             break;
                                         case "Weibull":
-                                            sleep = weibullDistribution.sample()* 1000.0;
+                                            sleep = weibullDistribution.sample() * 1000.0;
                                             break;
                                         case "mins":
                                             sleep = max * 60.0 * 1000.0;
@@ -467,6 +450,7 @@ public class Algorithm implements Runnable {
                                         default:
                                             sleep = 0.0;
                                     }
+                                    sleep = sleep / multiplierTime;
                                     Thread.sleep(sleep.longValue());
                                     inOutSemaphore.release();
                                 }
@@ -517,12 +501,10 @@ public class Algorithm implements Runnable {
                                             if (!accessInSemaphores.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
                                                 controlSemaphore.acquire();
                                                 numProducts++;
-                                                item.getSource().setOutSource(numProducts);
                                                 controlSemaphore.release();
                                             } else {
                                                 controlSemaphore.acquire();
                                                 numProducts++;
-                                                item.getSource().setOutSource(numProducts);
                                                 controlSemaphore.release();
                                                 outExchangers.get(sendTo).exchange(product);
                                                 outSemaphores.get(sendTo).release();
@@ -533,7 +515,6 @@ public class Algorithm implements Runnable {
                                             accessInSemaphores.get(sendTo).acquire();
                                             controlSemaphore.acquire();
                                             numProducts++;
-                                            item.getSource().setOutSource(numProducts);
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(product);
                                             outSemaphores.get(sendTo).release();
@@ -549,7 +530,6 @@ public class Algorithm implements Runnable {
                                             }
                                             controlSemaphore.acquire();
                                             numProducts++;
-                                            item.getSource().setOutSource(numProducts);
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(product);
                                             outSemaphores.get(sendTo).release();
@@ -566,22 +546,16 @@ public class Algorithm implements Runnable {
                                                     break;
                                                 }
                                             }
-                                            try {
-                                                if (!accessInSemaphores.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
-                                                    controlSemaphore.acquire();
-                                                    numProducts++;
-                                                    item.getSource().setOutSource(numProducts);
-                                                    controlSemaphore.release();
-                                                } else {
-                                                    controlSemaphore.acquire();
-                                                    numProducts++;
-                                                    item.getSource().setOutSource(numProducts);
-                                                    controlSemaphore.release();
-                                                    outExchangers.get(sendTo).exchange(product);
-                                                    outSemaphores.get(sendTo).release();
-                                                }
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
+                                            if (!accessInSemaphores.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
+                                                controlSemaphore.acquire();
+                                                numProducts++;
+                                                controlSemaphore.release();
+                                            } else {
+                                                controlSemaphore.acquire();
+                                                numProducts++;
+                                                controlSemaphore.release();
+                                                outExchangers.get(sendTo).exchange(product);
+                                                outSemaphores.get(sendTo).release();
                                             }
                                             break;
                                         case "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)":
@@ -596,44 +570,34 @@ public class Algorithm implements Runnable {
                                                     break;
                                                 }
                                             }
-                                            try {
-                                                accessInSemaphores.get(sendTo).acquire();
-                                                controlSemaphore.acquire();
-                                                numProducts++;
-                                                item.getSource().setOutSource(numProducts);
-                                                controlSemaphore.release();
-                                                outExchangers.get(sendTo).exchange(product);
-                                                outSemaphores.get(sendTo).release();
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
-                                            }
+                                            accessInSemaphores.get(sendTo).acquire();
+                                            controlSemaphore.acquire();
+                                            numProducts++;
+                                            controlSemaphore.release();
+                                            outExchangers.get(sendTo).exchange(product);
+                                            outSemaphores.get(sendTo).release();
                                             break;
                                         case "A la cola más pequeña (si está llena espera hasta que haya hueco)":
-                                            try {
-                                                var products = Double.POSITIVE_INFINITY;
-                                                var queueProducts = 0;
-                                                var smallestQueue = 0;
-                                                for (var index = 0; index < queues.size(); index++) {
-                                                    if (queues.get(index).getTypeItem().equals("Queue")) {
-                                                        queues.get(index).getControlDestinationSemaphore().acquire();
-                                                        queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
-                                                        queues.get(index).getControlDestinationSemaphore().release();
-                                                        if (queueProducts < products) {
-                                                            products = queueProducts;
-                                                            smallestQueue = index;
-                                                        }
+                                            var products = Double.POSITIVE_INFINITY;
+                                            var queueProducts = 0;
+                                            var smallestQueue = 0;
+                                            for (var index = 0; index < queues.size(); index++) {
+                                                if (queues.get(index).getTypeItem().equals("Queue")) {
+                                                    queues.get(index).getControlDestinationSemaphore().acquire();
+                                                    queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
+                                                    queues.get(index).getControlDestinationSemaphore().release();
+                                                    if (queueProducts < products) {
+                                                        products = queueProducts;
+                                                        smallestQueue = index;
                                                     }
                                                 }
-                                                accessInSemaphores.get(smallestQueue).acquire();
-                                                controlSemaphore.acquire();
-                                                numProducts++;
-                                                item.getSource().setOutSource(numProducts);
-                                                controlSemaphore.release();
-                                                outExchangers.get(smallestQueue).exchange(product);
-                                                outSemaphores.get(smallestQueue).release();
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
                                             }
+                                            accessInSemaphores.get(smallestQueue).acquire();
+                                            controlSemaphore.acquire();
+                                            numProducts++;
+                                            controlSemaphore.release();
+                                            outExchangers.get(smallestQueue).exchange(product);
+                                            outSemaphores.get(smallestQueue).release();
                                             break;
                                     }
                                 }
@@ -671,6 +635,13 @@ public class Algorithm implements Runnable {
                             var inExchanger = getExchangers(semaphoresItem, "In").get(0);
                             Product inProduct;
                             var in = false;
+                            Integer totalInputs = 0;
+                            Integer maxContent = 0;
+
+                            Double lastTimeChecked;
+                            Double totalTimeMultipliedContent;
+                            Double queueActivationTime = (double) System.currentTimeMillis();
+                            Double totalTime;
 
 
                             Semaphore inOutSemaphore = null;
@@ -686,6 +657,8 @@ public class Algorithm implements Runnable {
                                 capacitySemaphore = capacitySemaphoreType.getSemaphores().get(0);
                                 controlSemaphore = controlSemaphoreType.getSemaphores().get(0);
                             }
+                            queueActivationTime = (double) System.currentTimeMillis();
+
                             try {
                                 while (true) {
                                     if (capacitySemaphore.availablePermits() > 0) {
@@ -695,26 +668,48 @@ public class Algorithm implements Runnable {
                                         inSemaphore.acquire();
                                         capacitySemaphore.acquire();
                                         controlSemaphore.acquire();
+                                        lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                        totalTime = System.currentTimeMillis() - lastTimeChecked;
                                         in = true;
                                         productList.add(inProduct);
                                         total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
+                                        if (item.getQueue().getTimeMultipliedByContent() == null) {
+                                            item.getQueue().setTimeMultipliedByContent(0.0);
+                                        }
+                                        totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
+                                        item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
                                         total++;
                                         item.getQueue().setInQueue(total);
+                                        item.getQueue().setLastSizeContent(total);
+                                        item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
                                         in = false;
+                                        totalInputs++;
+                                        maxContent = maxContent < productList.size() ? productList.size() : maxContent;
                                         controlSemaphore.release();
                                         inOutSemaphore.release();
                                         if (item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                             capacitySemaphore.release();
                                         }
                                     }
-
                                 }
                             } catch (InterruptedException e) {
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                totalTime = System.currentTimeMillis() - lastTimeChecked;
+                                total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
+                                if (item.getQueue().getTimeMultipliedByContent() == null) {
+                                    item.getQueue().setTimeMultipliedByContent(0.0);
+                                }
+                                totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
+                                item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
                                 if (in) {
-                                    total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
                                     total++;
                                 }
+                                item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
+                                item.getQueue().setLastSizeContent(total);
+                                item.getQueue().setTotalInQueue(totalInputs);
+                                item.getQueue().setMaxContent(maxContent);
+                                item.getQueue().setAvgContent(item.getQueue().getTimeMultipliedByContent() / queueActivationTime);
                                 item.getQueue().setInQueue(total);
                                 interruptedAndSavedTheadsState.set(indexState, true);
                                 interruptedAndSavedTheadsStateSemaphore.release();
@@ -736,6 +731,12 @@ public class Algorithm implements Runnable {
                             var capacitySemaphoreType = getSemaphore(semaphoresItem, "Capacity");
                             var outExchangers = getExchangers(semaphoresItem, "Out");
                             Product outProduct = null;
+                            Double totalTimeOfStay = 0.0;
+                            Double maxTimeOfStay = 0.0;
+                            var currentTimeOfStay = 0.0;
+                            Double lastTimeChecked;
+                            Double totalTimeMultipliedContent;
+                            Double queueActivationTime = (double) System.currentTimeMillis();
 
                             Semaphore inOutSemaphore = null;
                             Semaphore capacitySemaphore = null;
@@ -777,11 +778,19 @@ public class Algorithm implements Runnable {
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
                                             controlSemaphore.acquire();
+                                            lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                            var totalTime = System.currentTimeMillis() - lastTimeChecked;
+                                            totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
+                                            item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
+                                            currentTimeOfStay = System.currentTimeMillis() - outProduct.getArrivalTime();
+                                            maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
+                                            totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                             totalIn = item.getQueue().getInQueue();
                                             totalIn--;
+                                            item.getQueue().setLastSizeContent(totalIn);
+                                            item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
                                             totalOut++;
                                             item.getQueue().setInQueue(totalIn);
-                                            item.getQueue().setOutQueue(totalOut);
                                             controlSemaphore.release();
                                             outSemaphore.get(sendTo).release();
                                             if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
@@ -814,13 +823,23 @@ public class Algorithm implements Runnable {
                                                     var indexProduct = random.nextInt(productList.size());
                                                     outProduct = productList.remove(indexProduct);
                                             }
-                                            totalIn = item.getQueue().getInQueue();
-                                            totalIn--;
-                                            totalOut++;
-                                            item.getQueue().setInQueue(totalIn);
-                                            item.getQueue().setOutQueue(totalOut);
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
+                                            controlSemaphore.acquire();
+                                            lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                            totalTime = System.currentTimeMillis() - lastTimeChecked;
+                                            totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
+                                            item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
+                                            currentTimeOfStay = System.currentTimeMillis() - outProduct.getArrivalTime();
+                                            maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
+                                            totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
+                                            totalIn = item.getQueue().getInQueue();
+                                            totalIn--;
+                                            item.getQueue().setLastSizeContent(totalIn);
+                                            item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
+                                            totalOut++;
+                                            item.getQueue().setInQueue(totalIn);
+                                            controlSemaphore.release();
                                             outSemaphore.get(sendTo).release();
                                             if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                                 capacitySemaphore.release();
@@ -848,13 +867,23 @@ public class Algorithm implements Runnable {
                                                     var indexProduct = random.nextInt(productList.size());
                                                     outProduct = productList.remove(indexProduct);
                                             }
-                                            totalIn = item.getQueue().getInQueue();
-                                            totalIn--;
-                                            totalOut++;
-                                            item.getQueue().setInQueue(totalIn);
-                                            item.getQueue().setOutQueue(totalOut);
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
+                                            controlSemaphore.acquire();
+                                            lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                            totalTime = System.currentTimeMillis() - lastTimeChecked;
+                                            totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
+                                            item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
+                                            currentTimeOfStay = System.currentTimeMillis() - outProduct.getArrivalTime();
+                                            maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
+                                            totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
+                                            totalIn = item.getQueue().getInQueue();
+                                            totalIn--;
+                                            item.getQueue().setLastSizeContent(totalIn);
+                                            item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
+                                            totalOut++;
+                                            item.getQueue().setInQueue(totalIn);
+                                            controlSemaphore.release();
                                             outSemaphore.get(sendTo).release();
                                             if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                                 capacitySemaphore.release();
@@ -864,6 +893,16 @@ public class Algorithm implements Runnable {
                                 }
                             } catch (InterruptedException e) {
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                var totalProductsOfSimulation = totalOut + totalIn;
+                                /*while (productList.size() > 0) {
+                                    outProduct = productList.remove(0);
+                                    currentTimeOfStay = System.currentTimeMillis() - outProduct.getArrivalTime();
+                                    maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
+                                    totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
+                                }
+                                 */
+                                item.getQueue().setMaxStays((maxTimeOfStay * multiplierTime) / 1000);
+                                item.getQueue().setAvgStayTime(((totalTimeOfStay / totalProductsOfSimulation) * multiplierTime) / 1000);
                                 item.getQueue().setInQueue(totalIn);
                                 item.getQueue().setOutQueue(totalOut);
                                 interruptedAndSavedTheadsState.set(indexState, true);
@@ -876,7 +915,7 @@ public class Algorithm implements Runnable {
                         totalThreads.add(colaOut);
                     });
                     itemList.add(cola);
-                    totalThreads.add(cola);
+                    totalThreads.add(totalThreads.size()-1,cola);
                     break;
                 case "Server":
                     finalI = i;
@@ -890,7 +929,7 @@ public class Algorithm implements Runnable {
                         item.getServer().setPctBusyTime(0.0);
                         Double pctBusy = 0.0;
                         Double currentIdle = (double) System.currentTimeMillis();
-                        Double currentBusy;
+                        Double currentBusy = (double) System.currentTimeMillis();
                         Double now = 0.0;
                         //0 for Idle
                         //1 for Busy;
@@ -898,6 +937,11 @@ public class Algorithm implements Runnable {
                         Double totalIdle = 0.0;
                         Double totalBusy = 0.0;
                         Double sleep;
+
+                        Double totalTimeOfStay = 0.0;
+                        Double maxTimeOfStay = 0.0;
+                        var currentTimeOfStay = 0.0;
+
                         PoissonDistribution poissonDistribution = null;
                         ExponentialDistribution exponentialDistribution = null;
                         TriangularDistribution triangularDistribution = null;
@@ -914,12 +958,12 @@ public class Algorithm implements Runnable {
                         var strategyTime = getTimeStrategy(item.getServer().getCicleTime());
                         switch ((String) strategyTime.keySet().toArray()[0]) {
                             case "NegExp":
-                                var numbers= strategyTime.get("NegExp");
-                                exponentialDistribution= new ExponentialDistribution(numbers.get(0));
+                                var numbers = strategyTime.get("NegExp");
+                                exponentialDistribution = new ExponentialDistribution(numbers.get(0));
                                 break;
                             case "Poisson":
-                                numbers= strategyTime.get("Poisson");
-                                poissonDistribution= new PoissonDistribution(numbers.get(0));
+                                numbers = strategyTime.get("Poisson");
+                                poissonDistribution = new PoissonDistribution(numbers.get(0));
                                 break;
                             case "Triangular":
                                 numbers = strategyTime.get("Triangular");
@@ -999,57 +1043,54 @@ public class Algorithm implements Runnable {
                         var sendToStrategy = item.getItem().getSendToStrategy();
 
                         var total = 0;
-                        var in = 0;
                         try {
-                            Double setUpTimeServer = Double.parseDouble(item.getServer().getSetupTime()) * 1000.0;
+                            Double setUpTimeServer = (Double.parseDouble(item.getServer().getSetupTime()) * 1000.0) / multiplierTime;
                             while (true) {
                                 switch ((String) strategyTime.keySet().toArray()[0]) {
                                     case "NegExp":
-                                        sleep = exponentialDistribution.sample()*1000.0;
+                                        sleep = exponentialDistribution.sample() * 1000.0;
                                         break;
                                     case "Poisson":
-                                        sleep = poissonDistribution.sample()*1000.0;
+                                        sleep = poissonDistribution.sample() * 1000.0;
                                         break;
                                     case "Triangular":
-                                        sleep = triangularDistribution.sample()* 1000.0;
+                                        sleep = triangularDistribution.sample() * 1000.0;
                                         break;
                                     case "LogNormal":
-                                        sleep = logNormalDistribution.sample()* 1000.0;
+                                        sleep = logNormalDistribution.sample() * 1000.0;
                                         break;
                                     case "Binomial":
-                                        sleep = (double) binomialDistribution.sample()* 1000.0;
+                                        sleep = (double) binomialDistribution.sample() * 1000.0;
                                         break;
                                     case "Max":
                                         if (strategyTime.keySet().toArray()[1].equals("Normal")) {
                                             sleep = normalDistribution.sample();
                                             if (sleep < max) {
-                                                sleep = (double) max* 1000.0;
-                                            }
-                                            else {
-                                                sleep=sleep* 1000.0;
+                                                sleep = (double) max * 1000.0;
+                                            } else {
+                                                sleep = sleep * 1000.0;
                                             }
                                         } else {
                                             sleep = logisticDistribution.sample();
                                             if (sleep < max) {
-                                                sleep = (double) max* 1000.0;
-                                            }
-                                            else {
-                                                sleep=sleep* 1000.0;
+                                                sleep = (double) max * 1000.0;
+                                            } else {
+                                                sleep = sleep * 1000.0;
                                             }
                                         }
                                         break;
                                     case "Beta":
-                                        sleep = betaDistribution.sample()* 1000.0;
+                                        sleep = betaDistribution.sample() * 1000.0;
                                         sleep = sleep * max;
                                         break;
                                     case "Gamma":
-                                        sleep = gammaDistribution.sample()* 1000.0;
+                                        sleep = gammaDistribution.sample() * 1000.0;
                                         break;
                                     case "Uniform":
-                                        sleep = (double) uniformIntegerDistribution.sample()* 1000.0;
+                                        sleep = (double) uniformIntegerDistribution.sample() * 1000.0;
                                         break;
                                     case "Weibull":
-                                        sleep = weibullDistribution.sample()* 1000.0;
+                                        sleep = weibullDistribution.sample() * 1000.0;
                                         break;
                                     case "mins":
                                         sleep = max * 60.0 * 1000.0;
@@ -1063,27 +1104,18 @@ public class Algorithm implements Runnable {
                                     default:
                                         sleep = 0.0;
                                 }
-
+                                sleep = sleep / multiplierTime;
                                 accessOutSemaphore.release();
                                 product = (Product) inExchanger.exchange(null);
+                                product.setArrivalTime((double) System.currentTimeMillis());
+
                                 inSemaphore.acquire();
-                                controlSemaphore.acquire();
-                                in++;
-                                pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
-                                pctBusy = Double.isNaN(pctBusy) ? 0 : pctBusy;
-                                pctBusy= Math.round(pctBusy*100.0)/100.0;
-                                item.getServer().setPctBusyTime(pctBusy);
-                                item.getServer().setInServer(in);
-                                controlSemaphore.release();
                                 Thread.sleep(setUpTimeServer.longValue());
                                 controlSemaphore.acquire();
                                 now = (double) System.currentTimeMillis();
                                 totalIdle = totalIdle + (now - currentIdle);
                                 currentBusy = now;
                                 idleOrBusy = 1;
-                                item.getServer().setIdleOrBusy(idleOrBusy);
-                                item.getServer().setLastTimeBusy(now);
-                                item.getServer().setTotalIdle(totalIdle);
                                 controlSemaphore.release();
                                 Thread.sleep(sleep.longValue());
                                 controlSemaphore.acquire();
@@ -1091,27 +1123,21 @@ public class Algorithm implements Runnable {
                                 totalBusy = totalBusy + (now - currentBusy);
                                 currentIdle = now;
                                 idleOrBusy = 0;
-                                item.getServer().setTotalBusy(totalBusy);
-                                item.getServer().setIdleOrBusy(idleOrBusy);
-                                item.getServer().setLastTimeIdle(now);
                                 controlSemaphore.release();
                                 switch (sendToStrategy) {
                                     case "Aleatorio (lo manda independientemente de si hay hueco o no)":
                                         var sendTo = random.nextInt(outSemaphores.size());
                                         if (!accessInSemaphores.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
                                             controlSemaphore.acquire();
-                                            in--;
                                             total++;
-                                            item.getServer().setInServer(in);
-                                            item.getServer().setOutServer(total);
                                             controlSemaphore.release();
                                         } else {
                                             outExchanger.get(sendTo).exchange(product);
                                             controlSemaphore.acquire();
-                                            in--;
+                                            currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                            maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
+                                            totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                             total++;
-                                            item.getServer().setInServer(in);
-                                            item.getServer().setOutServer(total);
                                             controlSemaphore.release();
                                             outSemaphores.get(sendTo).release();
                                         }
@@ -1131,10 +1157,10 @@ public class Algorithm implements Runnable {
                                         accessInSemaphores.get(sendTo).acquire();
                                         outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
-                                        in--;
+                                        currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                        maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
+                                        totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                         total++;
-                                        item.getServer().setInServer(in);
-                                        item.getServer().setOutServer(total);
                                         controlSemaphore.release();
                                         outSemaphores.get(sendTo).release();
                                         break;
@@ -1143,10 +1169,10 @@ public class Algorithm implements Runnable {
                                         accessInSemaphores.get(sendTo).acquire();
                                         outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
-                                        in--;
+                                        currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                        maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
+                                        totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                         total++;
-                                        item.getServer().setInServer(in);
-                                        item.getServer().setOutServer(total);
                                         controlSemaphore.release();
                                         outSemaphores.get(sendTo).release();
                                         break;
@@ -1161,10 +1187,10 @@ public class Algorithm implements Runnable {
                                         }
                                         outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
-                                        in--;
+                                        currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                        maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
+                                        totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                         total++;
-                                        item.getServer().setInServer(in);
-                                        item.getServer().setOutServer(total);
                                         controlSemaphore.release();
                                         outSemaphores.get(sendTo).release();
                                         break;
@@ -1189,10 +1215,10 @@ public class Algorithm implements Runnable {
                                         accessInSemaphores.get(smallestQueue).acquire();
                                         outExchanger.get(smallestQueue).exchange(product);
                                         controlSemaphore.acquire();
-                                        in--;
+                                        currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                        maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
+                                        totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                         total++;
-                                        item.getServer().setInServer(in);
-                                        item.getServer().setOutServer(total);
                                         controlSemaphore.release();
                                         outSemaphores.get(smallestQueue).release();
                                         break;
@@ -1200,23 +1226,22 @@ public class Algorithm implements Runnable {
                             }
                         } catch (InterruptedException e) {
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
-                            totalIdle = item.getServer().getTotalIdle() != null ? item.getServer().getTotalIdle() : 0.0;
-                            totalBusy = item.getServer().getTotalBusy() != null ? item.getServer().getTotalBusy() : 0.0;
-                            var lastTimeIdle = item.getServer().getLastTimeIdle() != null ? item.getServer().getLastTimeIdle() : 0;
-                            var lastTimeBusy = item.getServer().getLastTimeBusy() != null ? item.getServer().getLastTimeBusy() : 0;
                             pctBusy = 0.0;
-                            if (totalBusy != 0) {
-                                if (item.getServer().getIdleOrBusy() == 0) {
-                                    totalIdle = totalIdle + ((double) System.currentTimeMillis() - lastTimeIdle);
-                                    pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
-                                } else {
-                                    totalBusy = totalBusy + ((double) System.currentTimeMillis() - lastTimeBusy);
-                                    pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
-                                }
-                                pctBusy= Math.round(pctBusy*100.0)/100.0;
-                                item.getServer().setPctBusyTime(pctBusy);
+                            if (idleOrBusy == 0) {
+                                totalIdle = totalIdle + ((double) System.currentTimeMillis() - currentIdle);
+                                pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
+                            } else {
+                                totalBusy = totalBusy + ((double) System.currentTimeMillis() - currentBusy);
+                                pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
                             }
-                            interruptedAndSavedTheadsState.set(indexState,true);
+                            pctBusy = Math.round(pctBusy * 100.0) / 100.0;
+                            item.getServer().setPctBusyTime(pctBusy);
+
+                            maxTimeOfStay = (maxTimeOfStay * multiplierTime) / 1000;
+                            item.getServer().setOutServer(total);
+                            item.getServer().setMaxStays(maxTimeOfStay);
+                            item.getServer().setAvgStayTime(((totalTimeOfStay / total) * multiplierTime) / 1000);
+                            interruptedAndSavedTheadsState.set(indexState, true);
                             interruptedAndSavedTheadsStateSemaphore.release();
                         }
                     });
@@ -1255,13 +1280,12 @@ public class Algorithm implements Runnable {
                                 inSemaphore.acquire();
                                 controlSemaphore.acquire();
                                 productsInSink++;
-                                item.getSink().setInSink(productsInSink);
                                 controlSemaphore.release();
                             }
                         } catch (InterruptedException e) {
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                             item.getSink().setInSink(productsInSink);
-                            interruptedAndSavedTheadsState.set(indexState,true);
+                            interruptedAndSavedTheadsState.set(indexState, true);
                             interruptedAndSavedTheadsStateSemaphore.release();
                         }
                     });
@@ -1274,67 +1298,32 @@ public class Algorithm implements Runnable {
         for (Thread hilo : itemList) {
             hilo.start();
         }
-        var daemonThread = new Thread(() -> {
-            try {
-                String simulating = simulationService.findById(simulationId).get().getStatusSimulation();
-                List<Semaphore> semaphoreList = new ArrayList<>();
-                //Save all control semaphores in order to save the items safely
-                for (SemaphoreAsignation semaphoreAsignation : semaphoreAsignationList) {
-                    semaphoreList.add(getSemaphore(semaphoreAsignation, "Control").getSemaphores().get(0));
-                }
-                while (simulating.equals("1")) {
-                    for (var i = 0; i < simulation.size(); i++) {
-                        var item = simulation.get(i);
-                        semaphoreList.get(i).acquire();
-                        if (simulation.get(i).getItem().getDescription().equals("Server")){
-                            var totalIdle = item.getServer().getTotalIdle() != null ? item.getServer().getTotalIdle() : 0.0;
-                            var totalBusy = item.getServer().getTotalBusy() != null ? item.getServer().getTotalBusy() : 0.0;
-                            var lastTimeIdle = item.getServer().getLastTimeIdle() != null ? item.getServer().getLastTimeIdle() : 0;
-                            var lastTimeBusy = item.getServer().getLastTimeBusy() != null ? item.getServer().getLastTimeBusy() : 0;
-                            var pctBusy = 0.0;
-                            if (lastTimeBusy != 0) {
-                                if (item.getServer().getIdleOrBusy() == 0) {
-                                    totalIdle = totalIdle + ((double) System.currentTimeMillis() - lastTimeIdle);
-                                    pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
-                                } else {
-                                    totalBusy = totalBusy + ((double) System.currentTimeMillis() - lastTimeBusy);
-                                    pctBusy = (totalBusy / (totalBusy + totalIdle)) * 100.0;
-                                }
-                                pctBusy= Math.round(pctBusy*100.0)/100.0;
-                                item.getServer().setPctBusyTime(pctBusy);
-                            }
-                        }
-                        semaphoreList.get(i).release();
-                    }
-                    Thread.sleep(500);
 
-                    simpMessageSendingOperations.convertAndSend("/simulationInfo/"+ simulationId,simulation);
-                    simulating = simulationService.findById(simulationId).get().getStatusSimulation();
-                }
-                for (Thread thread : totalThreads) {
-                    thread.interrupt();
-                }
-                Boolean allStopped= false;
-                while (!allStopped){
-                    interruptedAndSavedTheadsStateSemaphore.acquire();
-                    for (Boolean bool:interruptedAndSavedTheadsState){
-                        if (bool){
-                            allStopped=true;
-                        }else {
-                            allStopped=false;
-                            break;
-                        }
-                    }
-                    interruptedAndSavedTheadsStateSemaphore.release();
-                    Thread.sleep(200);
-                }
+        var timeOfSimulationRecalculated = timeOfSimulation / multiplierTime;
 
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        while ((System.currentTimeMillis() - startSimulation) < timeOfSimulationRecalculated) {
+            Thread.sleep(100);
+        }
+        for (Thread thread : totalThreads) {
+            thread.interrupt();
+        }
+
+        Boolean allStopped = false;
+        while (!allStopped) {
+            interruptedAndSavedTheadsStateSemaphore.acquire();
+            for (Boolean bool : interruptedAndSavedTheadsState) {
+                if (bool) {
+                    allStopped = true;
+                } else {
+                    allStopped = false;
+                    break;
+                }
             }
-        });
-        daemonThread.start();
+            interruptedAndSavedTheadsStateSemaphore.release();
+            Thread.sleep(100);
+        }
 
+        return simulation;
     }
 
     private List<Exchanger> getExchangers(SemaphoreAsignation semaphoresItem, String type) {
@@ -1459,18 +1448,17 @@ public class Algorithm implements Runnable {
             var numberList = getNumbers(numbers);
             timeStrategyMap.put("Weibull", numberList);
             return timeStrategyMap;
-        }
-        else if (timeStrategy.length() > 8 && timeStrategy.substring(0,7).equals("Poisson")){
+        } else if (timeStrategy.length() > 8 && timeStrategy.substring(0, 7).equals("Poisson")) {
             var numbers = timeStrategy.substring(8, timeStrategy.length() - 1);
-            var numberList= new ArrayList<Integer>();
+            var numberList = new ArrayList<Integer>();
             numberList.add(Integer.valueOf(numbers));
-            timeStrategyMap.put("Poisson",numberList);
+            timeStrategyMap.put("Poisson", numberList);
             return timeStrategyMap;
-        } else if (timeStrategy.length() > 7 && timeStrategy.substring(0,6).equals("NegExp")){
+        } else if (timeStrategy.length() > 7 && timeStrategy.substring(0, 6).equals("NegExp")) {
             var numbers = timeStrategy.substring(7, timeStrategy.length() - 1);
-            var numberList= new ArrayList<Integer>();
+            var numberList = new ArrayList<Integer>();
             numberList.add(Integer.valueOf(numbers));
-            timeStrategyMap.put("NegExp",numberList);
+            timeStrategyMap.put("NegExp", numberList);
             return timeStrategyMap;
         } else if (timeStrategy.length() > 4 && timeStrategy.substring(0, 4).equals("mins")) {
             var number = timeStrategy.substring(5, timeStrategy.length() - 1);

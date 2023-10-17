@@ -1069,7 +1069,7 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
 
   </div>
-  <form [formGroup]="quickSimulationForm" (ngSubmit)="simulate()">
+  <form [formGroup]="quickSimulationForm" (ngSubmit)="quickSimulationFunc()">
     <div class="modal-body">
       <label for="timeSimulation" class="col-form-label">Tiempo de observación [horas]<span
         class="asterisk">*</span></label>
@@ -1098,7 +1098,7 @@
       <button type="button" class="btn btn-secondary" data-dismiss="modal" (click)="modal.dismiss()">Cancelar</button>
       <button
         [disabled]="quickSimulationForm.invalid || (quickSimulationForm.value.pdfFormat===false && quickSimulationForm.value.csvFormat===false)"
-        type="submit" class="btn btn-danger">Simular
+        type="submit" class="btn btn-danger" (click)="modal.dismiss()">Simular
       </button>
     </div>
   </form>

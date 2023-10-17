@@ -13,6 +13,7 @@ import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, 
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ConnectionModel} from "./Connection/connection.model";
 import {refresh} from "../app.component";
+import {quickSimulationFormDTOModel} from "./QuickSimulationFormDTO/quickSimulationFormDTO.model";
 
 
 function totalAmountQueue(max: number, component: any): ValidatorFn {
@@ -347,6 +348,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   queueItemAuxForm: ItemModel;
   sinkItemAuxForm: ItemModel;
 
+  quickSimulationDTO:quickSimulationFormDTOModel;
+
   listItemsTemplate: ItemContainerModel[];
 
 
@@ -377,8 +380,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     "Valor entero (segundos)", "mins(Número minutos)", "hr(Número de horas)"];
 
   quickSimulationForm = new FormGroup({
-    timeSimulation: new FormControl('', Validators.compose([Validators.required, Validators.min(0.1), Validators.max(20)])),
-    numberSimulations: new FormControl('', Validators.compose([Validators.required, Validators.min(1), Validators.max(5)])),
+    timeSimulation: new FormControl(0, Validators.compose([Validators.required, Validators.min(0.0027), Validators.max(20)])),
+    numberSimulations: new FormControl(0, Validators.compose([Validators.required, Validators.min(1), Validators.max(5), Validators.pattern("^[0-9]*$")])),
     pdfFormat: new FormControl(false),
     csvFormat: new FormControl(false)
   })
@@ -456,6 +459,12 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       // @ts-ignore
       alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
       this.errorConnection=0;
+    }
+    this.quickSimulationDTO={
+      timeSimulation:0,
+      numberSimulations:0,
+      pdfFormat:false,
+      csvFormat:false
     }
     this.listItemsTemplate = []
     this.typeServiceTime = -1;
@@ -1055,6 +1064,26 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  quickSimulationFunc(){
+    // @ts-ignore
+    this.quickSimulationDTO.timeSimulation=this.quickSimulationForm.value.timeSimulation;
+    // @ts-ignore
+    this.quickSimulationDTO.numberSimulations=this.quickSimulationForm.value.numberSimulations;
+    // @ts-ignore
+    this.quickSimulationDTO.pdfFormat=this.quickSimulationForm.value.pdfFormat;
+    // @ts-ignore
+    this.quickSimulationDTO.csvFormat=this.quickSimulationForm.value.csvFormat;
+    this.simulationService.quickSimulation(this.id,this.quickSimulationDTO).subscribe({
+      next : (items)=>{
+        if (items){
+          console.log(items);
+        }
+      },
+      error : (err)=>{
+        this.router.navigate(['error500']);
+      }
+    })
+  }
 
   simulate() {
     if (this.checkSimulationStructure(this.listItems)) {
@@ -1099,7 +1128,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
 
   //Depth-first search algorithm
-  private checkSimulationStructure(listItems: ItemContainerModel[]) {
+  checkSimulationStructure(listItems: ItemContainerModel[]) {
     //Gets all sinks, the project must have at least one sink to be a valid simulation
     let sinks = this.getSinks(listItems);
     //Inicialises a list of all visited items

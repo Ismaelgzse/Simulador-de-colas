@@ -30,6 +30,12 @@ public class Server {
 
     private Integer inServer;
 
+    private Double maxStays;
+
+    private Double totalStaysTime;
+
+    private Double avgStayTime;
+
     public Integer getInServer() {
         return inServer;
     }
@@ -123,5 +129,29 @@ public class Server {
 
     public void setIdleOrBusy(Integer idleOrBusy) {
         this.idleOrBusy = idleOrBusy;
+    }
+
+    public Double getMaxStays() {
+        return maxStays;
+    }
+
+    public void setMaxStays(Double maxStays) {
+        this.maxStays = maxStays;
+    }
+
+    public Double getTotalStaysTime() {
+        return totalStaysTime;
+    }
+
+    public void setTotalStaysTime(Double totalStaysTime) {
+        this.totalStaysTime = totalStaysTime;
+    }
+
+    public Double getAvgStayTime() {
+        return avgStayTime;
+    }
+
+    public void setAvgStayTime(Double avgStayTime) {
+        this.avgStayTime = avgStayTime;
     }
 }

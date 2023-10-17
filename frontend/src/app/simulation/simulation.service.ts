@@ -3,6 +3,7 @@ import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {ItemContainerModel} from "./Items/itemContainer.model";
 import {ConnectionModel} from "./Connection/connection.model";
+import {quickSimulationFormDTOModel} from "./QuickSimulationFormDTO/quickSimulationFormDTO.model";
 
 // @ts-ignore
 declare var SockJS;
@@ -50,6 +51,11 @@ export class SimulationService {
 
   public closeConnection() {
     this.stompClient.disconnect();
+  }
+
+  quickSimulation(idSimulation: number, quickSimulatonForm: quickSimulationFormDTOModel): Observable<any>{
+    // @ts-ignore
+    return this.httpClient.post('api/simulation/'+idSimulation+'/quickSimulation', quickSimulatonForm ,{withCredentials: true}) as Observable<any>;
   }
 
   getItems(idSimulation: number): Observable<any> {
