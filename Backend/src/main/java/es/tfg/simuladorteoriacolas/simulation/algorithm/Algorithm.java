@@ -687,7 +687,7 @@ public class Algorithm implements Runnable {
                                 controlSemaphore = controlSemaphoreType.getSemaphores().get(0);
                             }
                             try {
-                                while (true) {
+                                while (!Thread.currentThread().isInterrupted()) {
                                     if (capacitySemaphore.availablePermits() > 0) {
                                         accessOutSemaphore.release();
                                         inProduct = (Product) inExchanger.exchange(null);
@@ -708,6 +708,16 @@ public class Algorithm implements Runnable {
                                         }
                                     }
 
+                                }
+                                if (Thread.currentThread().isInterrupted()){
+                                    interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                    if (in) {
+                                        total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
+                                        total++;
+                                    }
+                                    item.getQueue().setInQueue(total);
+                                    interruptedAndSavedTheadsState.set(indexState, true);
+                                    interruptedAndSavedTheadsStateSemaphore.release();
                                 }
                             } catch (InterruptedException e) {
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();

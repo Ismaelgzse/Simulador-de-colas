@@ -456,6 +456,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 }
                             } catch (InterruptedException e) {
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                //source In
                                 interruptedAndSavedTheadsState.set(indexState, true);
                                 interruptedAndSavedTheadsStateSemaphore.release();
                             }
@@ -603,6 +604,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 }
                             } catch (InterruptedException e) {
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                //Source out
                                 interruptedAndSavedTheadsState.set(indexState, true);
                                 item.getSource().setOutSource(numProducts);
                                 interruptedAndSavedTheadsStateSemaphore.release();
@@ -660,7 +662,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             queueActivationTime = (double) System.currentTimeMillis();
 
                             try {
-                                while (true) {
+                                while (!Thread.currentThread().isInterrupted()) {
                                     if (capacitySemaphore.availablePermits() > 0) {
                                         accessOutSemaphore.release();
                                         inProduct = (Product) inExchanger.exchange(null);
@@ -692,8 +694,32 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         }
                                     }
                                 }
+                                if (Thread.currentThread().isInterrupted()){
+                                    interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                    //Queue in
+                                    lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                    totalTime = System.currentTimeMillis() - lastTimeChecked;
+                                    total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
+                                    if (item.getQueue().getTimeMultipliedByContent() == null) {
+                                        item.getQueue().setTimeMultipliedByContent(0.0);
+                                    }
+                                    totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
+                                    item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
+                                    if (in) {
+                                        total++;
+                                    }
+                                    item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
+                                    item.getQueue().setLastSizeContent(total);
+                                    item.getQueue().setTotalInQueue(totalInputs);
+                                    item.getQueue().setMaxContent(maxContent);
+                                    item.getQueue().setAvgContent(item.getQueue().getTimeMultipliedByContent() / queueActivationTime);
+                                    item.getQueue().setInQueue(total);
+                                    interruptedAndSavedTheadsState.set(indexState, true);
+                                    interruptedAndSavedTheadsStateSemaphore.release();
+                                }
                             } catch (InterruptedException e) {
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                                //Queue in
                                 lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
                                 totalTime = System.currentTimeMillis() - lastTimeChecked;
                                 total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
@@ -894,6 +920,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             } catch (InterruptedException e) {
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                                 var totalProductsOfSimulation = totalOut + totalIn;
+                                //Queue out
                                 /*while (productList.size() > 0) {
                                     outProduct = productList.remove(0);
                                     currentTimeOfStay = System.currentTimeMillis() - outProduct.getArrivalTime();
@@ -1226,6 +1253,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             }
                         } catch (InterruptedException e) {
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                            //Server
                             pctBusy = 0.0;
                             if (idleOrBusy == 0) {
                                 totalIdle = totalIdle + ((double) System.currentTimeMillis() - currentIdle);
@@ -1284,6 +1312,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             }
                         } catch (InterruptedException e) {
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
+                            //sink
                             item.getSink().setInSink(productsInSink);
                             interruptedAndSavedTheadsState.set(indexState, true);
                             interruptedAndSavedTheadsStateSemaphore.release();
