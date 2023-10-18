@@ -712,8 +712,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                     item.getQueue().setLastSizeContent(total);
                                     item.getQueue().setTotalInQueue(totalInputs);
                                     item.getQueue().setMaxContent(maxContent);
-                                    item.getQueue().setAvgContent(item.getQueue().getTimeMultipliedByContent() / queueActivationTime);
-                                    item.getQueue().setInQueue(total);
+                                    item.getQueue().setAvgContent(item.getQueue().getTimeMultipliedByContent() / ((double) System.currentTimeMillis()-queueActivationTime));
                                     interruptedAndSavedTheadsState.set(indexState, true);
                                     interruptedAndSavedTheadsStateSemaphore.release();
                                 }
@@ -735,8 +734,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 item.getQueue().setLastSizeContent(total);
                                 item.getQueue().setTotalInQueue(totalInputs);
                                 item.getQueue().setMaxContent(maxContent);
-                                item.getQueue().setAvgContent(item.getQueue().getTimeMultipliedByContent() / queueActivationTime);
-                                item.getQueue().setInQueue(total);
+                                item.getQueue().setAvgContent(item.getQueue().getTimeMultipliedByContent() / ((double) System.currentTimeMillis()-queueActivationTime));
                                 interruptedAndSavedTheadsState.set(indexState, true);
                                 interruptedAndSavedTheadsStateSemaphore.release();
                             }
@@ -759,10 +757,11 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             Product outProduct = null;
                             Double totalTimeOfStay = 0.0;
                             Double maxTimeOfStay = 0.0;
-                            var currentTimeOfStay = 0.0;
+                            Double currentTimeOfStay;
                             Double lastTimeChecked;
                             Double totalTimeMultipliedContent;
                             Double queueActivationTime = (double) System.currentTimeMillis();
+                            Double arrivalTimeOfProduct;
 
                             Semaphore inOutSemaphore = null;
                             Semaphore capacitySemaphore = null;
@@ -801,14 +800,15 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                     var indexProduct = random.nextInt(productList.size());
                                                     outProduct = productList.remove(indexProduct);
                                             }
+                                            arrivalTimeOfProduct= outProduct.getArrivalTime();
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
+                                            currentTimeOfStay = ((double) System.currentTimeMillis()) - arrivalTimeOfProduct;
                                             controlSemaphore.acquire();
                                             lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
                                             var totalTime = System.currentTimeMillis() - lastTimeChecked;
                                             totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
                                             item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
-                                            currentTimeOfStay = System.currentTimeMillis() - outProduct.getArrivalTime();
                                             maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                             totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                             totalIn = item.getQueue().getInQueue();
@@ -849,14 +849,15 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                     var indexProduct = random.nextInt(productList.size());
                                                     outProduct = productList.remove(indexProduct);
                                             }
+                                            arrivalTimeOfProduct= outProduct.getArrivalTime();
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
+                                            currentTimeOfStay = ((double) System.currentTimeMillis()) - arrivalTimeOfProduct;
                                             controlSemaphore.acquire();
                                             lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
                                             totalTime = System.currentTimeMillis() - lastTimeChecked;
                                             totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
                                             item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
-                                            currentTimeOfStay = System.currentTimeMillis() - outProduct.getArrivalTime();
                                             maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                             totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                             totalIn = item.getQueue().getInQueue();
@@ -893,14 +894,15 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                     var indexProduct = random.nextInt(productList.size());
                                                     outProduct = productList.remove(indexProduct);
                                             }
+                                            arrivalTimeOfProduct= outProduct.getArrivalTime();
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
+                                            currentTimeOfStay = ((double) System.currentTimeMillis()) - arrivalTimeOfProduct;
                                             controlSemaphore.acquire();
                                             lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
                                             totalTime = System.currentTimeMillis() - lastTimeChecked;
                                             totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
                                             item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
-                                            currentTimeOfStay = System.currentTimeMillis() - outProduct.getArrivalTime();
                                             maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                             totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                             totalIn = item.getQueue().getInQueue();
@@ -919,18 +921,17 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 }
                             } catch (InterruptedException e) {
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
-                                var totalProductsOfSimulation = totalOut + totalIn;
+                                var totalProductsOfSimulation = totalOut + productList.size();
+                                item.getQueue().setInQueue(productList.size());
                                 //Queue out
-                                /*while (productList.size() > 0) {
+                                while (productList.size() > 0) {
                                     outProduct = productList.remove(0);
                                     currentTimeOfStay = System.currentTimeMillis() - outProduct.getArrivalTime();
                                     maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                     totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                 }
-                                 */
                                 item.getQueue().setMaxStays((maxTimeOfStay * multiplierTime) / 1000);
                                 item.getQueue().setAvgStayTime(((totalTimeOfStay / totalProductsOfSimulation) * multiplierTime) / 1000);
-                                item.getQueue().setInQueue(totalIn);
                                 item.getQueue().setOutQueue(totalOut);
                                 interruptedAndSavedTheadsState.set(indexState, true);
                                 interruptedAndSavedTheadsStateSemaphore.release();
@@ -967,7 +968,8 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
 
                         Double totalTimeOfStay = 0.0;
                         Double maxTimeOfStay = 0.0;
-                        var currentTimeOfStay = 0.0;
+                        Double arrivalTimeOfProduct;
+                        Double currentTimeOfStay;
 
                         PoissonDistribution poissonDistribution = null;
                         ExponentialDistribution exponentialDistribution = null;
@@ -1159,9 +1161,10 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             total++;
                                             controlSemaphore.release();
                                         } else {
+                                            arrivalTimeOfProduct= product.getArrivalTime();
                                             outExchanger.get(sendTo).exchange(product);
                                             controlSemaphore.acquire();
-                                            currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                            currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                             maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                             totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                             total++;
@@ -1182,9 +1185,10 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             }
                                         }
                                         accessInSemaphores.get(sendTo).acquire();
+                                        arrivalTimeOfProduct= product.getArrivalTime();
                                         outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
-                                        currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                        currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                         maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                         totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                         total++;
@@ -1194,9 +1198,10 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                     case "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)":
                                         sendTo = random.nextInt(outSemaphores.size());
                                         accessInSemaphores.get(sendTo).acquire();
+                                        arrivalTimeOfProduct= product.getArrivalTime();
                                         outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
-                                        currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                        currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                         maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                         totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                         total++;
@@ -1212,9 +1217,10 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                 sendTo = 0;
                                             }
                                         }
+                                        arrivalTimeOfProduct= product.getArrivalTime();
                                         outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
-                                        currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                        currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                         maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                         totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                         total++;
@@ -1240,9 +1246,10 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             }
                                         }
                                         accessInSemaphores.get(smallestQueue).acquire();
+                                        arrivalTimeOfProduct= product.getArrivalTime();
                                         outExchanger.get(smallestQueue).exchange(product);
                                         controlSemaphore.acquire();
-                                        currentTimeOfStay = System.currentTimeMillis() - product.getArrivalTime();
+                                        currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                         maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                         totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                         total++;
