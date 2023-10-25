@@ -5,6 +5,7 @@ import es.tfg.simuladorteoriacolas.folder.FolderService;
 import es.tfg.simuladorteoriacolas.items.ItemDTO;
 import es.tfg.simuladorteoriacolas.items.ItemService;
 import es.tfg.simuladorteoriacolas.items.types.ItemTypesService;
+import es.tfg.simuladorteoriacolas.pdf.PdfGeneratorService;
 import es.tfg.simuladorteoriacolas.simulation.algorithm.Algorithm;
 import es.tfg.simuladorteoriacolas.simulation.algorithm.QuickSimulationAlgorithm;
 import es.tfg.simuladorteoriacolas.user.UserEntity;
@@ -18,6 +19,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.ls.LSException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +27,9 @@ import java.util.concurrent.*;
 
 @Service
 public class SimulationService {
+
+    @Autowired
+    private PdfGeneratorService pdfGeneratorService;
 
     @Autowired
     private SimpMessageSendingOperations simpMessageSendingOperations;
@@ -109,8 +114,10 @@ public class SimulationService {
                 allSimulations.add(futureAux);
             }
 
+            pdfGeneratorService.generatePdf(allSimulations,"C:\\Users\\ISMAEL\\Desktop\\kk\\"+simulation.getTitle()+".pdf");
+
             return CompletableFuture.completedFuture(allSimulations.get(0));
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException | IOException e) {
             Thread.currentThread().interrupt();
         }
         return CompletableFuture.completedFuture(null);
