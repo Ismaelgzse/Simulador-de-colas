@@ -1,10 +1,8 @@
 package es.tfg.simuladorteoriacolas.simulation;
 
 import es.tfg.simuladorteoriacolas.folder.FolderService;
-import es.tfg.simuladorteoriacolas.items.Item;
 import es.tfg.simuladorteoriacolas.items.ItemDTO;
 import es.tfg.simuladorteoriacolas.items.ItemService;
-import es.tfg.simuladorteoriacolas.items.connections.Connection;
 import es.tfg.simuladorteoriacolas.simulation.algorithm.QuickSimulationDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,19 +11,20 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.annotation.Resource;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -301,7 +300,7 @@ public class SimulationAPIController {
      * Checks if the simulation is running.
      *
      * @param idSimulation Id of the simulation.
-     * @param request Http servlet information.
+     * @param request      Http servlet information.
      * @return {@code} Boolean with the value of the check. {@code} Bad request.
      */
     @Operation(summary = "Checks if the simulation is running.")
@@ -330,17 +329,17 @@ public class SimulationAPIController {
     }
 
     @PostMapping("simulation/{idSimulation}/quickSimulation")
-    public ResponseEntity<List<ItemDTO>> quickSimulation(@PathVariable Integer idSimulation,
-                                                   @RequestBody QuickSimulationDTO quickSimulationDTO,
-                                                   HttpServletRequest request) throws ExecutionException, InterruptedException {
+    public ResponseEntity<List<List<ItemDTO>>> quickSimulation(@PathVariable Integer idSimulation,
+                                                               @RequestBody QuickSimulationDTO quickSimulationDTO,
+                                                               HttpServletRequest request) throws ExecutionException, InterruptedException {
         var simulation = simulationService.findById(idSimulation).get();
         if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
             if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
                 if (!simulation.getStatusSimulation().equals("1")) {
 
-                    CompletableFuture<List<ItemDTO>> future = simulationService.operation(idSimulation,quickSimulationDTO.getTimeSimulation(),quickSimulationDTO.getNumberSimulations());
+                    CompletableFuture<List<List<ItemDTO>>> future = simulationService.operation(idSimulation, quickSimulationDTO.getTimeSimulation(), quickSimulationDTO.getNumberSimulations());
 
-                    List<ItemDTO> simulationResult=future.get();
+                    List<List<ItemDTO>> simulationResult = future.get();
 
                     return ResponseEntity.ok(simulationResult);
                 }
@@ -349,6 +348,31 @@ public class SimulationAPIController {
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
+    }
+
+    @PostMapping("simulation/{idSimulation}/quickSimulation/pdf")
+    public ResponseEntity<byte[]> downloadPDF(@PathVariable Integer idSimulation,
+                                                @RequestBody List<List<ItemDTO>> simulations,
+                                                HttpServletRequest request) throws IOException {
+        var simulation = simulationService.findById(idSimulation).get();
+        if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
+            if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
+                PDDocument result= simulationService.generatePDF(simulations,simulation.getTitle());
+
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                result.save(byteArrayOutputStream);
+                result.close();
+                byte[] pdfBytes = byteArrayOutputStream.toByteArray();
+                HttpHeaders httpHeaders = new HttpHeaders();
+                httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+simulation.getTitle()+".pdf");
+
+                return ResponseEntity.ok()
+                        .headers(httpHeaders)
+                        .contentType(MediaType.parseMediaType("application/pdf"))
+                        .body(pdfBytes);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
 }

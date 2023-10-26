@@ -6,10 +6,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.ls.LSException;
 
-import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +16,7 @@ import java.util.Map;
 @Service
 public class PdfGeneratorService {
 
-    public void generatePdf(List<List<ItemDTO>> simulations, String nameFile) throws IOException {
+    public PDDocument generatePdf(List<List<ItemDTO>> simulations, String nameFile) throws IOException {
         PDDocument document = new PDDocument();
         PDPage page = new PDPage();
         document.addPage(page);
@@ -324,8 +321,7 @@ public class PdfGeneratorService {
 
         // Guardar el documento PDF
         //File file = new File(nameFile);
-        document.save(nameFile);
-        document.close();
+        return document;
         //Desktop.getDesktop().open(new File(nameFile));
     }
 

@@ -11,6 +11,7 @@ import es.tfg.simuladorteoriacolas.simulation.algorithm.QuickSimulationAlgorithm
 import es.tfg.simuladorteoriacolas.user.UserEntity;
 import es.tfg.simuladorteoriacolas.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -96,8 +97,12 @@ public class SimulationService {
         thread.start();
     }
 
+    public PDDocument generatePDF(List<List<ItemDTO>> simulations, String filename) throws IOException {
+        return pdfGeneratorService.generatePdf(simulations,filename);
+    }
+
     @Async
-    public CompletableFuture<List<ItemDTO>> operation(Integer simulationId, Double timeSimulation, Integer numberSimulations){
+    public CompletableFuture<List<List<ItemDTO>>> operation(Integer simulationId, Double timeSimulation, Integer numberSimulations) throws ExecutionException, InterruptedException {
         try {
             Simulation simulation=simulationRepository.findById(simulationId).get();
             List<ItemDTO> simulationItems=itemService.getSimulationItems(simulation);
@@ -114,10 +119,10 @@ public class SimulationService {
                 allSimulations.add(futureAux);
             }
 
-            pdfGeneratorService.generatePdf(allSimulations,"C:\\Users\\ISMAEL\\Desktop\\kk\\"+simulation.getTitle()+".pdf");
+            //pdfGeneratorService.generatePdf(allSimulations,"C:\\Users\\ISMAEL\\Desktop\\kk\\"+simulation.getTitle()+".pdf");
 
-            return CompletableFuture.completedFuture(allSimulations.get(0));
-        } catch (InterruptedException | ExecutionException | IOException e) {
+            return CompletableFuture.completedFuture(allSimulations);
+        } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
         }
         return CompletableFuture.completedFuture(null);

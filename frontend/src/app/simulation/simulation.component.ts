@@ -1074,9 +1074,18 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     // @ts-ignore
     this.quickSimulationDTO.csvFormat=this.quickSimulationForm.value.csvFormat;
     this.simulationService.quickSimulation(this.id,this.quickSimulationDTO).subscribe({
-      next : (items)=>{
-        if (items){
-          console.log(items);
+      next : (listSimulations)=>{
+        if (listSimulations){
+          if (this.quickSimulationDTO.pdfFormat){
+            this.simulationService.generatePDF(this.id,listSimulations).subscribe({
+              next : (pdf)=>{
+                const blob = new Blob([pdf], { type: 'application/pdf' });
+                const url = window.URL.createObjectURL(blob);
+                window.open(url);
+              }
+            })
+          }
+
         }
       },
       error : (err)=>{

@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {ItemContainerModel} from "./Items/itemContainer.model";
 import {ConnectionModel} from "./Connection/connection.model";
@@ -56,6 +56,20 @@ export class SimulationService {
   quickSimulation(idSimulation: number, quickSimulatonForm: quickSimulationFormDTOModel): Observable<any>{
     // @ts-ignore
     return this.httpClient.post('api/simulation/'+idSimulation+'/quickSimulation', quickSimulatonForm ,{withCredentials: true}) as Observable<any>;
+  }
+
+  generatePDF(idSimulation: number,listSimulations:ItemContainerModel[][]): Observable<Blob> {
+    const httpOptions = {
+      responseType: 'blob' as 'json',
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+    // @ts-ignore
+    return this.httpClient.post(`/api/simulation/${idSimulation}/quickSimulation/pdf`, listSimulations, {
+      ...httpOptions,
+      withCredentials: true
+    });
   }
 
   getItems(idSimulation: number): Observable<any> {
