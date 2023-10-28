@@ -106,7 +106,17 @@ public class SimulationService {
         try {
             Simulation simulation=simulationRepository.findById(simulationId).get();
             List<ItemDTO> simulationItems=itemService.getSimulationItems(simulation);
-            var multiplierTime= (timeSimulation*3600000)/30000;
+            Double durationOfQuickSimulation;
+            if(timeSimulation<30){
+                durationOfQuickSimulation=timeSimulation*60*0.15*1000;
+            }
+            else if (timeSimulation>=30 && timeSimulation<60){
+                durationOfQuickSimulation=timeSimulation*60*0.1*1000;
+            }
+            else {
+                durationOfQuickSimulation=timeSimulation*60*0.07*1000;
+            }
+            var multiplierTime= (timeSimulation*60000)/durationOfQuickSimulation;
             QuickSimulationAlgorithm quickSimulationAlgorithm= new QuickSimulationAlgorithm(simulationItems,timeSimulation,multiplierTime);
             ExecutorService executorService= Executors.newCachedThreadPool();
             List<List<ItemDTO>> allSimulations= new ArrayList<>();

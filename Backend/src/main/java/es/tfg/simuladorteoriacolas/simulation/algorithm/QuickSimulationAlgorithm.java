@@ -36,7 +36,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
 
     public QuickSimulationAlgorithm(List<ItemDTO> simulation, Double timeOfSimulation, Double multiplierTime) {
         this.simulation = simulation;
-        this.timeOfSimulation = timeOfSimulation * 60 * 60 * 1000;
+        this.timeOfSimulation = timeOfSimulation * 60 * 1000;
         this.multiplierTime = multiplierTime;
     }
 
