@@ -14,7 +14,7 @@
       -->
       <div class="col-sm-4 col-lg-3 align-self-center templateSet ">
         <div class="templateTitle">Plantillas o ejemplos prediseñados</div>
-        <button [disabled]="simulating" class="btn btnTemplate" data-toggle="modal" data-target="#modalNewFolder"
+        <button [disabled]="simulating || quickSimulating" class="btn btnTemplate" data-toggle="modal" data-target="#modalNewFolder"
                 (click)="openModalCustomTemplate(customTemplate)">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
           Seleccionar una plantilla
@@ -37,7 +37,7 @@
         <div class="row">
           <div class="col-4">
             <div class="titleControls">Terminar</div>
-            <button class="controlButtons" [disabled]="!simulating" (click)="stopSimulating()">
+            <button class="controlButtons" [disabled]="!simulating || quickSimulating" (click)="stopSimulating()">
               <i class="fa-solid fa-stop"></i>
             </button>
           </div>
@@ -51,13 +51,13 @@
           -->
           <div class="col-4">
             <div class="titleControls">Iniciar</div>
-            <button class="controlButtons" [disabled]="simulating" (click)="simulate()">
+            <button class="controlButtons" [disabled]="simulating || quickSimulating" (click)="simulate()">
               <i type="button" class="fa-solid fa-play"></i>
             </button>
           </div>
           <div class="col-4">
             <div class="titleControls">Simulación rápida</div>
-            <button class="controlButtons" [disabled]="simulating" (click)="openModalQuickSimulation(quickSimulation)"
+            <button class="controlButtons" [disabled]="simulating || quickSimulating" (click)="openModalQuickSimulation(quickSimulation)"
                     data-toggle="modal" data-target="#modalSimulation">
               <i class="fa-solid fa-forward"></i>
             </button>
@@ -75,7 +75,7 @@
       </div>
       -->
       <div class="col-sm-3 col-lg-2 align-self-end save">
-        <button [disabled]="simulating" class="btn btnReset" data-toggle="modal" data-target="#modalNewFolder"
+        <button [disabled]="simulating || quickSimulating" class="btn btnReset" data-toggle="modal" data-target="#modalNewFolder"
                 (click)="resetPositions()">
           <i class="fa-solid fa-arrows-rotate"></i>
           Reiniciar posiciones
@@ -207,6 +207,22 @@
     <i class="fas fa-spin fa-circle-notch"></i>
     <div class="timerText">{{timer}}</div>
   </div>
+</div>
+
+<div id="waitingExportationData" class="waitingExportModal">
+  <div class="quickSimulationText">
+    <span *ngIf="stageQuickSimulating===1">Simulando...</span>
+    <span *ngIf="stageQuickSimulating===2">Exportando datos...</span>
+    <i class="fas fa-spin fa-circle-notch"></i>
+  </div>
+  <div class="simulatingText">Tiempo restante:</div>
+  <div class="quickSimulationText">{{countDownText}}</div>
+  <div class="progress" style="width: 70%;margin: 0 auto; margin-top: 50px">
+    <div role="progressbar" class="progress-bar progress-bar-striped" [style.width]="percentageCountDownText">
+    </div>
+  </div>
+  <div class="simulatingNote">Nota: No refresque o se vaya de la página, parará el progreso y la exportación de los datos.</div>
+
 </div>
 
 
@@ -762,7 +778,8 @@
         </div>
         <div class="rightContainer">
           <div ngbDropdown class="dropdown menuDropdown selectMenu">
-            <input class="form-control" placeholder="Selecciona el tipo de tiempo entre llegadas" formControlName="interArrivalTimeSourceType">
+            <input class="form-control" placeholder="Selecciona el tipo de tiempo entre llegadas"
+                   formControlName="interArrivalTimeSourceType">
             <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
             <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
               <div *ngFor="let types of listInterArrivalTypes; let i=index">
@@ -790,7 +807,8 @@
         </div>
       </div>
       <div *ngIf="typeInterArrivalTime===0" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
-        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza la función" formControlName="interArrivalTimeSourceCkeck">
+        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza la función"
+               formControlName="interArrivalTimeSourceCkeck">
         <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
         <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
           <div *ngFor="let probFunc of listProbDeterministicFunc; let i=index">
@@ -806,7 +824,8 @@
         </ul>
       </div>
       <div *ngIf="typeInterArrivalTime===1" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
-        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza la función" formControlName="interArrivalTimeSourceCkeck">
+        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza la función"
+               formControlName="interArrivalTimeSourceCkeck">
         <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
         <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
           <div *ngFor="let probFunc of listProbExpFunc; let i=index">
@@ -822,7 +841,8 @@
         </ul>
       </div>
       <div *ngIf="typeInterArrivalTime===2" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
-        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza la función" formControlName="interArrivalTimeSourceCkeck">
+        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza la función"
+               formControlName="interArrivalTimeSourceCkeck">
         <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
         <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
           <div *ngFor="let probFunc of listProbGeneralFunc; let i=index">
@@ -854,7 +874,8 @@
         </div>
         <div class="rightContainer">
           <div ngbDropdown class="dropdown menuDropdown selectMenu">
-            <input class="form-control" placeholder="Selecciona el tipo de tiempo de servicio" formControlName="serviceTimeType">
+            <input class="form-control" placeholder="Selecciona el tipo de tiempo de servicio"
+                   formControlName="serviceTimeType">
             <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
             <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
               <div *ngFor="let types of listInterArrivalTypes; let i=index">
@@ -882,7 +903,8 @@
         </div>
       </div>
       <div *ngIf="typeServiceTime===0" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
-        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza el tiempo de servicio" formControlName="serviceTime">
+        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza el tiempo de servicio"
+               formControlName="serviceTime">
         <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
         <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
           <div *ngFor="let probFunc of listProbDeterministicFunc; let i=index">
@@ -898,7 +920,8 @@
         </ul>
       </div>
       <div *ngIf="typeServiceTime===1" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
-        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza el tiempo de servicio" formControlName="serviceTime">
+        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza el tiempo de servicio"
+               formControlName="serviceTime">
         <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
         <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
           <div *ngFor="let probFunc of listProbExpFunc; let i=index">
@@ -914,7 +937,8 @@
         </ul>
       </div>
       <div *ngIf="typeServiceTime===2" ngbDropdown class="dropdown menuDropdown2 selectMenu imagesContainer">
-        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza el tiempo de servicio" formControlName="serviceTime">
+        <input class="form-control" style="width: 20%" placeholder="Selecciona y personaliza el tiempo de servicio"
+               formControlName="serviceTime">
         <button class="btn ddbutton" type="button" ngbDropdownToggle></button>
         <ul ngbDropdownMenu class="dropdown-menu pre-scrollable">
           <div *ngFor="let probFunc of listProbGeneralFunc; let i=index">
@@ -945,7 +969,8 @@
           </div>
         </div>
         <div class="rightContainer">
-          <input type="number" class="form-control" placeholder="Selecciona el número de servidores" formControlName="numberOfServers">
+          <input type="number" class="form-control" placeholder="Selecciona el número de servidores"
+                 formControlName="numberOfServers">
         </div>
       </div>
       <div class="imagesContainer">
@@ -1044,7 +1069,8 @@
       <div *ngIf="!customTemplateForm.invalid" style="margin-top: 20px" class="titleHelpMenu imagesContainer">
         Sistema de colas elegido:
       </div>
-      <div *ngIf="!customTemplateForm.invalid" class="titleHelpMenu imagesContainer" style="margin-top: 10px; font-size: 20px;">
+      <div *ngIf="!customTemplateForm.invalid" class="titleHelpMenu imagesContainer"
+           style="margin-top: 10px; font-size: 20px;">
         <span *ngIf="customTemplateForm.value.interArrivalTimeSourceType==='Determinista'">D/</span>
         <span *ngIf="customTemplateForm.value.interArrivalTimeSourceType==='Exponencial'">M/</span>
         <span *ngIf="customTemplateForm.value.interArrivalTimeSourceType==='General'">G/</span>
@@ -1058,7 +1084,9 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cerrar</button>
-      <button type="submit" class="btn btn-danger" [disabled]="customTemplateForm.invalid" (click)="[modal.dismiss()]">Confirmar</button>
+      <button type="submit" class="btn btn-danger" [disabled]="customTemplateForm.invalid" (click)="[modal.dismiss()]">
+        Confirmar
+      </button>
     </div>
   </form>
 </ng-template>
@@ -1071,7 +1099,7 @@
   </div>
   <form [formGroup]="quickSimulationForm" (ngSubmit)="quickSimulationFunc()">
     <div class="modal-body">
-      <label for="timeSimulation" class="col-form-label">Tiempo de observación [horas]<span
+      <label for="timeSimulation" class="col-form-label">Tiempo de observación [minutos]<span
         class="asterisk">*</span></label>
       <input type="number" class="form-control" id="timeSimulation" formControlName="timeSimulation">
       <span *ngIf="timeSimulation && timeSimulation.invalid" class="errorMessage">Debe tener un valor entero mayor que 0 y menor que 20.</span>

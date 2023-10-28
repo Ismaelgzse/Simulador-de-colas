@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, ElementRef, Inject, NgZone, OnDestroy, OnInit, ViewChild} from "@angular/core";
 import {HomeService} from "../home/home.service";
 import {DOCUMENT} from "@angular/common";
 import {ItemContainerModel} from "./Items/itemContainer.model";
@@ -324,6 +324,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
   //refresh:boolean;
   simulating: boolean;
+
+  quickSimulating:boolean;
+
+  stageQuickSimulating:number;
   connectionModal: ConnectionModel;
   listConnections: ConnectionModel[]
   listConnectionsBackUp: ConnectionModel[]
@@ -352,6 +356,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
   listItemsTemplate: ItemContainerModel[];
 
+  countDownText:string;
+  percentageCountDownText:string;
+  countDownTimeQuickSimulation:number;
 
   listItems: ItemContainerModel[]
   id: number;
@@ -380,7 +387,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     "Valor entero (segundos)", "mins(Número minutos)", "hr(Número de horas)"];
 
   quickSimulationForm = new FormGroup({
-    timeSimulation: new FormControl(0, Validators.compose([Validators.required, Validators.min(0.0027), Validators.max(20)])),
+    timeSimulation: new FormControl(0, Validators.compose([Validators.required, Validators.min(1), Validators.max(180)])),
     numberSimulations: new FormControl(0, Validators.compose([Validators.required, Validators.min(1), Validators.max(5), Validators.pattern("^[0-9]*$")])),
     pdfFormat: new FormControl(false),
     csvFormat: new FormControl(false)
@@ -425,7 +432,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   })
 
 
-  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, public homeService: HomeService, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute) {
+  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, public homeService: HomeService, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute,private ngZone: NgZone) {
   }
 
   ngOnDestroy(): void {
@@ -452,6 +459,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.percentageCountDownText="0%"
     let alertErrorMessage = document.getElementById("cancelConnect");
     // @ts-ignore
     let listClasses = alertErrorMessage.classList;
@@ -473,6 +481,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.startSimulation = 0;
     this.timer = "0:00"
     this.simulating = false;
+    this.quickSimulating=false;
+    this.stageQuickSimulating=0;
     this.showConnections = true
     this.errorConnection = 0;
     this.correctSinkShown = false;
@@ -1064,6 +1074,26 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  countDown(seconds: number){
+    let interval=500;
+    let timeRemaining= seconds;
+
+    const timer= setInterval(()=>{
+      if (timeRemaining<=0){
+        clearInterval(timer)
+      }
+      else {
+        let remainingMin = Math.floor(timeRemaining / 60);
+        let remainingSec = Math.trunc(timeRemaining % 60);
+        timeRemaining=timeRemaining-0.5;
+        this.countDownText=remainingMin.toString().padStart(2,'0')+":"+remainingSec.toString().padStart(2,'0');
+        this.ngZone.run(() => {
+          this.percentageCountDownText = (((this.countDownTimeQuickSimulation-timeRemaining) * 100) / this.countDownTimeQuickSimulation).toFixed(2).toString() + "%";
+        });
+      }
+    },interval);
+  }
+
   quickSimulationFunc(){
     // @ts-ignore
     this.quickSimulationDTO.timeSimulation=this.quickSimulationForm.value.timeSimulation;
@@ -1073,15 +1103,57 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.quickSimulationDTO.pdfFormat=this.quickSimulationForm.value.pdfFormat;
     // @ts-ignore
     this.quickSimulationDTO.csvFormat=this.quickSimulationForm.value.csvFormat;
+    let timeSimulation=this.quickSimulationDTO.timeSimulation;
+    // @ts-ignore
+    if (timeSimulation!==undefined && timeSimulation<30){
+      this.countDownTimeQuickSimulation= timeSimulation*0.15*60;
+    }
+    else if (timeSimulation!==undefined && timeSimulation>=30 && timeSimulation<60){
+      this.countDownTimeQuickSimulation = timeSimulation*0.1*60;
+    }
+    else {
+      // @ts-ignore
+      this.countDownTimeQuickSimulation= timeSimulation*0.07*60;
+    }
+
+    this.countDown(this.countDownTimeQuickSimulation);
+
+    if (!this.blackScreen) {
+      //Go back tho the normal screen, removing the blackscreen
+      let blackCanvas = document.getElementById('blackScreen')
+      // @ts-ignore
+      blackCanvas.classList.toggle("showScreen")
+      this.blackScreen = true;
+      this.quickSimulating = true;
+    }
+    let timerElement = document.getElementById('waitingExportationData')
+    // @ts-ignore
+    timerElement.classList.toggle("showExportScreen");
+
+    this.stageQuickSimulating=1;
     this.simulationService.quickSimulation(this.id,this.quickSimulationDTO).subscribe({
       next : (listSimulations)=>{
         if (listSimulations){
           if (this.quickSimulationDTO.pdfFormat){
+            this.stageQuickSimulating=2;
             this.simulationService.generatePDF(this.id,listSimulations).subscribe({
               next : (pdf)=>{
                 const blob = new Blob([pdf], { type: 'application/pdf' });
                 const url = window.URL.createObjectURL(blob);
                 window.open(url);
+
+                if (this.blackScreen) {
+                  //Go back tho the normal screen, removing the blackscreen
+                  let blackCanvas = document.getElementById('blackScreen')
+                  // @ts-ignore
+                  blackCanvas.classList.toggle("showScreen")
+                  this.blackScreen = false;
+                  this.quickSimulating = false;
+                }
+                let timerElement = document.getElementById('waitingExportationData')
+                // @ts-ignore
+                timerElement.classList.toggle("showExportScreen");
+                this.stageQuickSimulating=0;
               }
             })
           }
@@ -1092,6 +1164,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         this.router.navigate(['error500']);
       }
     })
+
   }
 
   simulate() {
@@ -1428,7 +1501,20 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   openModalQuickSimulation(content: any) {
-    this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
+    let isCorrect= this.checkSimulationStructure(this.listItems);
+    if (isCorrect){
+      this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
+    }
+    else {
+      let alertErrorMessage = document.getElementById("cancelConnect");
+      // @ts-ignore
+      let listClasses = alertErrorMessage.classList;
+      if (listClasses.length <= 1) {
+        // @ts-ignore
+        alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+      }
+      this.errorConnection = 3;
+    }
   }
 
   openHelpModal(content: any) {
