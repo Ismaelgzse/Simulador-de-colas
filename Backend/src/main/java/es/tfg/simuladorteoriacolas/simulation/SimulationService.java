@@ -129,8 +129,6 @@ public class SimulationService {
                 allSimulations.add(futureAux);
             }
 
-            //pdfGeneratorService.generatePdf(allSimulations,"C:\\Users\\ISMAEL\\Desktop\\kk\\"+simulation.getTitle()+".pdf");
-
             return CompletableFuture.completedFuture(allSimulations);
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
