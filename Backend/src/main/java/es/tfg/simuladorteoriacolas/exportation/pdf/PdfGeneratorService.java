@@ -9,6 +9,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +35,15 @@ public class PdfGeneratorService {
         int rows;
         int cols = 5;
         for (ItemStatistics itemStatistics : itemStatisticsList) {
+            if (yStart<200){
+                contentStream.close();
+                page = new PDPage();
+                document.addPage(page);
+
+                contentStream = new PDPageContentStream(document, page);
+                yStart = page.getMediaBox().getHeight() - margin;
+                yPosition = yStart;
+            }
             rows = itemStatistics.getNameStatistic().size()+1;
 
             float rowHeight = 20f;
@@ -41,6 +51,14 @@ public class PdfGeneratorService {
             float tableYBottom = yStart - tableHeight;
 
             float y = yStart;
+
+            float cellWidth = tableWidth / (float) cols;
+            float cellHeight = rowHeight;
+            contentStream.setNonStrokingColor(new Color(255, 165, 0));
+            contentStream.addRect(margin, yStart - rowHeight, cellWidth, cellHeight);
+            contentStream.fill();
+            contentStream.setNonStrokingColor(Color.BLACK);
+
             for (int i = 0; i <= rows; i++) {
                 contentStream.moveTo(margin, y);
                 contentStream.lineTo(margin + tableWidth, y);
