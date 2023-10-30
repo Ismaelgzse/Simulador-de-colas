@@ -28,7 +28,7 @@ export class SimulationService {
     this.stompClient.connect({}, (frame) => {
       // @ts-ignore
       this.stompClient.subscribe(`/simulationInfo/${simulationId}`, (message) => {
-        this.listItemSimulation=JSON.parse(message.body);
+        this.listItemSimulation = JSON.parse(message.body);
       });
       this.stompClient.send('/wsAPI/simulateMessage/' + simulationId, {}, JSON.stringify('connect'))
     });
@@ -40,7 +40,7 @@ export class SimulationService {
     this.stompClient.connect({}, (frame) => {
       // @ts-ignore
       this.stompClient.subscribe(`/simulationInfo/${simulationId}`, (message) => {
-        this.listItemSimulation=JSON.parse(message.body);
+        this.listItemSimulation = JSON.parse(message.body);
       });
     });
   }
@@ -53,12 +53,12 @@ export class SimulationService {
     this.stompClient.disconnect();
   }
 
-  quickSimulation(idSimulation: number, quickSimulatonForm: quickSimulationFormDTOModel): Observable<any>{
+  quickSimulation(idSimulation: number, quickSimulatonForm: quickSimulationFormDTOModel): Observable<any> {
     // @ts-ignore
-    return this.httpClient.post('api/simulation/'+idSimulation+'/quickSimulation', quickSimulatonForm ,{withCredentials: true}) as Observable<any>;
+    return this.httpClient.post('api/simulation/' + idSimulation + '/quickSimulation', quickSimulatonForm, {withCredentials: true}) as Observable<any>;
   }
 
-  generatePDF(idSimulation: number,listSimulations:ItemContainerModel[][]): Observable<Blob> {
+  generatePDF(idSimulation: number, listSimulations: ItemContainerModel[][]): Observable<Blob> {
     const httpOptions = {
       responseType: 'blob' as 'json',
       headers: new HttpHeaders({
@@ -67,6 +67,20 @@ export class SimulationService {
     };
     // @ts-ignore
     return this.httpClient.post(`/api/simulation/${idSimulation}/quickSimulation/pdf`, listSimulations, {
+      ...httpOptions,
+      withCredentials: true
+    });
+  }
+
+  generateExcel(idSimulation: number, listSimulations: ItemContainerModel[][]): Observable<Blob> {
+    const httpOptions = {
+      responseType: 'blob' as 'json',
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+    // @ts-ignore
+    return this.httpClient.post(`/api/simulation/${idSimulation}/quickSimulation/excel`, listSimulations, {
       ...httpOptions,
       withCredentials: true
     });

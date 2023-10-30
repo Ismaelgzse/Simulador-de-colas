@@ -325,9 +325,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   //refresh:boolean;
   simulating: boolean;
 
-  quickSimulating:boolean;
+  quickSimulating: boolean;
 
-  stageQuickSimulating:number;
+  stageQuickSimulating: number;
   connectionModal: ConnectionModel;
   listConnections: ConnectionModel[]
   listConnectionsBackUp: ConnectionModel[]
@@ -352,13 +352,13 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   queueItemAuxForm: ItemModel;
   sinkItemAuxForm: ItemModel;
 
-  quickSimulationDTO:quickSimulationFormDTOModel;
+  quickSimulationDTO: quickSimulationFormDTOModel;
 
   listItemsTemplate: ItemContainerModel[];
 
-  countDownText:string;
-  percentageCountDownText:string;
-  countDownTimeQuickSimulation:number;
+  countDownText: string;
+  percentageCountDownText: string;
+  countDownTimeQuickSimulation: number;
 
   listItems: ItemContainerModel[]
   id: number;
@@ -432,7 +432,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   })
 
 
-  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, public homeService: HomeService, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute,private ngZone: NgZone) {
+  constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, public homeService: HomeService, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute, private ngZone: NgZone) {
   }
 
   ngOnDestroy(): void {
@@ -459,20 +459,20 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.percentageCountDownText="0%"
+    this.percentageCountDownText = "0%"
     let alertErrorMessage = document.getElementById("cancelConnect");
     // @ts-ignore
     let listClasses = alertErrorMessage.classList;
     if (listClasses.length > 1) {
       // @ts-ignore
       alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
-      this.errorConnection=0;
+      this.errorConnection = 0;
     }
-    this.quickSimulationDTO={
-      timeSimulation:0,
-      numberSimulations:0,
-      pdfFormat:false,
-      csvFormat:false
+    this.quickSimulationDTO = {
+      timeSimulation: 0,
+      numberSimulations: 0,
+      pdfFormat: false,
+      csvFormat: false
     }
     this.listItemsTemplate = []
     this.typeServiceTime = -1;
@@ -481,8 +481,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.startSimulation = 0;
     this.timer = "0:00"
     this.simulating = false;
-    this.quickSimulating=false;
-    this.stageQuickSimulating=0;
+    this.quickSimulating = false;
+    this.stageQuickSimulating = 0;
     this.showConnections = true
     this.errorConnection = 0;
     this.correctSinkShown = false;
@@ -1074,46 +1074,43 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  countDown(seconds: number){
-    let interval=500;
-    let timeRemaining= seconds;
+  countDown(seconds: number) {
+    let interval = 500;
+    let timeRemaining = seconds;
 
-    const timer= setInterval(()=>{
-      if (timeRemaining<=0){
+    const timer = setInterval(() => {
+      if (timeRemaining <= 0) {
         clearInterval(timer)
-      }
-      else {
+      } else {
         let remainingMin = Math.floor(timeRemaining / 60);
         let remainingSec = Math.trunc(timeRemaining % 60);
-        timeRemaining=timeRemaining-0.5;
-        this.countDownText=remainingMin.toString().padStart(2,'0')+":"+remainingSec.toString().padStart(2,'0');
+        timeRemaining = timeRemaining - 0.5;
+        this.countDownText = remainingMin.toString().padStart(2, '0') + ":" + remainingSec.toString().padStart(2, '0');
         this.ngZone.run(() => {
-          this.percentageCountDownText = (((this.countDownTimeQuickSimulation-timeRemaining) * 100) / this.countDownTimeQuickSimulation).toFixed(2).toString() + "%";
+          this.percentageCountDownText = (((this.countDownTimeQuickSimulation - timeRemaining) * 100) / this.countDownTimeQuickSimulation).toFixed(2).toString() + "%";
         });
       }
-    },interval);
+    }, interval);
   }
 
-  quickSimulationFunc(){
+  quickSimulationFunc() {
     // @ts-ignore
-    this.quickSimulationDTO.timeSimulation=this.quickSimulationForm.value.timeSimulation;
+    this.quickSimulationDTO.timeSimulation = this.quickSimulationForm.value.timeSimulation;
     // @ts-ignore
-    this.quickSimulationDTO.numberSimulations=this.quickSimulationForm.value.numberSimulations;
+    this.quickSimulationDTO.numberSimulations = this.quickSimulationForm.value.numberSimulations;
     // @ts-ignore
-    this.quickSimulationDTO.pdfFormat=this.quickSimulationForm.value.pdfFormat;
+    this.quickSimulationDTO.pdfFormat = this.quickSimulationForm.value.pdfFormat;
     // @ts-ignore
-    this.quickSimulationDTO.csvFormat=this.quickSimulationForm.value.csvFormat;
-    let timeSimulation=this.quickSimulationDTO.timeSimulation;
+    this.quickSimulationDTO.csvFormat = this.quickSimulationForm.value.csvFormat;
+    let timeSimulation = this.quickSimulationDTO.timeSimulation;
     // @ts-ignore
-    if (timeSimulation!==undefined && timeSimulation<30){
-      this.countDownTimeQuickSimulation= timeSimulation*0.15*60;
-    }
-    else if (timeSimulation!==undefined && timeSimulation>=30 && timeSimulation<60){
-      this.countDownTimeQuickSimulation = timeSimulation*0.1*60;
-    }
-    else {
+    if (timeSimulation !== undefined && timeSimulation < 30) {
+      this.countDownTimeQuickSimulation = timeSimulation * 0.15 * 60;
+    } else if (timeSimulation !== undefined && timeSimulation >= 30 && timeSimulation < 60) {
+      this.countDownTimeQuickSimulation = timeSimulation * 0.1 * 60;
+    } else {
       // @ts-ignore
-      this.countDownTimeQuickSimulation= timeSimulation*0.07*60;
+      this.countDownTimeQuickSimulation = timeSimulation * 0.07 * 60;
     }
 
     this.countDown(this.countDownTimeQuickSimulation);
@@ -1130,17 +1127,74 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     // @ts-ignore
     timerElement.classList.toggle("showExportScreen");
 
-    this.stageQuickSimulating=1;
-    this.simulationService.quickSimulation(this.id,this.quickSimulationDTO).subscribe({
-      next : (listSimulations)=>{
-        if (listSimulations){
-          if (this.quickSimulationDTO.pdfFormat){
-            this.stageQuickSimulating=2;
-            this.simulationService.generatePDF(this.id,listSimulations).subscribe({
-              next : (pdf)=>{
-                const blob = new Blob([pdf], { type: 'application/pdf' });
+    this.stageQuickSimulating = 1;
+    this.simulationService.quickSimulation(this.id, this.quickSimulationDTO).subscribe({
+      next: (listSimulations) => {
+        if (listSimulations) {
+          if (this.quickSimulationDTO.pdfFormat) {
+            this.stageQuickSimulating = 2;
+            this.simulationService.generatePDF(this.id, listSimulations).subscribe({
+              next: (pdf) => {
+                const blob = new Blob([pdf], {type: 'application/pdf'});
                 const url = window.URL.createObjectURL(blob);
                 window.open(url);
+
+                if (this.quickSimulationDTO.csvFormat) {
+                  this.simulationService.generateExcel(this.id,listSimulations).subscribe({
+                    next: (excel)=>{
+                      const url = window.URL.createObjectURL(excel);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = this.simulationTitle+'.xlsx';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      window.URL.revokeObjectURL(url);
+
+
+                      if (this.blackScreen) {
+                        //Go back tho the normal screen, removing the blackscreen
+                        let blackCanvas = document.getElementById('blackScreen')
+                        // @ts-ignore
+                        blackCanvas.classList.toggle("showScreen")
+                        this.blackScreen = false;
+                        this.quickSimulating = false;
+                      }
+                      let timerElement = document.getElementById('waitingExportationData')
+                      // @ts-ignore
+                      timerElement.classList.toggle("showExportScreen");
+                      this.stageQuickSimulating = 0;
+                    }
+                  })
+                } else {
+                  if (this.blackScreen) {
+                    //Go back tho the normal screen, removing the blackscreen
+                    let blackCanvas = document.getElementById('blackScreen')
+                    // @ts-ignore
+                    blackCanvas.classList.toggle("showScreen")
+                    this.blackScreen = false;
+                    this.quickSimulating = false;
+                  }
+                  let timerElement = document.getElementById('waitingExportationData')
+                  // @ts-ignore
+                  timerElement.classList.toggle("showExportScreen");
+                  this.stageQuickSimulating = 0;
+                }
+              }
+            })
+          }
+          else if (this.quickSimulationDTO.csvFormat) {
+            this.simulationService.generateExcel(this.id,listSimulations).subscribe({
+              next: (excel)=>{
+                const url = window.URL.createObjectURL(excel);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = this.simulationTitle+'.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
 
                 if (this.blackScreen) {
                   //Go back tho the normal screen, removing the blackscreen
@@ -1153,14 +1207,14 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                 let timerElement = document.getElementById('waitingExportationData')
                 // @ts-ignore
                 timerElement.classList.toggle("showExportScreen");
-                this.stageQuickSimulating=0;
+                this.stageQuickSimulating = 0;
               }
             })
           }
 
         }
       },
-      error : (err)=>{
+      error: (err) => {
         this.router.navigate(['error500']);
       }
     })
@@ -1501,11 +1555,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   openModalQuickSimulation(content: any) {
-    let isCorrect= this.checkSimulationStructure(this.listItems);
-    if (isCorrect){
+    let isCorrect = this.checkSimulationStructure(this.listItems);
+    if (isCorrect) {
       this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
-    }
-    else {
+    } else {
       let alertErrorMessage = document.getElementById("cancelConnect");
       // @ts-ignore
       let listClasses = alertErrorMessage.classList;

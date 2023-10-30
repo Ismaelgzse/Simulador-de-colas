@@ -1,5 +1,6 @@
 package es.tfg.simuladorteoriacolas.simulation;
 
+import es.tfg.simuladorteoriacolas.exportation.excel.ExcelGeneratorService;
 import es.tfg.simuladorteoriacolas.folder.FolderService;
 import es.tfg.simuladorteoriacolas.items.ItemDTO;
 import es.tfg.simuladorteoriacolas.items.ItemService;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -370,6 +372,33 @@ public class SimulationAPIController {
                         .headers(httpHeaders)
                         .contentType(MediaType.parseMediaType("application/pdf"))
                         .body(pdfBytes);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @PostMapping("simulation/{idSimulation}/quickSimulation/excel")
+    public ResponseEntity<byte[]> downloadExcel(@PathVariable Integer idSimulation,
+                                                @RequestBody List<List<ItemDTO>> simulations,
+                                                HttpServletRequest request) throws IOException {
+        var simulation = simulationService.findById(idSimulation).get();
+        if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
+            if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
+                Workbook workbook= simulationService.generateExcel(simulations,simulation.getTitle());
+
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                workbook.write(byteArrayOutputStream);
+                workbook.close();
+
+                byte[] excelBytes = byteArrayOutputStream.toByteArray();
+
+                HttpHeaders httpHeaders = new HttpHeaders();
+                httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+simulation.getTitle()+".xlsx");
+
+                return ResponseEntity.ok()
+                        .headers(httpHeaders)
+                        .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                        .body(excelBytes);
             }
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

@@ -1,5 +1,8 @@
-package es.tfg.simuladorteoriacolas.pdf;
+package es.tfg.simuladorteoriacolas.exportation;
 
+import es.tfg.simuladorteoriacolas.items.ItemDTO;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 

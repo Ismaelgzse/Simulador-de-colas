@@ -1,24 +1,25 @@
 package es.tfg.simuladorteoriacolas.simulation;
 
+import es.tfg.simuladorteoriacolas.exportation.excel.ExcelGeneratorService;
 import es.tfg.simuladorteoriacolas.folder.Folder;
 import es.tfg.simuladorteoriacolas.folder.FolderService;
 import es.tfg.simuladorteoriacolas.items.ItemDTO;
 import es.tfg.simuladorteoriacolas.items.ItemService;
 import es.tfg.simuladorteoriacolas.items.types.ItemTypesService;
-import es.tfg.simuladorteoriacolas.pdf.PdfGeneratorService;
+import es.tfg.simuladorteoriacolas.exportation.pdf.PdfGeneratorService;
 import es.tfg.simuladorteoriacolas.simulation.algorithm.Algorithm;
 import es.tfg.simuladorteoriacolas.simulation.algorithm.QuickSimulationAlgorithm;
 import es.tfg.simuladorteoriacolas.user.UserEntity;
 import es.tfg.simuladorteoriacolas.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.ls.LSException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +29,9 @@ import java.util.concurrent.*;
 
 @Service
 public class SimulationService {
+
+    @Autowired
+    private ExcelGeneratorService excelGeneratorService;
 
     @Autowired
     private PdfGeneratorService pdfGeneratorService;
@@ -99,6 +103,10 @@ public class SimulationService {
 
     public PDDocument generatePDF(List<List<ItemDTO>> simulations, String filename) throws IOException {
         return pdfGeneratorService.generatePdf(simulations,filename);
+    }
+
+    public Workbook generateExcel(List<List<ItemDTO>> simulations, String filename) throws IOException {
+        return excelGeneratorService.generateExcel(simulations,filename);
     }
 
     @Async
