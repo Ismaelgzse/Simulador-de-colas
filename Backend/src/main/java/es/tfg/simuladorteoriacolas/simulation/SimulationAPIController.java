@@ -330,6 +330,21 @@ public class SimulationAPIController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    @GetMapping("simulation/{idSimulation}/isRunningQuickSimulation")
+    public ResponseEntity<Boolean> isRunningQuickSimulation(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                             @Parameter(description = "Http servlet information") HttpServletRequest request) {
+        var simulation = simulationService.findById(idSimulation).get();
+        if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
+            if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
+                if (simulation.getStatusQuickSimulation().equals("1")) {
+                    return ResponseEntity.ok(true);
+                }
+                return ResponseEntity.ok(false);
+            }
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
     @PostMapping("simulation/{idSimulation}/quickSimulation")
     public ResponseEntity<List<List<ItemDTO>>> quickSimulation(@PathVariable Integer idSimulation,
                                                                @RequestBody QuickSimulationDTO quickSimulationDTO,
@@ -337,7 +352,7 @@ public class SimulationAPIController {
         var simulation = simulationService.findById(idSimulation).get();
         if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
             if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
-                if (!simulation.getStatusSimulation().equals("1")) {
+                if (!simulation.getStatusQuickSimulation().equals("1") && !simulation.getStatusSimulation().equals("1")) {
 
                     CompletableFuture<List<List<ItemDTO>>> future = simulationService.operation(idSimulation, quickSimulationDTO.getTimeSimulation(), quickSimulationDTO.getNumberSimulations());
 

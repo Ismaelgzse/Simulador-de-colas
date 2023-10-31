@@ -51,13 +51,13 @@
           -->
           <div class="col-4">
             <div class="titleControls">Iniciar</div>
-            <button class="controlButtons" [disabled]="simulating || quickSimulating" (click)="simulate()">
+            <button class="controlButtons" [disabled]="simulating || quickSimulating" (click)="simulate(stopSimulatingConfirmation)">
               <i type="button" class="fa-solid fa-play"></i>
             </button>
           </div>
           <div class="col-4">
             <div class="titleControls">Simulación rápida</div>
-            <button class="controlButtons" [disabled]="simulating || quickSimulating" (click)="openModalQuickSimulation(quickSimulation)"
+            <button class="controlButtons" [disabled]="simulating || quickSimulating" (click)="openModalQuickSimulation(quickSimulation,stopSimulatingConfirmation)"
                     data-toggle="modal" data-target="#modalSimulation">
               <i class="fa-solid fa-forward"></i>
             </button>
@@ -263,7 +263,7 @@
     <div *ngFor="let itemContainer of listItems; let i=index" id="{{itemContainer.item.name}}"
          style="position: absolute; left:{{itemContainer.item.positionX}}px; top:{{itemContainer.item.positionY}}px"
          (click)="newConnection($event,itemContainer)">
-      <svg
+      <svg cursor="pointer"
         *ngIf="itemContainer.item.description==='Sink' && (correctSinkShown || sameElement==itemContainer.item.name || simulating)"
         width="200" height="100">
         <g stroke="black" stroke-width="1px" fill="white">
@@ -286,7 +286,7 @@
         </g>
       </svg>
 
-      <svg
+      <svg cursor="pointer"
         *ngIf="itemContainer.item.description==='Source' && (correctSourceSown || sameElement==itemContainer.item.name || simulating)"
         width="200" height="100">
         <g stroke="black" stroke-width="1px" fill="white">
@@ -307,7 +307,7 @@
         </g>
       </svg>
 
-      <svg
+      <svg cursor="pointer"
         *ngIf="itemContainer.item.description==='Queue' && (correctQueueShown|| sameElement==itemContainer.item.name || simulating)"
         width="200" height="100">
         <g stroke="black" stroke-width="1px" fill="white">
@@ -331,7 +331,7 @@
         </g>
       </svg>
 
-      <svg
+      <svg cursor="pointer"
         *ngIf="itemContainer.item.description==='Server' && (correctServerShown || sameElement==itemContainer.item.name || simulating)"
         width="200" height="100">
         <g stroke="black" stroke-width="1px" fill="white">
@@ -573,6 +573,8 @@
 -->
 
 
+
+
 <div class="modal fade" id="modalNewFolder" tabindex="-1" role="dialog" aria-labelledby="modalSave"
      aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
@@ -604,6 +606,16 @@
     </div>
   </div>
 </div>
+
+<ng-template #stopSimulatingConfirmation let-modal class="modal fade">
+  <div class="modal-header">
+    <h5>Simulación activa</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    Está activa esta simulación en otra pestaña. Solo se puede tener una simulación ejecutando concurrentemente, si quiere volver a empezar a simular este experimento deberá parar la simulación activa.
+  </div>
+</ng-template>
 
 <ng-template #helpModal let-modal class="modal fade">
   <div class="modal-header">

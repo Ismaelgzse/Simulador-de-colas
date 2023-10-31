@@ -89,6 +89,8 @@ public class SimulationService {
         simulation.setFolder(folder);
         UserEntity user= userService.findByNickname(request.getUserPrincipal().getName()).get();
         simulation.setUserCreator(user);
+        simulation.setStatusQuickSimulation("0");
+        simulation.setStatusSimulation("0");
         return simulationRepository.save(simulation);
     }
 
@@ -113,6 +115,8 @@ public class SimulationService {
     public CompletableFuture<List<List<ItemDTO>>> operation(Integer simulationId, Double timeSimulation, Integer numberSimulations) throws ExecutionException, InterruptedException {
         try {
             Simulation simulation=simulationRepository.findById(simulationId).get();
+            simulation.setStatusQuickSimulation("1");
+            simulationRepository.save(simulation);
             List<ItemDTO> simulationItems=itemService.getSimulationItems(simulation);
             Double durationOfQuickSimulation;
             if(timeSimulation<30){
@@ -125,11 +129,11 @@ public class SimulationService {
                 durationOfQuickSimulation=timeSimulation*60*0.07*1000;
             }
             var multiplierTime= (timeSimulation*60000)/durationOfQuickSimulation;
-            QuickSimulationAlgorithm quickSimulationAlgorithm= new QuickSimulationAlgorithm(simulationItems,timeSimulation,multiplierTime);
             ExecutorService executorService= Executors.newCachedThreadPool();
             List<List<ItemDTO>> allSimulations= new ArrayList<>();
             List<Future<List<ItemDTO>>> futureList= new ArrayList<>();
             for (var i=0;i<numberSimulations;i++){
+                QuickSimulationAlgorithm quickSimulationAlgorithm= new QuickSimulationAlgorithm(simulationItems,timeSimulation,multiplierTime);
                 futureList.add(executorService.submit(quickSimulationAlgorithm));
             }
             for (Future<List<ItemDTO>> future: futureList) {
@@ -137,6 +141,8 @@ public class SimulationService {
                 allSimulations.add(futureAux);
             }
 
+            simulation.setStatusQuickSimulation("0");
+            simulationRepository.save(simulation);
             return CompletableFuture.completedFuture(allSimulations);
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();

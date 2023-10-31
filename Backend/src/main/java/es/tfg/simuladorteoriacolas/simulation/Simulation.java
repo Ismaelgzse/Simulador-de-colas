@@ -26,6 +26,8 @@ public class Simulation {
 
     private String statusSimulation;
 
+    private String statusQuickSimulation;
+
     private Integer timeSimulation;
 
     @Lob
@@ -76,6 +78,14 @@ public class Simulation {
 
     public void setTimeSimulation(Integer timeSimulation) {
         this.timeSimulation = timeSimulation;
+    }
+
+    public String getStatusQuickSimulation() {
+        return statusQuickSimulation;
+    }
+
+    public void setStatusQuickSimulation(String statusQuickSimulation) {
+        this.statusQuickSimulation = statusQuickSimulation;
     }
 
     public void setUserCreator(UserEntity userCreator) {

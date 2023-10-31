@@ -27,9 +27,9 @@ public class WebSocketController {
     @SendTo("/simulationInfo/{simulatonId}")
     public void handler(@DestinationVariable String simulationId, String activateTask) {
 
-        //TODO provisional
         var simulation = simulationService.findById(Integer.valueOf(simulationId)).get();
-        if (simulation.getStatusSimulation().equals("0")) {
+
+        if (activateTask.equals("\"start\"") && simulation.getStatusSimulation().equals("0") && simulation.getStatusQuickSimulation().equals("0")){
             simulation.setStatusSimulation("1");
             simulationService.save(simulation);
             simulationService.simulate(Integer.valueOf(simulationId));

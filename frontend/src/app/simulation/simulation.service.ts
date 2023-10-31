@@ -22,7 +22,7 @@ export class SimulationService {
     this.stompClient = Stomp.over(ws);
   }
 
-  public connectAlt(simulationId: string) {
+  public connectAlt(simulationId: string, message:string) {
 
     // @ts-ignore
     this.stompClient.connect({}, (frame) => {
@@ -30,7 +30,7 @@ export class SimulationService {
       this.stompClient.subscribe(`/simulationInfo/${simulationId}`, (message) => {
         this.listItemSimulation = JSON.parse(message.body);
       });
-      this.stompClient.send('/wsAPI/simulateMessage/' + simulationId, {}, JSON.stringify('connect'))
+      this.stompClient.send('/wsAPI/simulateMessage/' + simulationId, {}, JSON.stringify(message))
     });
   }
 
@@ -45,8 +45,8 @@ export class SimulationService {
     });
   }
 
-  public sendMessage(simulationId: string) {
-    this.stompClient.send('/wsAPI/simulateMessage/' + simulationId, {}, JSON.stringify('connect'))
+  public sendMessage(simulationId: string, message:string) {
+    this.stompClient.send('/wsAPI/simulateMessage/' + simulationId, {}, JSON.stringify(message))
   }
 
   public closeConnection() {
@@ -123,5 +123,8 @@ export class SimulationService {
     return this.httpClient.get('api/simulation/' + idSimulation + "/isRunning", {withCredentials: true}) as Observable<any>;
   }
 
+  getStatusQuickSimulation(idSimulation: number): Observable<any> {
+    return this.httpClient.get('api/simulation/' + idSimulation + "/isRunningQuickSimulation", {withCredentials: true}) as Observable<any>;
+  }
 
 }

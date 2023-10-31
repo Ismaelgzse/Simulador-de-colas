@@ -327,6 +327,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
   quickSimulating: boolean;
 
+  referenceModal: any;
   stageQuickSimulating: number;
   connectionModal: ConnectionModel;
   listConnections: ConnectionModel[]
@@ -442,13 +443,13 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
           this.simulationService.getStatusSimulation(this.id).subscribe({
             next: (status) => {
               if (status) {
-                this.simulationService.sendMessage(this.id.toString())
+                this.simulationService.sendMessage(this.id.toString(), "stop")
               }
               this.simulationService.closeConnection();
             },
             error: (err) => {
               if (this.simulating) {
-                this.simulationService.sendMessage(this.id.toString());
+                this.simulationService.sendMessage(this.id.toString(), "stop");
                 this.simulationService.closeConnection();
               }
             }
@@ -549,7 +550,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
           this.simulationService.getStatusSimulation(this.id).subscribe({
             next: (status) => {
               if (status) {
-                this.simulationService.connectAlt(this.id.toString());
+                this.simulationService.connectAlt(this.id.toString(), "stop");
                 this.simulating = false;
               } else {
                 this.simulationService.connect(this.id.toString());
@@ -1070,7 +1071,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       timerElement.classList.toggle("showTimer");
       clearInterval(this.intervalId);
       this.startSimulation = 0;
-      this.simulationService.sendMessage(this.id.toString());
+      this.simulationService.sendMessage(this.id.toString(), "stop");
     }
   }
 
@@ -1113,136 +1114,165 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       this.countDownTimeQuickSimulation = timeSimulation * 0.07 * 60;
     }
 
-    this.countDown(this.countDownTimeQuickSimulation);
+    this.simulationService.getStatusQuickSimulation(this.id).subscribe({
+      next: (statusQuickSimulation) => {
+        this.simulationService.getStatusSimulation(this.id).subscribe({
+          next: (status) => {
+            if (status === false && statusQuickSimulation===false) {
+              this.countDown(this.countDownTimeQuickSimulation);
 
-    if (!this.blackScreen) {
-      //Go back tho the normal screen, removing the blackscreen
-      let blackCanvas = document.getElementById('blackScreen')
-      // @ts-ignore
-      blackCanvas.classList.toggle("showScreen")
-      this.blackScreen = true;
-      this.quickSimulating = true;
-    }
-    let timerElement = document.getElementById('waitingExportationData')
-    // @ts-ignore
-    timerElement.classList.toggle("showExportScreen");
-
-    this.stageQuickSimulating = 1;
-    this.simulationService.quickSimulation(this.id, this.quickSimulationDTO).subscribe({
-      next: (listSimulations) => {
-        if (listSimulations) {
-          if (this.quickSimulationDTO.pdfFormat) {
-            this.stageQuickSimulating = 2;
-            this.simulationService.generatePDF(this.id, listSimulations).subscribe({
-              next: (pdf) => {
-                const blob = new Blob([pdf], {type: 'application/pdf'});
-                const url = window.URL.createObjectURL(blob);
-                window.open(url);
-
-                if (this.quickSimulationDTO.csvFormat) {
-                  this.simulationService.generateExcel(this.id,listSimulations).subscribe({
-                    next: (excel)=>{
-                      const url = window.URL.createObjectURL(excel);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = this.simulationTitle+'.xlsx';
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      window.URL.revokeObjectURL(url);
-
-
-                      if (this.blackScreen) {
-                        //Go back tho the normal screen, removing the blackscreen
-                        let blackCanvas = document.getElementById('blackScreen')
-                        // @ts-ignore
-                        blackCanvas.classList.toggle("showScreen")
-                        this.blackScreen = false;
-                        this.quickSimulating = false;
-                      }
-                      let timerElement = document.getElementById('waitingExportationData')
-                      // @ts-ignore
-                      timerElement.classList.toggle("showExportScreen");
-                      this.stageQuickSimulating = 0;
-                    }
-                  })
-                } else {
-                  if (this.blackScreen) {
-                    //Go back tho the normal screen, removing the blackscreen
-                    let blackCanvas = document.getElementById('blackScreen')
-                    // @ts-ignore
-                    blackCanvas.classList.toggle("showScreen")
-                    this.blackScreen = false;
-                    this.quickSimulating = false;
-                  }
-                  let timerElement = document.getElementById('waitingExportationData')
-                  // @ts-ignore
-                  timerElement.classList.toggle("showExportScreen");
-                  this.stageQuickSimulating = 0;
-                }
+              if (!this.blackScreen) {
+                let blackCanvas = document.getElementById('blackScreen')
+                // @ts-ignore
+                blackCanvas.classList.toggle("showScreen")
+                this.blackScreen = true;
+                this.quickSimulating = true;
               }
-            })
+              let timerElement = document.getElementById('waitingExportationData')
+              // @ts-ignore
+              timerElement.classList.toggle("showExportScreen");
+
+              this.stageQuickSimulating = 1;
+              this.simulationService.quickSimulation(this.id, this.quickSimulationDTO).subscribe({
+                next: (listSimulations) => {
+                  if (listSimulations !== null) {
+                    if (this.quickSimulationDTO.pdfFormat) {
+                      this.stageQuickSimulating = 2;
+                      this.simulationService.generatePDF(this.id, listSimulations).subscribe({
+                        next: (pdf) => {
+                          const blob = new Blob([pdf], {type: 'application/pdf'});
+                          const url = window.URL.createObjectURL(blob);
+                          window.open(url);
+
+                          if (this.quickSimulationDTO.csvFormat) {
+                            this.simulationService.generateExcel(this.id, listSimulations).subscribe({
+                              next: (excel) => {
+                                const url = window.URL.createObjectURL(excel);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = this.simulationTitle + '.xlsx';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                window.URL.revokeObjectURL(url);
+
+
+                                if (this.blackScreen) {
+                                  //Go back tho the normal screen, removing the blackscreen
+                                  let blackCanvas = document.getElementById('blackScreen')
+                                  // @ts-ignore
+                                  blackCanvas.classList.toggle("showScreen")
+                                  this.blackScreen = false;
+                                  this.quickSimulating = false;
+                                }
+                                let timerElement = document.getElementById('waitingExportationData')
+                                // @ts-ignore
+                                timerElement.classList.toggle("showExportScreen");
+                                this.stageQuickSimulating = 0;
+                              }
+                            })
+                          } else {
+                            if (this.blackScreen) {
+                              //Go back tho the normal screen, removing the blackscreen
+                              let blackCanvas = document.getElementById('blackScreen')
+                              // @ts-ignore
+                              blackCanvas.classList.toggle("showScreen")
+                              this.blackScreen = false;
+                              this.quickSimulating = false;
+                            }
+                            let timerElement = document.getElementById('waitingExportationData')
+                            // @ts-ignore
+                            timerElement.classList.toggle("showExportScreen");
+                            this.stageQuickSimulating = 0;
+                          }
+                        }
+                      })
+                    } else if (this.quickSimulationDTO.csvFormat) {
+                      this.simulationService.generateExcel(this.id, listSimulations).subscribe({
+                        next: (excel) => {
+                          const url = window.URL.createObjectURL(excel);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = this.simulationTitle + '.xlsx';
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          window.URL.revokeObjectURL(url);
+
+
+                          if (this.blackScreen) {
+                            //Go back tho the normal screen, removing the blackscreen
+                            let blackCanvas = document.getElementById('blackScreen')
+                            // @ts-ignore
+                            blackCanvas.classList.toggle("showScreen")
+                            this.blackScreen = false;
+                            this.quickSimulating = false;
+                          }
+                          let timerElement = document.getElementById('waitingExportationData')
+                          // @ts-ignore
+                          timerElement.classList.toggle("showExportScreen");
+                          this.stageQuickSimulating = 0;
+                        }
+                      })
+                    }
+                  }
+                },
+                error: (err) => {
+                  this.router.navigate(['error500']);
+                }
+              })
+            }
+            else {
+              this.modalService.open(this.referenceModal, {centered: true});
+            }
           }
-          else if (this.quickSimulationDTO.csvFormat) {
-            this.simulationService.generateExcel(this.id,listSimulations).subscribe({
-              next: (excel)=>{
-                const url = window.URL.createObjectURL(excel);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = this.simulationTitle+'.xlsx';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
+        })
+      }
+
+    })
 
 
-                if (this.blackScreen) {
+  }
+
+  simulate(content:any) {
+    this.referenceModal=content;
+    if (this.checkSimulationStructure(this.listItems)) {
+
+      this.simulationService.getStatusSimulation(this.id).subscribe({
+        next : (status)=>{
+          this.simulationService.getStatusQuickSimulation(this.id).subscribe({
+            next : (statusQuickSimulation)=>{
+              if (status===false && statusQuickSimulation===false){
+                if (!this.blackScreen) {
                   //Go back tho the normal screen, removing the blackscreen
                   let blackCanvas = document.getElementById('blackScreen')
                   // @ts-ignore
                   blackCanvas.classList.toggle("showScreen")
-                  this.blackScreen = false;
-                  this.quickSimulating = false;
+                  this.blackScreen = true;
+                  this.simulating = true;
                 }
-                let timerElement = document.getElementById('waitingExportationData')
+                let timerElement = document.getElementById('timer')
                 // @ts-ignore
-                timerElement.classList.toggle("showExportScreen");
-                this.stageQuickSimulating = 0;
+                timerElement.classList.toggle("showTimer");
+
+                if (this.simulating) {
+                  this.startSimulation = Date.now() - (this.startSimulation > 0 ? this.startSimulation : 0);
+                  // @ts-ignore
+                  this.intervalId = setInterval(() => {
+                    this.updateTimer();
+                  }, 1000);
+                }
+                this.simulationService.sendMessage(this.id.toString(), "start");
+              }else {
+                this.modalService.open(this.referenceModal, {centered: true});
               }
-            })
-          }
-
+              if (status===true){
+                this.simulationService.sendMessage(this.id.toString(), "stop");
+              }
+            }
+          })
         }
-      },
-      error: (err) => {
-        this.router.navigate(['error500']);
-      }
-    })
-
-  }
-
-  simulate() {
-    if (this.checkSimulationStructure(this.listItems)) {
-      if (!this.blackScreen) {
-        //Go back tho the normal screen, removing the blackscreen
-        let blackCanvas = document.getElementById('blackScreen')
-        // @ts-ignore
-        blackCanvas.classList.toggle("showScreen")
-        this.blackScreen = true;
-        this.simulating = true;
-      }
-      let timerElement = document.getElementById('timer')
-      // @ts-ignore
-      timerElement.classList.toggle("showTimer");
-
-      if (this.simulating) {
-        this.startSimulation = Date.now() - (this.startSimulation > 0 ? this.startSimulation : 0);
-        // @ts-ignore
-        this.intervalId = setInterval(() => {
-          this.updateTimer();
-        }, 1000);
-      }
-      this.simulationService.sendMessage(this.id.toString());
+      })
     } else {
       let alertErrorMessage = document.getElementById("cancelConnect");
       // @ts-ignore
@@ -1554,7 +1584,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
-  openModalQuickSimulation(content: any) {
+  openModalQuickSimulation(content: any, content2: any) {
+    this.referenceModal = content2;
     let isCorrect = this.checkSimulationStructure(this.listItems);
     if (isCorrect) {
       this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
