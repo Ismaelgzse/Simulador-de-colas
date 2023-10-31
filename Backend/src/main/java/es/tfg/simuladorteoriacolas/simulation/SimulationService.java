@@ -112,7 +112,7 @@ public class SimulationService {
     }
 
     @Async
-    public CompletableFuture<List<List<ItemDTO>>> operation(Integer simulationId, Double timeSimulation, Integer numberSimulations) throws ExecutionException, InterruptedException {
+    public CompletableFuture<List<List<ItemDTO>>> quickSimulationsFunc(Integer simulationId, Double timeSimulation, Integer numberSimulations,List<List<ItemDTO>> simulations) throws ExecutionException, InterruptedException {
         try {
             Simulation simulation=simulationRepository.findById(simulationId).get();
             simulation.setStatusQuickSimulation("1");
@@ -133,7 +133,7 @@ public class SimulationService {
             List<List<ItemDTO>> allSimulations= new ArrayList<>();
             List<Future<List<ItemDTO>>> futureList= new ArrayList<>();
             for (var i=0;i<numberSimulations;i++){
-                QuickSimulationAlgorithm quickSimulationAlgorithm= new QuickSimulationAlgorithm(simulationItems,timeSimulation,multiplierTime);
+                QuickSimulationAlgorithm quickSimulationAlgorithm= new QuickSimulationAlgorithm(simulations.get(i),timeSimulation,multiplierTime);
                 futureList.add(executorService.submit(quickSimulationAlgorithm));
             }
             for (Future<List<ItemDTO>> future: futureList) {

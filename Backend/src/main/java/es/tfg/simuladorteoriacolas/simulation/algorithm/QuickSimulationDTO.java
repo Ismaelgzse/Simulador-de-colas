@@ -1,5 +1,9 @@
 package es.tfg.simuladorteoriacolas.simulation.algorithm;
 
+import es.tfg.simuladorteoriacolas.items.ItemDTO;
+
+import java.util.List;
+
 public class QuickSimulationDTO {
     private Double timeSimulation;
 
@@ -9,11 +13,14 @@ public class QuickSimulationDTO {
 
     private Boolean csvFormat;
 
-    public QuickSimulationDTO(Double timeSimulation, Integer numberSimulations, Boolean pdfFormat, Boolean csvFormat){
+    private List<List<ItemDTO>> listSimulations;
+
+    public QuickSimulationDTO(Double timeSimulation, Integer numberSimulations, Boolean pdfFormat, Boolean csvFormat, List<List<ItemDTO>> listSimulations){
         this.timeSimulation=timeSimulation;
         this.numberSimulations=numberSimulations;
         this.pdfFormat=pdfFormat;
         this.csvFormat=csvFormat;
+        this.listSimulations =listSimulations;
     }
 
     public Double getTimeSimulation() {
@@ -46,5 +53,13 @@ public class QuickSimulationDTO {
 
     public void setCsvFormat(Boolean csvFormat) {
         this.csvFormat = csvFormat;
+    }
+
+    public List<List<ItemDTO>> getListSimulations() {
+        return listSimulations;
+    }
+
+    public void setListSimulations(List<List<ItemDTO>> listSimulations) {
+        this.listSimulations = listSimulations;
     }
 }

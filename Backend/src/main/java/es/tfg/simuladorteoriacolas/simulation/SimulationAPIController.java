@@ -1,6 +1,5 @@
 package es.tfg.simuladorteoriacolas.simulation;
 
-import es.tfg.simuladorteoriacolas.exportation.excel.ExcelGeneratorService;
 import es.tfg.simuladorteoriacolas.folder.FolderService;
 import es.tfg.simuladorteoriacolas.items.ItemDTO;
 import es.tfg.simuladorteoriacolas.items.ItemService;
@@ -354,7 +353,7 @@ public class SimulationAPIController {
             if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
                 if (!simulation.getStatusQuickSimulation().equals("1") && !simulation.getStatusSimulation().equals("1")) {
 
-                    CompletableFuture<List<List<ItemDTO>>> future = simulationService.operation(idSimulation, quickSimulationDTO.getTimeSimulation(), quickSimulationDTO.getNumberSimulations());
+                    CompletableFuture<List<List<ItemDTO>>> future = simulationService.quickSimulationsFunc(idSimulation, quickSimulationDTO.getTimeSimulation(), quickSimulationDTO.getNumberSimulations(),quickSimulationDTO.getListSimulations());
 
                     List<List<ItemDTO>> simulationResult = future.get();
 

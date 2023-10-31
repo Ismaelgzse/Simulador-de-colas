@@ -1103,6 +1103,11 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.quickSimulationDTO.pdfFormat = this.quickSimulationForm.value.pdfFormat;
     // @ts-ignore
     this.quickSimulationDTO.csvFormat = this.quickSimulationForm.value.csvFormat;
+
+    let listSimulations=this.cloneSimulations(this.listItems,this.quickSimulationDTO.numberSimulations);
+
+    this.quickSimulationDTO.listSimulations=listSimulations;
+
     let timeSimulation = this.quickSimulationDTO.timeSimulation;
     // @ts-ignore
     if (timeSimulation !== undefined && timeSimulation < 30) {
@@ -2392,5 +2397,14 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       }
     }
     return 'progress-bar progress-bar-striped active successProgressBar';
+  }
+
+  cloneSimulations(listItems: ItemContainerModel[], numberSimulations: number | undefined) {
+    let listSimulations=[]
+    // @ts-ignore
+    for (let i=0;i<numberSimulations;i++){
+      listSimulations.push(listItems);
+    }
+    return listSimulations;
   }
 }
