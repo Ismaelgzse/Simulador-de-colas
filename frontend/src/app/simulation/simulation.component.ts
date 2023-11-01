@@ -376,10 +376,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   listInterArrivalTypes = ["Determinista", "Exponencial", "General"];
   listProbDeterministicFunc = ["10", "mins(10)", "hr(0.5)"];
   listProbExpFunc = ["NegExp(10)"];
-  listProbGeneralFunc = ["Poisson(10)", "Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,0.15)", "Max(0,Normal(10,1))",
+  listProbGeneralFunc = ["Poisson(10)", "Triangular(5,19,10)", "LogNormal(10,2)", "Binomial(5,0.15)", "Max(0,Normal(10,1))",
     "Beta(10,1,1)", "Gamma(10,2)", "Max(0,Logistic(10,1))", "Uniform(5,15)", "Weibull(10,2)"];
 
-  listProbFunc = ["NegExp(10)", "Poisson(10)", "Triangular(5,10,15)", "LogNormal(10,2)", "Binomial(5,0.15)", "Max(0,Normal(10,1))",
+  listProbFunc = ["NegExp(10)", "Poisson(10)", "Triangular(5,19,10)", "LogNormal(10,2)", "Binomial(5,0.15)", "Max(0,Normal(10,1))",
     "Beta(10,1,1)", "Gamma(10,2)", "Max(0,Logistic(10,1))", "Uniform(5,15)", "Weibull(10,2)",
     "10", "mins(10)", "hr(0.5)"];
 
@@ -2227,7 +2227,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         let firstNumberInt = Number(firstNumber);
         let secondNumberInt = Number(secondNumber);
         let thirdNumberInt = Number(thirdNumber)
-        if (!isNaN(firstNumberInt) && !isNaN(secondNumberInt) && !isNaN(thirdNumberInt) && firstNumberInt > 0 && secondNumberInt > firstNumberInt && thirdNumberInt > firstNumberInt && thirdNumberInt > secondNumberInt) {
+        if (!isNaN(firstNumberInt) && !isNaN(secondNumberInt) && !isNaN(thirdNumberInt) && firstNumberInt > 0 && secondNumberInt > firstNumberInt && thirdNumberInt > firstNumberInt && secondNumberInt > thirdNumberInt) {
           return null;
         }
         return {invalidFormat: true};
