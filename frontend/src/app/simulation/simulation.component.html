@@ -615,6 +615,9 @@
   <div class="modal-body">
     Está activa esta simulación en otra pestaña. Solo se puede tener una simulación ejecutando concurrentemente, si quiere volver a empezar a simular este experimento deberá parar la simulación activa.
   </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-danger" (click)="modal.dismiss()">Cerrar</button>
+  </div>
 </ng-template>
 
 <ng-template #helpModal let-modal class="modal fade">
