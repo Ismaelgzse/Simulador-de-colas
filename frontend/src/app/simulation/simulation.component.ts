@@ -312,6 +312,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   numConnections: number;
   showConnections: boolean;
   inputControls: FormControl[] = [];
+
+  //List of strategies avaliable for each item
   listSendToStrategiesQueue = ["Aleatorio", "Primera conexión disponible", "Porcentaje"];
   listSendToStrategiesSource = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)", "Porcentaje (si no hay hueco se envia aunque se pierda)", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)", "A la cola más pequeña (si está llena espera hasta que haya hueco)"];
   listSendToStrategiesServer = ["Aleatorio (lo manda independientemente de si hay hueco o no)", "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)", "Primera conexión disponible", "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)", "A la cola más pequeña (si está llena espera hasta que haya hueco)"];
@@ -320,11 +322,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   //0: no error
   //1: itself
   //2: already exist
+  //3: invalid simulation structure
   errorConnection: number;
 
-  //refresh:boolean;
   simulating: boolean;
-
   quickSimulating: boolean;
 
   referenceModal: any;
@@ -436,11 +437,13 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   constructor(private modalService: NgbModal, @Inject(DOCUMENT) document: Document, public homeService: HomeService, public simulationService: SimulationService, private router: Router, private route: ActivatedRoute, private ngZone: NgZone) {
   }
 
+  //When the user exits the component, this method is necessary to take the necessary steps to control the state of the simulation
   ngOnDestroy(): void {
     this.homeService.isAuthenticated().subscribe({
       next: (success) => {
         if (success) {
           this.simulationService.getStatusSimulation(this.id).subscribe({
+            //If a simulation is running, it stops it
             next: (status) => {
               if (status) {
                 this.simulationService.sendMessage(this.id.toString(), "stop")
@@ -461,6 +464,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.percentageCountDownText = "0%"
+
+    //Resets the error message and the alert
     let alertErrorMessage = document.getElementById("cancelConnect");
     // @ts-ignore
     let listClasses = alertErrorMessage.classList;
@@ -469,6 +474,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
       this.errorConnection = 0;
     }
+    //Resets all variables
     this.quickSimulationDTO = {
       timeSimulation: 0,
       numberSimulations: 0,
@@ -546,20 +552,21 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.route.params.subscribe({
       next: (params) => {
         this.id = params['id'];
+        //If the user refresh the component, it checks if the simulation was running
         if (refresh) {
           this.simulationService.getStatusSimulation(this.id).subscribe({
             next: (status) => {
               if (status) {
+                //If was running, it stops it
                 this.simulationService.connectAlt(this.id.toString(), "stop");
                 this.simulating = false;
               } else {
+                //If not it connects it
                 this.simulationService.connect(this.id.toString());
-
               }
               //The simulation and its items and connections are loaded
               this.simulationService.getSimulationInfo(this.id).subscribe({
                 next: (simulation) => {
-
                   this.simulationTitle = simulation.title;
                   this.simulationService.getItems(this.id).subscribe({
                     next: (items) => {
@@ -825,6 +832,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  //Resets these type of items
   resetServer() {
     this.serverInfo = {
       cicleTime: "",
@@ -849,6 +857,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  //Resets these type of items
   resetSource() {
     this.sourceInfo = {
       interArrivalTime: "",
@@ -871,6 +880,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  //Resets these type of items
   resetQueue() {
     this.queueInfo = {
       outQueue: 0,
@@ -894,6 +904,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  //Resets these type of items
   resetSink() {
     this.sinkInfo = {
       inSink: 0
@@ -924,10 +935,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.itemContainerInfo.item = this.itemInfo;
     this.itemContainerInfo.item.sendToStrategy = "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)";
     this.itemContainerInfo.source = this.sourceInfo;
+    //Creates the source
     this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
       next: (item) => {
         this.listItemsTemplate.push(item);
-
         this.sourceItemAuxForm = item.item;
         this.resetSource();
         // @ts-ignore
@@ -941,6 +952,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         this.itemContainerInfo.item = this.itemInfo;
         this.itemContainerInfo.item.sendToStrategy = "Primera conexión disponible";
         this.itemContainerInfo.queue = this.queueInfo;
+        //Creates the queue
         this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
           next: (item) => {
             this.listItemsTemplate.push(item)
@@ -948,6 +960,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
             this.queueItemAuxForm = item.item;
             this.connectionInfo.originItem = this.sourceItemAuxForm;
             this.connectionInfo.destinationItem = this.queueItemAuxForm;
+            //Connects the source and the queue
             this.simulationService.newConnection(this.connectionInfo).subscribe({
               next: (connection) => {
                 this.resetQueue();
@@ -956,12 +969,13 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                 this.itemInfo.description = 'Sink';
                 this.itemContainerInfo.item = this.itemInfo;
                 this.itemContainerInfo.sink = this.sinkInfo;
+                //Creates the sink
                 this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
                   next: async (item) => {
                     this.listItemsTemplate.push(item);
-
                     this.sinkItemAuxForm = item.item;
                     this.resetSink();
+                    //Creates the necessary number of servers and connects them to the queue and sink
                     // @ts-ignore
                     for (let i = 0; i < this.customTemplateForm.value.numberOfServers; i++) {
                       this.serverInfo.outServer = 0;
@@ -996,8 +1010,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                         });
                       });
                     }
-
+                    //It places the positions of the items
                     this.resetPositionsTemplate(this.listItemsTemplate);
+                    //Once the creation of the items is completed, the form is restarted
                     this.customTemplateForm.patchValue({
                       interArrivalTimeSourceType: '',
                       interArrivalTimeSourceCkeck: '',
@@ -1024,10 +1039,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         this.router.navigate(['error500']);
       }
     })
-
-
   }
 
+  //Method responsible for positioning the items in the canvas
   resetPositionsTemplate(listItemsTemplate: ItemContainerModel[]) {
     let x = -15;
     let y = 30;
@@ -1047,7 +1061,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         x = x + 200
       }
     }
-    //When we already placed the positions of the items we save and update them
+    //When we already placed the positions of the items, we save and update them
     this.simulationService.updateAllItems(this.id, listItemsTemplate).subscribe({
       next: (listaItems) => {
         this.ngOnInit();
@@ -1058,9 +1072,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     })
   }
 
+  //Method responsible for stopping the active simulation
   stopSimulating() {
     if (this.simulating) {
-      //Go back tho the normal screen, removing the blackscreen
+      //Go back to the normal screen, removing the blackscreen
       let blackCanvas = document.getElementById('blackScreen')
       // @ts-ignore
       blackCanvas.classList.toggle("showScreen")
@@ -1069,12 +1084,15 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       let timerElement = document.getElementById('timer')
       // @ts-ignore
       timerElement.classList.toggle("showTimer");
+      //Stops the timer function
       clearInterval(this.intervalId);
       this.startSimulation = 0;
+      //Sends a message through the websocket to stop the active simulation
       this.simulationService.sendMessage(this.id.toString(), "stop");
     }
   }
 
+  //Method responsible for displaying the countdown of the quick simulation
   countDown(seconds: number) {
     let interval = 500;
     let timeRemaining = seconds;
@@ -1086,15 +1104,19 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         let remainingMin = Math.floor(timeRemaining / 60);
         let remainingSec = Math.trunc(timeRemaining % 60);
         timeRemaining = timeRemaining - 0.5;
+        //The countdown text
         this.countDownText = remainingMin.toString().padStart(2, '0') + ":" + remainingSec.toString().padStart(2, '0');
         this.ngZone.run(() => {
+          //It shows the progress bar progression
           this.percentageCountDownText = (((this.countDownTimeQuickSimulation - timeRemaining) * 100) / this.countDownTimeQuickSimulation).toFixed(2).toString() + "%";
         });
       }
     }, interval);
   }
 
+  //Controls the quick simulation funcionality
   quickSimulationFunc() {
+    //Asigns the values of the modal to the DTO responsible for the quick simulation
     // @ts-ignore
     this.quickSimulationDTO.timeSimulation = this.quickSimulationForm.value.timeSimulation;
     // @ts-ignore
@@ -1104,10 +1126,11 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     // @ts-ignore
     this.quickSimulationDTO.csvFormat = this.quickSimulationForm.value.csvFormat;
 
+    //Clone and copy the existing simulation to simulate the different experiments in the backend
     let listSimulations=this.cloneSimulations(this.listItems,this.quickSimulationDTO.numberSimulations);
-
     this.quickSimulationDTO.listSimulations=listSimulations;
 
+    //Calculate the time needed to simulate the experiment
     let timeSimulation = this.quickSimulationDTO.timeSimulation;
     // @ts-ignore
     if (timeSimulation !== undefined && timeSimulation < 30) {
@@ -1119,13 +1142,16 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       this.countDownTimeQuickSimulation = timeSimulation * 0.07 * 60;
     }
 
+    //First check if there is an active simulation or an active quick simulation
     this.simulationService.getStatusQuickSimulation(this.id).subscribe({
       next: (statusQuickSimulation) => {
         this.simulationService.getStatusSimulation(this.id).subscribe({
           next: (status) => {
+            //If no simulation is active, the countdown starts
             if (status === false && statusQuickSimulation===false) {
               this.countDown(this.countDownTimeQuickSimulation);
 
+              //Whe sets the visuals needed
               if (!this.blackScreen) {
                 let blackCanvas = document.getElementById('blackScreen')
                 // @ts-ignore
@@ -1137,14 +1163,17 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
               // @ts-ignore
               timerElement.classList.toggle("showExportScreen");
 
+              //Starts the quick simulation
               this.stageQuickSimulating = 1;
               this.simulationService.quickSimulation(this.id, this.quickSimulationDTO).subscribe({
                 next: (listSimulations) => {
                   if (listSimulations !== null) {
+                    //When the quick simulation is finished, the data exportation starts
                     if (this.quickSimulationDTO.pdfFormat) {
                       this.stageQuickSimulating = 2;
                       this.simulationService.generatePDF(this.id, listSimulations).subscribe({
                         next: (pdf) => {
+                          //The pdf is opened in a new tab
                           const blob = new Blob([pdf], {type: 'application/pdf'});
                           const url = window.URL.createObjectURL(blob);
                           window.open(url);
@@ -1152,6 +1181,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                           if (this.quickSimulationDTO.csvFormat) {
                             this.simulationService.generateExcel(this.id, listSimulations).subscribe({
                               next: (excel) => {
+                                //The excel is downloaded
                                 const url = window.URL.createObjectURL(excel);
                                 const a = document.createElement('a');
                                 a.href = url;
@@ -1161,7 +1191,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                                 document.body.removeChild(a);
                                 window.URL.revokeObjectURL(url);
 
-
+                                //Visual effects are reset
                                 if (this.blackScreen) {
                                   //Go back tho the normal screen, removing the blackscreen
                                   let blackCanvas = document.getElementById('blackScreen')
@@ -1177,6 +1207,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                               }
                             })
                           } else {
+                            //Visual effects are reset
                             if (this.blackScreen) {
                               //Go back tho the normal screen, removing the blackscreen
                               let blackCanvas = document.getElementById('blackScreen')
@@ -1195,6 +1226,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                     } else if (this.quickSimulationDTO.csvFormat) {
                       this.simulationService.generateExcel(this.id, listSimulations).subscribe({
                         next: (excel) => {
+                          //The excel is downloaded
                           const url = window.URL.createObjectURL(excel);
                           const a = document.createElement('a');
                           a.href = url;
@@ -1204,7 +1236,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                           document.body.removeChild(a);
                           window.URL.revokeObjectURL(url);
 
-
+                          //Visual effects are reset
                           if (this.blackScreen) {
                             //Go back tho the normal screen, removing the blackscreen
                             let blackCanvas = document.getElementById('blackScreen')
@@ -1227,29 +1259,31 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                 }
               })
             }
+            //If there is an active simulation, a modal is displayed
             else {
               this.modalService.open(this.referenceModal, {centered: true});
             }
           }
         })
       }
-
     })
-
-
   }
 
   simulate(content:any) {
+    //Stores the reference of the modal
     this.referenceModal=content;
-    if (this.checkSimulationStructure(this.listItems)) {
 
+    //checks if the simulation structure is valid
+    if (this.checkSimulationStructure(this.listItems)) {
+      //Checks if the simulation is already running
       this.simulationService.getStatusSimulation(this.id).subscribe({
         next : (status)=>{
           this.simulationService.getStatusQuickSimulation(this.id).subscribe({
             next : (statusQuickSimulation)=>{
               if (status===false && statusQuickSimulation===false){
+
+                //Whe sets the visuals needed
                 if (!this.blackScreen) {
-                  //Go back tho the normal screen, removing the blackscreen
                   let blackCanvas = document.getElementById('blackScreen')
                   // @ts-ignore
                   blackCanvas.classList.toggle("showScreen")
@@ -1260,6 +1294,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                 // @ts-ignore
                 timerElement.classList.toggle("showTimer");
 
+                //Sets the timer
                 if (this.simulating) {
                   this.startSimulation = Date.now() - (this.startSimulation > 0 ? this.startSimulation : 0);
                   // @ts-ignore
@@ -1267,11 +1302,15 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                     this.updateTimer();
                   }, 1000);
                 }
+                //Sends a message through the websocket to start the active simulation
                 this.simulationService.sendMessage(this.id.toString(), "start");
+
               }else {
+                //If there is an active simulation, a modal is displayed
                 this.modalService.open(this.referenceModal, {centered: true});
               }
               if (status===true){
+                //If there is an active simulation, sends a message through the websocket to stop the active simulation
                 this.simulationService.sendMessage(this.id.toString(), "stop");
               }
             }
@@ -1279,6 +1318,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         }
       })
     } else {
+      //if the simulation structure isn't valid, an error message is displayed
       let alertErrorMessage = document.getElementById("cancelConnect");
       // @ts-ignore
       let listClasses = alertErrorMessage.classList;
@@ -1290,6 +1330,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  //Updates the timer
   updateTimer() {
     let currentTime = Date.now() - this.startSimulation;
     let minutes = Math.floor(currentTime / (60 * 1000));
@@ -1589,6 +1630,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'});
   }
 
+  //The modal is displayed if the structure of the simulation is valid
   openModalQuickSimulation(content: any, content2: any) {
     this.referenceModal = content2;
     let isCorrect = this.checkSimulationStructure(this.listItems);

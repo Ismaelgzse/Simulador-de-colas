@@ -231,22 +231,13 @@
 
 
   <svg height="100%" width="100%" style="position: absolute;">
-    <!--
-    <line [attr.x1]="connection.originItem.positionX+100" [attr.y1]="connection.originItem.positionY+75" [attr.x2]="connection.destinationItem.positionX+25" [attr.y2]="connection.destinationItem.positionY+75" style="stroke:rgb(255,0,0);stroke-width:2" />
- -->
+
     <defs>
       <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
         <path d="M0,0 L0,6 L9,3 z" fill="black"/>
       </marker>
     </defs>
-    <!--
-        <path
-          id='arrow-line'
-          marker-end='url(#head)'
-          stroke-width='3'
-          fill='none' stroke='black'
-          [attr.d]="'M '+(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+' '+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)"/>
-    -->
+
     <polyline *ngFor="let connection of listConnections;let i=index"
               [attr.points]="(connection.originItem.positionX+100)+','+(connection.originItem.positionY+75)+','+(connection.originItem.positionX+100)+','+(connection.destinationItem.positionY+75)+','+(connection.destinationItem.positionX+15)+','+(connection.destinationItem.positionY+75)"
               style="stroke:black;fill:transparent;stroke-width: 3" marker-end="url(#arrow)"/>
@@ -317,9 +308,6 @@
           <text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
                 stroke="none">In: {{itemContainer?.queue?.inQueue}}
           </text>
-          <!--<text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-                stroke="none">Out: {{itemContainer?.queue?.outQueue}}
-          </text>-->
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#00ff99"
@@ -422,10 +410,6 @@
           </text>
           <circle *ngIf="itemContainer.queue!==undefined && itemContainer.queue.inQueue>0" r="10" cx="70%" cy="62.5%"
                   fill="white" stroke="black" stroke-width="1"/>
-
-          <!--<text x="32%" y="65%" alignment-baseline="middle" text-anchor="middle" fill="black"
-                stroke="none">Out: {{itemContainer?.queue?.outQueue}}
-          </text>-->
         </g>
         <g stroke="black" stroke-width="1px" fill="white">
           <rect x="27.5px" y="1" width="145" height="36.2" rx="6.93" ry="6.93" fill="#00ff99"
@@ -565,12 +549,7 @@
 <button class="controlButtons help" (click)="openHelpModal(helpModal)">
   <i class="fa-regular fa-circle-question fa-4x"></i>
 </button>
-<!--
-<button class="reset btn btnReset" [disabled]="simulating" (click)="resetPositions()"><i
-  class="fa-solid fa-arrows-rotate"></i> Reiniciar
-  posiciones
-</button>
--->
+
 
 
 
@@ -1117,7 +1096,7 @@
       <label for="timeSimulation" class="col-form-label">Tiempo de observación [minutos]<span
         class="asterisk">*</span></label>
       <input type="number" class="form-control" id="timeSimulation" formControlName="timeSimulation">
-      <span *ngIf="timeSimulation && timeSimulation.invalid" class="errorMessage">Debe tener un valor entero mayor que 0 y menor que 20.</span>
+      <span *ngIf="timeSimulation && timeSimulation.invalid" class="errorMessage">Debe tener un valor entero mayor que 0 y menor que 180.</span>
       <div class="form-group mt-3">
         <label for="numberSimulations" class="col-form-label">Número de simulaciones<span
           class="asterisk">*</span></label>
@@ -1201,7 +1180,6 @@
               </div>
             </ul>
           </div>
-          <!--<span *ngIf="interArrivalTimeSource && interArrivalTimeSource.invalid" class="errorMessage">No coincide con ninguna opción.</span>-->
           <span *ngIf="editSourceForm.controls.interArrivalTimeSource.hasError('invalidFormat')" class="errorMessage">Error de formato.</span>
         </div>
         <div class="form-group mt-3">
