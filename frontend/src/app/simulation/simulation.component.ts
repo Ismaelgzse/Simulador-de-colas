@@ -721,10 +721,11 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
           // @ts-ignore
           this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
             next: (item) => {
-              this.ngOnInit();
+              item.connections = []
+              this.listItems.push(item);
             },
             error: (err) => {
-              this.router.navigate(['error403']);
+              this.router.navigate(['error500']);
             }
           });
           //If the item is not from the side menu, it means that it already exists and the user wants to move it
@@ -743,14 +744,26 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
           if (this.itemContainerInfo.item.positionX < -30) {
             this.itemContainerInfo.item.positionX = -15
           }
+          if (this.itemContainerInfo.connections === null) {
+            this.itemContainerInfo.connections = [];
+          }
           //Saves the existing item
           if (this.itemContainerInfo.item.idItem) {
             this.simulationService.updateItem(this.id, this.itemContainerInfo.item.idItem, this.itemContainerInfo).subscribe({
               next: (itemContainer) => {
-                this.ngOnInit();
+                this.replaceItemByItsId(itemContainer);
+                for (let i = 0; i < this.listConnections.length; i++) {
+                  if (this.listConnections[i].originItem.idItem === itemContainer.item.idItem) {
+                    this.listConnections[i].originItem.positionX = itemContainer.item.positionX;
+                    this.listConnections[i].originItem.positionY = itemContainer.item.positionY;
+                  } else if (this.listConnections[i].destinationItem.idItem === itemContainer.item.idItem) {
+                    this.listConnections[i].destinationItem.positionX = itemContainer.item.positionX;
+                    this.listConnections[i].destinationItem.positionY = itemContainer.item.positionY;
+                  }
+                }
               },
               error: (err) => {
-                this.router.navigate(['error403']);
+                this.router.navigate(['error500']);
               }
             });
           }
@@ -823,7 +836,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       //Saves the item updated
       this.simulationService.updateItem(this.id, this.itemContainerModal.item.idItem, this.itemContainerModal).subscribe({
         next: (itemContainer) => {
-          this.ngOnInit();
+          this.replaceItemByItsId(itemContainer);
         },
         error: (err) => {
           this.router.navigate(['error500']);
@@ -938,6 +951,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     //Creates the source
     this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
       next: (item) => {
+        item.connections=[]
         this.listItemsTemplate.push(item);
         this.sourceItemAuxForm = item.item;
         this.resetSource();
@@ -956,7 +970,6 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         this.simulationService.newItem(this.id, this.itemContainerInfo).subscribe({
           next: (item) => {
             this.listItemsTemplate.push(item)
-
             this.queueItemAuxForm = item.item;
             this.connectionInfo.originItem = this.sourceItemAuxForm;
             this.connectionInfo.destinationItem = this.queueItemAuxForm;
@@ -1063,7 +1076,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     }
     //When we already placed the positions of the items, we save and update them
     this.simulationService.updateAllItems(this.id, listItemsTemplate).subscribe({
-      next: (listaItems) => {
+      next: (listItemsTemplateUpdated) => {
         this.ngOnInit();
       },
       error: (err) => {
@@ -1127,8 +1140,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     this.quickSimulationDTO.csvFormat = this.quickSimulationForm.value.csvFormat;
 
     //Clone and copy the existing simulation to simulate the different experiments in the backend
-    let listSimulations=this.cloneSimulations(this.listItems,this.quickSimulationDTO.numberSimulations);
-    this.quickSimulationDTO.listSimulations=listSimulations;
+    let listSimulations = this.cloneSimulations(this.listItems, this.quickSimulationDTO.numberSimulations);
+    this.quickSimulationDTO.listSimulations = listSimulations;
 
     //Calculate the time needed to simulate the experiment
     let timeSimulation = this.quickSimulationDTO.timeSimulation;
@@ -1148,7 +1161,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         this.simulationService.getStatusSimulation(this.id).subscribe({
           next: (status) => {
             //If no simulation is active, the countdown starts
-            if (status === false && statusQuickSimulation===false) {
+            if (status === false && statusQuickSimulation === false) {
               this.countDown(this.countDownTimeQuickSimulation);
 
               //Whe sets the visuals needed
@@ -1269,18 +1282,18 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     })
   }
 
-  simulate(content:any) {
+  simulate(content: any) {
     //Stores the reference of the modal
-    this.referenceModal=content;
+    this.referenceModal = content;
 
     //checks if the simulation structure is valid
     if (this.checkSimulationStructure(this.listItems)) {
       //Checks if the simulation is already running
       this.simulationService.getStatusSimulation(this.id).subscribe({
-        next : (status)=>{
+        next: (status) => {
           this.simulationService.getStatusQuickSimulation(this.id).subscribe({
-            next : (statusQuickSimulation)=>{
-              if (status===false && statusQuickSimulation===false){
+            next: (statusQuickSimulation) => {
+              if (status === false && statusQuickSimulation === false) {
 
                 //Whe sets the visuals needed
                 if (!this.blackScreen) {
@@ -1305,11 +1318,11 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                 //Sends a message through the websocket to start the active simulation
                 this.simulationService.sendMessage(this.id.toString(), "start");
 
-              }else {
+              } else {
                 //If there is an active simulation, a modal is displayed
                 this.modalService.open(this.referenceModal, {centered: true});
               }
-              if (status===true){
+              if (status === true) {
                 //If there is an active simulation, sends a message through the websocket to stop the active simulation
                 this.simulationService.sendMessage(this.id.toString(), "stop");
               }
@@ -1428,12 +1441,18 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       //Go back to the previous state
       this.listConnections = this.listConnectionsBackUp;
       this.blackScreen = false;
+      this.correctQueueShown = false;
+      this.correctSinkShown = false;
+      this.correctServerShown = false;
       this.listItemConnection = [];
 
       //Go back tho the normal screen, removing the blackscreen
       let blackCanvas = document.getElementById('blackScreen')
       // @ts-ignore
-      blackCanvas.classList.toggle("showScreen")
+      if (blackCanvas.classList.length > 1) {
+        // @ts-ignore
+        blackCanvas.classList.toggle("showScreen")
+      }
       let alertMessage = document.getElementById("newConnect");
       // @ts-ignore
       alertMessage.classList.toggle('alertNewConnectionAlt')
@@ -1494,6 +1513,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
       }
       this.errorConnection = 0;
+
+      this.listConnectionsBackUp = this.listConnections;
       //We show the new connection message and store the connections and name of the first selected item
       // @ts-ignore
       this.listConnections = this.connectionsOfSelectedItem(itemContainer);
@@ -1549,7 +1570,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
             //Reset the error values, the black screen and alerts
             let blackCanvas = document.getElementById('blackScreen')
             // @ts-ignore
-            blackCanvas.classList.toggle("showScreen")
+            if (blackCanvas.classList.length > 1) {
+              // @ts-ignore
+              blackCanvas.classList.toggle("showScreen")
+            }
             let alertMessage = document.getElementById("newConnect");
             // @ts-ignore
             alertMessage.classList.toggle('alertNewConnectionAlt');
@@ -1560,7 +1584,15 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
               // @ts-ignore
               alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
             }
-            this.ngOnInit();
+            this.blackScreen = false;
+            this.sameElement = ''
+            this.listItemConnection = []
+            this.listConnections = this.listConnectionsBackUp;
+            this.correctQueueShown = false;
+            this.correctSinkShown = false;
+            this.correctServerShown = false;
+            this.listConnections.push(connection);
+            this.addConnectionToItem(connection);
           },
           error: (err) => {
             this.router.navigate(['error500'])
@@ -1595,7 +1627,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     if (this.itemContainerModal.item.idItem) {
       this.simulationService.deleteItem(this.id, this.itemContainerModal.item.idItem).subscribe({
         next: (item) => {
-          this.ngOnInit();
+          this.deleteConnectionsByItsItem(item);
+          this.deleteItemByItsId(item);
         },
         error: (err) => {
           this.router.navigate(['error500']);
@@ -1609,7 +1642,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     if (this.connectionModal.idConnect) {
       this.simulationService.deleteConnection(this.connectionModal.idConnect).subscribe({
         next: (connection) => {
-          this.ngOnInit();
+          this.deleteConnectionByItsId(connection);
+          this.deleteConnectionOfItem(connection)
         },
         error: (err) => {
           this.router.navigate(['error500']);
@@ -2442,11 +2476,99 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   cloneSimulations(listItems: ItemContainerModel[], numberSimulations: number | undefined) {
-    let listSimulations=[]
+    let listSimulations = []
     // @ts-ignore
-    for (let i=0;i<numberSimulations;i++){
+    for (let i = 0; i < numberSimulations; i++) {
       listSimulations.push(listItems);
     }
     return listSimulations;
+  }
+
+  replaceItemByItsId(itemContainer: ItemContainerModel) {
+    for (let i = 0; i < this.listItems.length; i++) {
+      if (this.listItems[i].item.idItem === itemContainer.item.idItem) {
+        this.listItems.splice(i, 1, itemContainer);
+      }
+      // @ts-ignore
+      for (let j = 0; j < this.listItems[i].connections.length; j++) {
+        // @ts-ignore
+        if (this.listItems[i].connections[j].originItem.idItem === itemContainer.item.idItem) {
+          // @ts-ignore
+          this.listItems[i].connections[j].originItem.positionX = itemContainer.item.positionX;
+          // @ts-ignore
+          this.listItems[i].connections[j].originItem.positionY = itemContainer.item.positionY;
+        }
+        // @ts-ignore
+        if (this.listItems[i].connections[j].destinationItem.idItem === itemContainer.item.idItem) {
+          // @ts-ignore
+          this.listItems[i].connections[j].destinationItem.positionX = itemContainer.item.positionX;
+          // @ts-ignore
+          this.listItems[i].connections[j].destinationItem.positionY = itemContainer.item.positionY;
+        }
+      }
+    }
+  }
+
+  deleteConnectionByItsId(connection: ConnectionModel) {
+    for (let i = 0; i < this.listConnections.length; i++) {
+      if (connection.idConnect === this.listConnections[i].idConnect) {
+        this.listConnections.splice(i, 1);
+        break;
+      }
+    }
+  }
+
+  deleteConnectionsByItsItem(itemContainer: ItemContainerModel) {
+    let lengthConnections=this.listConnections.length;
+    for (let i = lengthConnections-1; i >= 0; i--) {
+      if (itemContainer.item.idItem === this.listConnections[i].originItem.idItem || itemContainer.item.idItem === this.listConnections[i].destinationItem.idItem) {
+        this.listConnections.splice(i, 1);
+      }
+    }
+
+    for (let i=0;i<this.listItems.length;i++){
+      // @ts-ignore
+      for (let j=0;j<this.listItems[i].connections.length;j++){
+        // @ts-ignore
+        if (this.listItems[i].connections[j].destinationItem.idItem===itemContainer.item.idItem){
+          // @ts-ignore
+          this.listItems[i].connections.splice(j,1);
+        }
+      }
+    }
+
+  }
+
+  deleteItemByItsId(itemContainer: ItemContainerModel) {
+    for (let i = 0; i < this.listItems.length; i++) {
+      if (this.listItems[i].item.idItem === itemContainer.item.idItem) {
+        this.listItems.splice(i, 1)
+        break;
+      }
+    }
+  }
+
+  addConnectionToItem(connection: ConnectionModel) {
+    for (let i = 0; i < this.listItems.length; i++) {
+      if (this.listItems[i].item.idItem === connection.originItem.idItem) {
+        // @ts-ignore
+        this.listItems[i].connections.push(connection);
+      }
+    }
+  }
+
+  deleteConnectionOfItem(connection: ConnectionModel) {
+    for (let i = 0; i < this.listItems.length; i++) {
+      if (this.listItems[i].item.idItem === connection.originItem.idItem) {
+        // @ts-ignore
+        for (let j = 0; this.listItems[i].connections.length; j++) {
+          // @ts-ignore
+          if (this.listItems[i].connections[j].originItem.idItem == connection.originItem.idItem) {
+            // @ts-ignore
+            this.listItems[i].connections.splice(j, 1);
+          }
+        }
+      }
+    }
   }
 }
