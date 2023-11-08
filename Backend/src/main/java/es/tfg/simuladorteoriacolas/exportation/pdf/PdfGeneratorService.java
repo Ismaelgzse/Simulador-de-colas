@@ -83,45 +83,35 @@ public class PdfGeneratorService {
             }
 
             //Sets the properties of the text inside the tables
-            float textx = margin + 4;
-            float texty = yStart - 15;
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 9);
+            x = margin + 4;
+            y = yStart - 15;
 
             //TODO Verificar si se deberia aprovechar a escribir aquí el nombre del item
             //Starts with the header of the table
-            //The firts header corresponds to the name of the item, which will be written later on
+            //The firts header corresponds to the name of the item
+            contentStream.setFont(PDType1Font.HELVETICA, 12);
             contentStream.beginText();
-            contentStream.newLineAtOffset(textx, texty);
-            contentStream.showText("");
+            contentStream.newLineAtOffset(x, y);
+            contentStream.showText(itemStatistics.getNameItem());
             contentStream.endText();
-            textx += tableWidth / (float) cols;
+            x += tableWidth / (float) cols;
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 7);
             //The rest of the headers
             for (String header : itemStatistics.getStatistics().get(0).keySet()) {
                 contentStream.beginText();
-                contentStream.newLineAtOffset(textx, texty);
+                contentStream.newLineAtOffset(x, y);
                 contentStream.showText(header);
                 contentStream.endText();
-                textx += tableWidth / (float) cols;
+                x += tableWidth / (float) cols;
             }
-
-
-            //Writes the name of the item with some styles
-            float dataY = yStart - 13;
-            contentStream.setFont(PDType1Font.HELVETICA, 12);
-            contentStream.beginText();
-            contentStream.newLineAtOffset(margin+4, dataY);
-            contentStream.showText(itemStatistics.getNameItem());
-            contentStream.endText();
-
+            contentStream.setFont(PDType1Font.HELVETICA, 6);
 
             List<List<String>> data= getDataFromHashMap(itemStatistics);
-            dataY = yStart - 32.5f;
+            float dataY = yStart - 32.5f;
             //Writes the content of the table
             for (List<String> row : data) {
                 float dataX = margin + 4;
                 for (String cell : row) {
-                    //TODO es necesaria esta linea?
-                    contentStream.setFont(PDType1Font.HELVETICA, 6);
                     contentStream.beginText();
                     contentStream.newLineAtOffset(dataX, dataY);
                     contentStream.showText(cell);
