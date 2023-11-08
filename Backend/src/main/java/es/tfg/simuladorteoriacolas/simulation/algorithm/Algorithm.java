@@ -644,18 +644,26 @@ public class Algorithm implements Runnable {
                                             var products = Double.POSITIVE_INFINITY;
                                             var queueProducts = 0;
                                             var smallestQueue = 0;
-                                            //TODO Si una cola está llena busca otra aunque tenga mas productos dentro pero haya hueco
-                                            for (var index = 0; index < queues.size(); index++) {
-                                                if (queues.get(index).getTypeItem().equals("Queue")) {
-                                                    queues.get(index).getControlDestinationSemaphore().acquire();
-                                                    queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
-                                                    queues.get(index).getControlDestinationSemaphore().release();
-                                                    if (queueProducts < products) {
-                                                        products = queueProducts;
-                                                        smallestQueue = index;
+                                            Boolean filled=true;
+
+                                            while (!Thread.currentThread().isInterrupted() && filled) {
+                                                filled=true;
+                                                for (var index = 0; index < queues.size(); index++) {
+                                                    if (queues.get(index).getTypeItem().equals("Queue")) {
+                                                        queues.get(index).getControlDestinationSemaphore().acquire();
+                                                        queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
+                                                        if (simulation.get(queues.get(index).getIdentifier()).getQueue().getCapacityQueue().equals("Ilimitados") || Integer.parseInt(simulation.get(queues.get(index).getIdentifier()).getQueue().getCapacityQueue())>queueProducts){
+                                                            if (queueProducts < products) {
+                                                                products = queueProducts;
+                                                                smallestQueue = index;
+                                                                filled=false;
+                                                            }
+                                                        }
+                                                        queues.get(index).getControlDestinationSemaphore().release();
                                                     }
                                                 }
                                             }
+
                                             accessInSemaphores.get(smallestQueue).acquire();
                                             controlSemaphore.acquire();
                                             numProducts++;
@@ -733,14 +741,11 @@ public class Algorithm implements Runnable {
                                         inSemaphore.acquire();
                                         capacitySemaphore.acquire();
                                         controlSemaphore.acquire();
-                                        //TODO in quitar, no parece relevante tanto control
-                                        in = true;
                                         //New product added to the queue
                                         productList.add(inProduct);
                                         total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
                                         total++;
                                         item.getQueue().setInQueue(total);
-                                        in = false;
                                         controlSemaphore.release();
                                         //Informs to the queueOut about a new product
                                         inOutSemaphore.release();
@@ -755,10 +760,7 @@ public class Algorithm implements Runnable {
                                 //If the code is interrupted in the while loop check, it saves the state of the simulation there
                                 if (Thread.currentThread().isInterrupted()) {
                                     interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
-                                    if (in) {
-                                        total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
-                                        total++;
-                                    }
+                                    total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
                                     item.getQueue().setInQueue(total);
                                     interruptedAndSavedTheadsState.set(indexState, true);
                                     interruptedAndSavedTheadsStateSemaphore.release();
@@ -766,10 +768,7 @@ public class Algorithm implements Runnable {
                             } catch (InterruptedException e) {
                                 //When is interrupted it saves the state of the simulation
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
-                                if (in) {
-                                    total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
-                                    total++;
-                                }
+                                total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
                                 item.getQueue().setInQueue(total);
                                 interruptedAndSavedTheadsState.set(indexState, true);
                                 interruptedAndSavedTheadsStateSemaphore.release();
@@ -1270,21 +1269,32 @@ public class Algorithm implements Runnable {
                                         var products = Double.POSITIVE_INFINITY;
                                         var queueProducts = 0;
                                         var smallestQueue = 0;
-                                        //TODO Si una cola está llena busca otra aunque tenga mas productos dentro pero haya hueco
-                                        for (var index = 0; index < queues.size(); index++) {
-                                            if (queues.get(index).getTypeItem().equals("Queue")) {
-                                                queues.get(index).getControlDestinationSemaphore().acquire();
-                                                queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
-                                                queues.get(index).getControlDestinationSemaphore().release();
-                                                if (queueProducts < products) {
-                                                    products = queueProducts;
-                                                    smallestQueue = index;
+                                        Boolean filled=true;
+
+                                        while (!Thread.currentThread().isInterrupted() && filled) {
+                                            filled=true;
+                                            for (var index = 0; index < queues.size(); index++) {
+                                                if (queues.get(index).getTypeItem().equals("Queue")) {
+                                                    queues.get(index).getControlDestinationSemaphore().acquire();
+                                                    queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
+                                                    if (simulation.get(queues.get(index).getIdentifier()).getQueue().getCapacityQueue().equals("Ilimitados") || Integer.parseInt(simulation.get(queues.get(index).getIdentifier()).getQueue().getCapacityQueue())>queueProducts){
+                                                        if (queueProducts < products) {
+                                                            products = queueProducts;
+                                                            smallestQueue = index;
+                                                            filled=false;
+                                                        }
+                                                    }
+                                                    queues.get(index).getControlDestinationSemaphore().release();
                                                 }
-                                            } else if (queues.get(index).getTypeItem().equals("Sink")) {
-                                                smallestQueue = index;
-                                                break;
+                                                else if (queues.get(index).getTypeItem().equals("Sink")) {
+                                                    smallestQueue = index;
+                                                    products=0;
+                                                    filled=false;
+                                                    break;
+                                                }
                                             }
                                         }
+
                                         accessInSemaphores.get(smallestQueue).acquire();
                                         outExchanger.get(smallestQueue).exchange(product);
                                         controlSemaphore.acquire();

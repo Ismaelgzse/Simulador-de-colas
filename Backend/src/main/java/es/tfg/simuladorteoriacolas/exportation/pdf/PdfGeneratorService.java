@@ -86,7 +86,6 @@ public class PdfGeneratorService {
             x = margin + 4;
             y = yStart - 15;
 
-            //TODO Verificar si se deberia aprovechar a escribir aquí el nombre del item
             //Starts with the header of the table
             //The firts header corresponds to the name of the item
             contentStream.setFont(PDType1Font.HELVETICA, 12);
