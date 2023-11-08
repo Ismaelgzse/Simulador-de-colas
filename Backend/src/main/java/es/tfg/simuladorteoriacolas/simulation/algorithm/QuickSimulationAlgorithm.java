@@ -631,18 +631,26 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             var products = Double.POSITIVE_INFINITY;
                                             var queueProducts = 0;
                                             var smallestQueue = 0;
-                                            //TODO Si una cola está llena busca otra aunque tenga mas productos dentro pero haya hueco
-                                            for (var index = 0; index < queues.size(); index++) {
-                                                if (queues.get(index).getTypeItem().equals("Queue")) {
-                                                    queues.get(index).getControlDestinationSemaphore().acquire();
-                                                    queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
-                                                    queues.get(index).getControlDestinationSemaphore().release();
-                                                    if (queueProducts < products) {
-                                                        products = queueProducts;
-                                                        smallestQueue = index;
+                                            Boolean filled=true;
+
+                                            while (!Thread.currentThread().isInterrupted() && filled) {
+                                                filled=true;
+                                                for (var index = 0; index < queues.size(); index++) {
+                                                    if (queues.get(index).getTypeItem().equals("Queue")) {
+                                                        queues.get(index).getControlDestinationSemaphore().acquire();
+                                                        queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
+                                                        if (simulation.get(queues.get(index).getIdentifier()).getQueue().getCapacityQueue().equals("Ilimitados") || Integer.parseInt(simulation.get(queues.get(index).getIdentifier()).getQueue().getCapacityQueue())>queueProducts){
+                                                            if (queueProducts < products) {
+                                                                products = queueProducts;
+                                                                smallestQueue = index;
+                                                                filled=false;
+                                                            }
+                                                        }
+                                                        queues.get(index).getControlDestinationSemaphore().release();
                                                     }
                                                 }
                                             }
+                                            
                                             accessInSemaphores.get(smallestQueue).acquire();
                                             controlSemaphore.acquire();
                                             numProducts++;
@@ -684,7 +692,6 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             //Initialises the statistical variables
                             var total = 0;
                             Product inProduct;
-                            var in = false;
                             Integer totalInputs = 0;
                             Integer maxContent = 0;
 
@@ -736,8 +743,6 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         //Calculates the time elapsed since the last time the queue status changed
                                         totalTime = System.currentTimeMillis() - lastTimeChecked;
 
-                                        //TODO in quitar, no parece relevante tanto control
-                                        in = true;
 
                                         //Ads the product to the queue list
                                         productList.add(inProduct);
@@ -755,8 +760,6 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         item.getQueue().setInQueue(total);
                                         item.getQueue().setLastSizeContent(total);
                                         item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
-
-                                        in = false;
 
                                         //Updates some statistics
                                         totalInputs++;
@@ -782,9 +785,6 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                     }
                                     totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
                                     item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
-                                    if (in) {
-                                        total++;
-                                    }
                                     item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
                                     item.getQueue().setLastSizeContent(total);
                                     item.getQueue().setTotalInQueue(totalInputs);
@@ -804,9 +804,6 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 }
                                 totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
                                 item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
-                                if (in) {
-                                    total++;
-                                }
                                 item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
                                 item.getQueue().setLastSizeContent(total);
                                 item.getQueue().setTotalInQueue(totalInputs);
@@ -1388,19 +1385,28 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         var products = Double.POSITIVE_INFINITY;
                                         var queueProducts = 0;
                                         var smallestQueue = 0;
-                                        //TODO Si una cola está llena busca otra aunque tenga mas productos dentro pero haya hueco
-                                        for (var index = 0; index < queues.size(); index++) {
-                                            if (queues.get(index).getTypeItem().equals("Queue")) {
-                                                queues.get(index).getControlDestinationSemaphore().acquire();
-                                                queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
-                                                queues.get(index).getControlDestinationSemaphore().release();
-                                                if (queueProducts < products) {
-                                                    products = queueProducts;
-                                                    smallestQueue = index;
+                                        Boolean filled=true;
+                                        while (!Thread.currentThread().isInterrupted() && filled) {
+                                            filled=true;
+                                            for (var index = 0; index < queues.size(); index++) {
+                                                if (queues.get(index).getTypeItem().equals("Queue")) {
+                                                    queues.get(index).getControlDestinationSemaphore().acquire();
+                                                    queueProducts = simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue() == null ? 0 : simulation.get(queues.get(index).getIdentifier()).getQueue().getInQueue();
+                                                    if (simulation.get(queues.get(index).getIdentifier()).getQueue().getCapacityQueue().equals("Ilimitados") || Integer.parseInt(simulation.get(queues.get(index).getIdentifier()).getQueue().getCapacityQueue())>queueProducts){
+                                                        if (queueProducts < products) {
+                                                            products = queueProducts;
+                                                            smallestQueue = index;
+                                                            filled=false;
+                                                        }
+                                                    }
+                                                    queues.get(index).getControlDestinationSemaphore().release();
                                                 }
-                                            } else if (queues.get(index).getTypeItem().equals("Sink")) {
-                                                smallestQueue = index;
-                                                break;
+                                                else if (queues.get(index).getTypeItem().equals("Sink")) {
+                                                    smallestQueue = index;
+                                                    products=0;
+                                                    filled=false;
+                                                    break;
+                                                }
                                             }
                                         }
                                         accessInSemaphores.get(smallestQueue).acquire();
