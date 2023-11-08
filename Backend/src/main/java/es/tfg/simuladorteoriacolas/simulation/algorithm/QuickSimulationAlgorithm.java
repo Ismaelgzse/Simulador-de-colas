@@ -24,10 +24,12 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
 
     private Double multiplierTime;
 
+    //A list of booleans that controls the correct saved state of the simulation when it is interrupted
     private List<Boolean> interruptedAndSavedTheadsState = new ArrayList<>();
 
     private Integer interruptedAndSavedTheadsStateIndex = 0;
 
+    //A semaphore that controls the correct saved state of the simulation when it is interrupted
     private Semaphore interruptedAndSavedTheadsStateSemaphore = new Semaphore(1, true);
 
     private Random random = new Random();
@@ -43,8 +45,19 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
     @Override
     public List<ItemDTO> call() throws Exception {
 
+        //Each item will store in a structure a series of traffic lights necessary for the correct functioning of the simulation.
+        //And in this data structure, different groups of semaphores will be distinguished according to their purpose.
+        //Not all items have the same semaphore groups.
+        //Semaphore groups are classified as follows:
+        //  -Control: This type of semaphore is responsible for the correct protection of the critical section and the correct use of the common resources.
+        //  -InOut: Some items are divided into two (input and output) that work independently but are connected to each other. The way to connect and communicate is through this semaphore.
+        //  -Capacity: Exclusive semaphore of the items that are queues, and control the entry of products.
+        //  -Out y AccessIn: Set of semaphores that control the communication between two items (this type of semaphore is the outgoing communication) and that function as a handshake.
+        //  -In y AccessOut: They are the same semaphores as Out and AccessIn but at the entrance of the other item.
+
         List<SemaphoreAsignation> semaphoreAsignationList = new ArrayList<>();
 
+        //Creates the common semaphores of the items.
         for (ItemDTO itemDTO : simulation) {
             List<Semaphore> semaphoreList = new ArrayList<>();
             SemaphoreAsignation semaphoreAsignation = new SemaphoreAsignation();
@@ -165,9 +178,11 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         semaphoreAsignation.setSmallestQueueDecisions(smallestQueueDecisions);
                     }
 
+                    //If the connection between these elements is not already built up, the necessary semaphores are created to establish a connection.
                     if (!connectionAlreadyMade(diferentsOrigins, connection.getDestinationItem().getIdItem(), semaphoreAsignationList)) {
                         SemaphoresTypes newSemaphoresType = null;
                         SemaphoresTypes newSemaphoresType2 = null;
+                        //Load the semaphores of this type if a connection already exists
                         for (SemaphoresTypes semaphoresType : semaphoreAsignation.getSemaphoresTypes()) {
                             if (semaphoresType.getType().equals("Out")) {
                                 newSemaphoresType = semaphoresType;
@@ -185,6 +200,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         List<Semaphore> semaphores2;
                         List<Integer> destinationList2;
                         List<Exchanger> exchangers;
+                        //if it does not exist, it is created
                         if (semaphores == null) {
                             List<SemaphoresTypes> types = semaphoreAsignation.getSemaphoresTypes();
 
@@ -211,6 +227,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             destinationList2 = newSemaphoresType2.getIdDestinationItem();
                         }
 
+                        //Exchangers and semaphores are assigned to the origin item.
                         Semaphore semaphoreOut = new Semaphore(0, true);
                         Semaphore accessInSemaphore = new Semaphore(0, true);
                         Exchanger<Product> echanger = new Exchanger<>();
@@ -228,7 +245,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         newSemaphoresType2.setSemaphores(semaphores2);
                         newSemaphoresType2.setIdDestinationItem(destinationList2);
 
-                        //In de destino de item
+                        //Exchangers and semaphores are assigned to the destination item.
                         newSemaphoresType = new SemaphoresTypes();
                         newSemaphoresType.setType("In");
                         exchangers = new ArrayList<>();
@@ -250,6 +267,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         listTypes.add(newSemaphoresType2);
                         semaphoreAsignationDest.setSemaphoresTypes(listTypes);
 
+                        //If exists another item that has the same destination item in a connection, it assigns the same semaphores and exchangers to the other origin item
                         for (Integer id : diferentsOrigins) {
                             if (!id.equals(connection.getOriginItem().getIdItem())) {
                                 semaphoreAsignation = semaphoreAsignationAlreadyExist(id, semaphoreAsignationList);
@@ -295,21 +313,24 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
             switch (item.getItem().getDescription()) {
                 case "Source":
                     int finalI = i;
-                    var fuente = new Thread(() -> {
-                        ArrayList<Integer> productList = new ArrayList<>();
+                    var source = new Thread(() -> {
                         var sourceIn = new Thread(() -> {
+
+                            //Initialise the semaphore that controls the correct state of the simulation when it is interrupted
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                             interruptedAndSavedTheadsState.add(false);
                             var indexState = interruptedAndSavedTheadsState.size() - 1;
                             interruptedAndSavedTheadsStateIndex++;
                             interruptedAndSavedTheadsStateSemaphore.release();
-                            Double sleep;
 
+                            Double sleep;
+                            Integer max = null;
+
+                            //Initialise the possible distributions
                             PoissonDistribution poissonDistribution = null;
                             TriangularDistribution triangularDistribution = null;
                             LogNormalDistribution logNormalDistribution = null;
                             BinomialDistribution binomialDistribution = null;
-                            Integer max = null;
                             NormalDistribution normalDistribution = null;
                             LogisticDistribution logisticDistribution = null;
                             BetaDistribution betaDistribution = null;
@@ -318,7 +339,10 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             WeibullDistribution weibullDistribution = null;
                             ExponentialDistribution exponentialDistribution = null;
 
+                            //Gets the formatted generation strategy of products
                             var strategyTime = getTimeStrategy(item.getSource().getInterArrivalTime());
+
+                            //Creates the selected distribution
                             switch ((String) strategyTime.keySet().toArray()[0]) {
                                 case "NegExp":
                                     var numbers = strategyTime.get("NegExp");
@@ -377,6 +401,8 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                     max = strategyTime.get("").get(0);
                                     break;
                             }
+
+                            //Initialises the semaphores of the source
                             var inOutSemaphoreType = getSemaphore(semaphoresItem, "InOut");
                             var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
                             Semaphore inOutSemaphore = null;
@@ -450,26 +476,35 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         default:
                                             sleep = 0.0;
                                     }
+                                    //It is a quick simulation, so the time is accelerated
                                     sleep = sleep / multiplierTime;
+
+                                    //This simulates the generation of a product
                                     Thread.sleep(sleep.longValue());
                                     inOutSemaphore.release();
                                 }
                             } catch (InterruptedException e) {
+                                //When is interrupted it saves the state of the simulation
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
-                                //source In
                                 interruptedAndSavedTheadsState.set(indexState, true);
                                 interruptedAndSavedTheadsStateSemaphore.release();
                             }
                         });
 
                         var sourceOut = new Thread(() -> {
+
+                            //Initialise the semaphore that controls the correct state of the simulation when it is interrupted
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                             interruptedAndSavedTheadsState.add(false);
                             var indexState = interruptedAndSavedTheadsState.size() - 1;
                             interruptedAndSavedTheadsStateIndex++;
                             interruptedAndSavedTheadsStateSemaphore.release();
+
+                            //Gets the formatted sending strategy of products
                             var sendToStrategy = item.getItem().getSendToStrategy();
                             var percentages = getPercentages(item);
+
+                            //Initialises the semaphores of the sourceOut
                             List<Semaphore> outSemaphores = null;
                             List<Semaphore> accessInSemaphores = null;
                             var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
@@ -491,19 +526,25 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 inOutSemaphore = inOutSemaphoreType.getSemaphores().get(0);
                             }
                             var numProducts = 0;
+
                             try {
                                 while (true) {
                                     Integer sendTo;
+                                    //Gets the product from the SourceIn
                                     inOutSemaphore.acquire();
+                                    //And prepares to send it to the correct queue
                                     Product product = new Product("Standar", null, null);
                                     switch (sendToStrategy) {
                                         case "Aleatorio (lo manda independientemente de si hay hueco o no)":
+                                            //Selects a random channel (semaphore) to send the product
                                             sendTo = random.nextInt(outSemaphores.size());
                                             if (!accessInSemaphores.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
+                                                //If the channel is not available, it is "sent" but "lost"
                                                 controlSemaphore.acquire();
                                                 numProducts++;
                                                 controlSemaphore.release();
                                             } else {
+                                                //If the channel is available, it sends the product
                                                 controlSemaphore.acquire();
                                                 numProducts++;
                                                 controlSemaphore.release();
@@ -512,7 +553,9 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             }
                                             break;
                                         case "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)":
+                                            //Selects a random channel (semaphore) to send the product
                                             sendTo = random.nextInt(outSemaphores.size());
+                                            //Waits for the channel to be available to send the product
                                             accessInSemaphores.get(sendTo).acquire();
                                             controlSemaphore.acquire();
                                             numProducts++;
@@ -522,6 +565,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             break;
                                         case "Primera conexión disponible (si no hay hueco, espera hasta que lo haya)":
                                             sendTo = 0;
+                                            //Stays in this loop until there is a spot in a queue
                                             while (!accessInSemaphores.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
                                                 if (outSemaphores.size() > (sendTo + 1)) {
                                                     sendTo++;
@@ -529,6 +573,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                     sendTo = 0;
                                                 }
                                             }
+                                            //Sends it
                                             controlSemaphore.acquire();
                                             numProducts++;
                                             controlSemaphore.release();
@@ -547,11 +592,13 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                     break;
                                                 }
                                             }
+                                            //If the channel is not available, it is "sent" but "lost"
                                             if (!accessInSemaphores.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
                                                 controlSemaphore.acquire();
                                                 numProducts++;
                                                 controlSemaphore.release();
                                             } else {
+                                                //If the channel is available, it sends the product
                                                 controlSemaphore.acquire();
                                                 numProducts++;
                                                 controlSemaphore.release();
@@ -562,6 +609,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         case "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)":
                                             randomNumber = random.nextInt(100) + 1;
                                             sendTo = 0;
+                                            //Selects a random channel to send the product considering the percentages
                                             for (var index = 0; index < percentages.size(); index++) {
                                                 if (randomNumber < percentages.get(index) && index == 0) {
                                                     sendTo = index;
@@ -571,6 +619,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                     break;
                                                 }
                                             }
+                                            //Waits for the channel to be available to send the product
                                             accessInSemaphores.get(sendTo).acquire();
                                             controlSemaphore.acquire();
                                             numProducts++;
@@ -582,6 +631,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             var products = Double.POSITIVE_INFINITY;
                                             var queueProducts = 0;
                                             var smallestQueue = 0;
+                                            //TODO Si una cola está llena busca otra aunque tenga mas productos dentro pero haya hueco
                                             for (var index = 0; index < queues.size(); index++) {
                                                 if (queues.get(index).getTypeItem().equals("Queue")) {
                                                     queues.get(index).getControlDestinationSemaphore().acquire();
@@ -603,8 +653,8 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                     }
                                 }
                             } catch (InterruptedException e) {
+                                //When is interrupted it saves the state of the simulation
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
-                                //Source out
                                 interruptedAndSavedTheadsState.set(indexState, true);
                                 item.getSource().setOutSource(numProducts);
                                 interruptedAndSavedTheadsStateSemaphore.release();
@@ -615,26 +665,24 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         totalThreads.add(sourceIn);
                         totalThreads.add(sourceOut);
                     });
-                    itemList.add(fuente);
-                    totalThreads.add(fuente);
+                    itemList.add(source);
+                    totalThreads.add(source);
                     break;
                 case "Queue":
                     finalI = i;
                     var cola = new Thread(() -> {
                         List<Product> productList = new ArrayList<>();
                         var colaIn = new Thread(() -> {
+
+                            //Initialise the semaphore that controls the correct state of the simulation when it is interrupted
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                             interruptedAndSavedTheadsState.add(false);
                             var indexState = interruptedAndSavedTheadsState.size() - 1;
                             interruptedAndSavedTheadsStateIndex++;
                             interruptedAndSavedTheadsStateSemaphore.release();
+
+                            //Initialises the statistical variables
                             var total = 0;
-                            var inSemaphoreType = getSemaphore(semaphoresItem, "In");
-                            var accessOutType = getSemaphore(semaphoresItem, "AccessOut");
-                            var capacitySemaphoreType = getSemaphore(semaphoresItem, "Capacity");
-                            var inOutSemaphoreType = getSemaphore(semaphoresItem, "InOut");
-                            var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
-                            var inExchanger = getExchangers(semaphoresItem, "In").get(0);
                             Product inProduct;
                             var in = false;
                             Integer totalInputs = 0;
@@ -642,9 +690,16 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
 
                             Double lastTimeChecked;
                             Double totalTimeMultipliedContent;
-                            Double queueActivationTime = (double) System.currentTimeMillis();
+                            Double queueActivationTime;
                             Double totalTime;
 
+                            //Initialises the semaphores of the queueIn
+                            var inSemaphoreType = getSemaphore(semaphoresItem, "In");
+                            var accessOutType = getSemaphore(semaphoresItem, "AccessOut");
+                            var capacitySemaphoreType = getSemaphore(semaphoresItem, "Capacity");
+                            var inOutSemaphoreType = getSemaphore(semaphoresItem, "InOut");
+                            var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
+                            var inExchanger = getExchangers(semaphoresItem, "In").get(0);
 
                             Semaphore inOutSemaphore = null;
                             Semaphore inSemaphore = null;
@@ -659,41 +714,63 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 capacitySemaphore = capacitySemaphoreType.getSemaphores().get(0);
                                 controlSemaphore = controlSemaphoreType.getSemaphores().get(0);
                             }
+
+                            //Stores the time when the queue starts to run
                             queueActivationTime = (double) System.currentTimeMillis();
 
                             try {
+                                //This loop will be executing until the simulation stops
                                 while (!Thread.currentThread().isInterrupted()) {
+                                    //If there are empty places in the queue, it accepts products
                                     if (capacitySemaphore.availablePermits() > 0) {
                                         accessOutSemaphore.release();
                                         inProduct = (Product) inExchanger.exchange(null);
+                                        //Sets the arrival time for later statistics
                                         inProduct.setArrivalTime((double) System.currentTimeMillis());
                                         inSemaphore.acquire();
                                         capacitySemaphore.acquire();
                                         controlSemaphore.acquire();
+
+                                        //Gets the time before the queue status is changed
                                         lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                        //Calculates the time elapsed since the last time the queue status changed
                                         totalTime = System.currentTimeMillis() - lastTimeChecked;
+
+                                        //TODO in quitar, no parece relevante tanto control
                                         in = true;
+
+                                        //Ads the product to the queue list
                                         productList.add(inProduct);
                                         total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
                                         if (item.getQueue().getTimeMultipliedByContent() == null) {
                                             item.getQueue().setTimeMultipliedByContent(0.0);
                                         }
+
+                                        //This variable works for the average content. Calculates the content of the queue multiplied by the total time that the queue was in that state
                                         totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
                                         item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
+
+                                        //Updates the status of these variables
                                         total++;
                                         item.getQueue().setInQueue(total);
                                         item.getQueue().setLastSizeContent(total);
                                         item.getQueue().setLastTimeCheckedContent((double) System.currentTimeMillis());
+
                                         in = false;
+
+                                        //Updates some statistics
                                         totalInputs++;
                                         maxContent = maxContent < productList.size() ? productList.size() : maxContent;
                                         controlSemaphore.release();
                                         inOutSemaphore.release();
+
+                                        //If there is unlimited space in the queue, it frees up the occupied space
                                         if (item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                             capacitySemaphore.release();
                                         }
                                     }
                                 }
+                                //If the code is interrupted in the while loop check, it saves the state of the simulation there
                                 if (Thread.currentThread().isInterrupted()) {
                                     interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                                     //Queue in
@@ -717,8 +794,8 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                     interruptedAndSavedTheadsStateSemaphore.release();
                                 }
                             } catch (InterruptedException e) {
+                                //When is interrupted it saves the state of the simulation
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
-                                //Queue in
                                 lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
                                 totalTime = System.currentTimeMillis() - lastTimeChecked;
                                 total = item.getQueue().getInQueue() == null ? 0 : item.getQueue().getInQueue();
@@ -740,20 +817,16 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             }
                         });
                         var colaOut = new Thread(() -> {
+
+                            //Initialise the semaphore that controls the correct state of the simulation when it is interrupted
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                             interruptedAndSavedTheadsState.add(false);
                             var indexState = interruptedAndSavedTheadsState.size() - 1;
                             interruptedAndSavedTheadsStateIndex++;
                             interruptedAndSavedTheadsStateSemaphore.release();
 
+                            //Initialises the statistical variables
                             var sendToStrategy = item.getItem().getSendToStrategy();
-
-                            var inOutSemaphoreType = getSemaphore(semaphoresItem, "InOut");
-                            var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
-                            var outSemaphoreType = getSemaphore(semaphoresItem, "Out");
-                            var accessInSemaphoreType = getSemaphore(semaphoresItem, "AccessIn");
-                            var capacitySemaphoreType = getSemaphore(semaphoresItem, "Capacity");
-                            var outExchangers = getExchangers(semaphoresItem, "Out");
                             Product outProduct = null;
                             Double totalTimeOfStay = 0.0;
                             Double maxTimeOfStay = 0.0;
@@ -762,6 +835,17 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             Double totalTimeMultipliedContent;
                             Double queueActivationTime = (double) System.currentTimeMillis();
                             Double arrivalTimeOfProduct;
+                            var percentages = getPercentages(item);
+                            var totalIn = 0;
+                            var totalOut = 0;
+
+                            //Initialises the semaphores of the queueOut
+                            var inOutSemaphoreType = getSemaphore(semaphoresItem, "InOut");
+                            var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
+                            var outSemaphoreType = getSemaphore(semaphoresItem, "Out");
+                            var accessInSemaphoreType = getSemaphore(semaphoresItem, "AccessIn");
+                            var capacitySemaphoreType = getSemaphore(semaphoresItem, "Capacity");
+                            var outExchangers = getExchangers(semaphoresItem, "Out");
 
                             Semaphore inOutSemaphore = null;
                             Semaphore capacitySemaphore = null;
@@ -778,17 +862,17 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 accessInSemaphore = accessInSemaphoreType.getSemaphores();
                             }
 
-                            var percentages = getPercentages(item);
-                            var totalIn = 0;
-                            var totalOut = 0;
                             try {
+                                //This loop will be executing until the simulation stops
                                 while (true) {
                                     switch (sendToStrategy) {
                                         case "Aleatorio":
+                                            //Selects a random channel to send the product
                                             var sendTo = random.nextInt(outSemaphore.size());
                                             inOutSemaphore.acquire();
                                             accessInSemaphore.get(sendTo).acquire();
                                             controlSemaphore.acquire();
+                                            //Selects a product to send depending on the sending strategy. And removes it from the list
                                             switch (item.getQueue().getDisciplineQueue()) {
                                                 case "Fifo":
                                                     outProduct = productList.remove(0);
@@ -800,15 +884,24 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                     var indexProduct = random.nextInt(productList.size());
                                                     outProduct = productList.remove(indexProduct);
                                             }
+                                            //Gets the arrival time of the product
                                             arrivalTimeOfProduct = outProduct.getArrivalTime();
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
+                                            //Calculates the total time of stay of the product
                                             currentTimeOfStay = ((double) System.currentTimeMillis()) - arrivalTimeOfProduct;
                                             controlSemaphore.acquire();
+
+                                            //Gets the time before the queue status is changed
                                             lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                            //Calculates the time elapsed since the last time the queue status changed
                                             var totalTime = System.currentTimeMillis() - lastTimeChecked;
+
+                                            //This variable works for the average content. Calculates the content of the queue multiplied by the total time that the queue was in that state
                                             totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
                                             item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
+
+                                            //Updates some statistics
                                             maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                             totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                             totalIn = item.getQueue().getInQueue();
@@ -819,11 +912,14 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             item.getQueue().setInQueue(totalIn);
                                             controlSemaphore.release();
                                             outSemaphore.get(sendTo).release();
+
+                                            //If the queue has not unlimited capacity, it frees up a spot in the queue
                                             if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                                 capacitySemaphore.release();
                                             }
                                             break;
                                         case "Porcentaje":
+                                            //Selects a random channel to send the product, considering the percentage of each channel
                                             var randomNumber = random.nextInt(100) + 1;
                                             sendTo = 0;
                                             for (var index = 0; index < percentages.size(); index++) {
@@ -838,6 +934,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             inOutSemaphore.acquire();
                                             accessInSemaphore.get(sendTo).acquire();
                                             controlSemaphore.acquire();
+                                            //Selects a product to send depending on the sending strategy. And removes it from the list
                                             switch (item.getQueue().getDisciplineQueue()) {
                                                 case "Fifo":
                                                     outProduct = productList.remove(0);
@@ -849,15 +946,25 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                     var indexProduct = random.nextInt(productList.size());
                                                     outProduct = productList.remove(indexProduct);
                                             }
+
+                                            //Gets the arrival time of the product
                                             arrivalTimeOfProduct = outProduct.getArrivalTime();
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
+                                            //Calculates the total time of stay of the product
                                             currentTimeOfStay = ((double) System.currentTimeMillis()) - arrivalTimeOfProduct;
                                             controlSemaphore.acquire();
+
+                                            //Gets the time before the queue status is changed
                                             lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                            //Calculates the time elapsed since the last time the queue status changed
                                             totalTime = System.currentTimeMillis() - lastTimeChecked;
+
+                                            //This variable works for the average content. Calculates the content of the queue multiplied by the total time that the queue was in that state
                                             totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
                                             item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
+
+                                            //Updates some statistics
                                             maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                             totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                             totalIn = item.getQueue().getInQueue();
@@ -868,6 +975,8 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             item.getQueue().setInQueue(totalIn);
                                             controlSemaphore.release();
                                             outSemaphore.get(sendTo).release();
+
+                                            //If the queue has not unlimited capacity, it frees up a spot in the queue
                                             if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                                 capacitySemaphore.release();
                                             }
@@ -875,6 +984,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         case "Primera conexión disponible":
                                             sendTo = 0;
                                             inOutSemaphore.acquire();
+                                            //Stays in this loop until there is a slot in the next item
                                             while (!accessInSemaphore.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
                                                 if (outSemaphore.size() > (sendTo + 1)) {
                                                     sendTo++;
@@ -883,6 +993,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                 }
                                             }
                                             controlSemaphore.acquire();
+                                            //Selects a product to send depending on the sending strategy. And removes it from the list
                                             switch (item.getQueue().getDisciplineQueue()) {
                                                 case "Fifo":
                                                     outProduct = productList.remove(0);
@@ -894,15 +1005,25 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                                     var indexProduct = random.nextInt(productList.size());
                                                     outProduct = productList.remove(indexProduct);
                                             }
+
+                                            //Gets the arrival time of the product
                                             arrivalTimeOfProduct = outProduct.getArrivalTime();
                                             controlSemaphore.release();
                                             outExchangers.get(sendTo).exchange(outProduct);
+                                            //Calculates the total time of stay of the product
                                             currentTimeOfStay = ((double) System.currentTimeMillis()) - arrivalTimeOfProduct;
                                             controlSemaphore.acquire();
+
+                                            //Gets the time before the queue status is changed
                                             lastTimeChecked = item.getQueue().getLastTimeCheckedContent() == null ? queueActivationTime : item.getQueue().getLastTimeCheckedContent();
+                                            //Calculates the time elapsed since the last time the queue status changed
                                             totalTime = System.currentTimeMillis() - lastTimeChecked;
+
+                                            //This variable works for the average content. Calculates the content of the queue multiplied by the total time that the queue was in that state
                                             totalTimeMultipliedContent = item.getQueue().getLastSizeContent() == null ? item.getQueue().getTimeMultipliedByContent() + (0 * totalTime) : item.getQueue().getTimeMultipliedByContent() + (item.getQueue().getLastSizeContent() * totalTime);
                                             item.getQueue().setTimeMultipliedByContent(totalTimeMultipliedContent);
+
+                                            //Updates some statistics
                                             maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                             totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
                                             totalIn = item.getQueue().getInQueue();
@@ -913,6 +1034,8 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                             item.getQueue().setInQueue(totalIn);
                                             controlSemaphore.release();
                                             outSemaphore.get(sendTo).release();
+
+                                            //If the queue has not unlimited capacity, it frees up a spot in the queue
                                             if (!item.getQueue().getCapacityQueue().equals("Ilimitados")) {
                                                 capacitySemaphore.release();
                                             }
@@ -920,6 +1043,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                     }
                                 }
                             } catch (InterruptedException e) {
+                                //When is interrupted it saves the state of the simulation
                                 interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                                 var totalProductsOfSimulation = totalOut + productList.size();
                                 item.getQueue().setInQueue(productList.size());
@@ -948,12 +1072,15 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                 case "Server":
                     finalI = i;
                     var server = new Thread(() -> {
+
+                        //Initialise the semaphore that controls the correct state of the simulation when it is interrupted
                         interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                         interruptedAndSavedTheadsState.add(false);
                         var indexState = interruptedAndSavedTheadsState.size() - 1;
                         interruptedAndSavedTheadsStateIndex++;
                         interruptedAndSavedTheadsStateSemaphore.release();
 
+                        //Initialise some variables needed to control the server item
                         item.getServer().setPctBusyTime(0.0);
                         Double pctBusy = 0.0;
                         Double currentIdle = (double) System.currentTimeMillis();
@@ -965,12 +1092,19 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         Double totalIdle = 0.0;
                         Double totalBusy = 0.0;
                         Double sleep;
-
                         Double totalTimeOfStay = 0.0;
                         Double maxTimeOfStay = 0.0;
                         Double arrivalTimeOfProduct;
                         Double currentTimeOfStay;
+                        Product product;
+                        var queues = semaphoresItem.getSmallestQueueDecisions() == null ? new ArrayList<SmallestQueueDecision>() : semaphoresItem.getSmallestQueueDecisions();
+                        var percentages = getPercentages(item);
+                        var sendToStrategy = item.getItem().getSendToStrategy();
+                        var total = 0;
 
+
+
+                        //Initialise the possible distributions
                         PoissonDistribution poissonDistribution = null;
                         ExponentialDistribution exponentialDistribution = null;
                         TriangularDistribution triangularDistribution = null;
@@ -984,6 +1118,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         UniformIntegerDistribution uniformIntegerDistribution = null;
                         WeibullDistribution weibullDistribution = null;
 
+                        //Creates the selected distribution
                         var strategyTime = getTimeStrategy(item.getServer().getCicleTime());
                         switch ((String) strategyTime.keySet().toArray()[0]) {
                             case "NegExp":
@@ -1044,7 +1179,6 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 break;
                         }
 
-                        Product product;
                         var inSemaphoreType = getSemaphore(semaphoresItem, "In");
                         var accessOutSemaphoreType = getSemaphore(semaphoresItem, "AccessOut");
                         var outSemaphoresType = getSemaphore(semaphoresItem, "Out");
@@ -1058,8 +1192,6 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         Semaphore accessOutSemaphore = null;
                         Semaphore inSemaphore = null;
                         Semaphore controlSemaphore = null;
-                        var queues = semaphoresItem.getSmallestQueueDecisions() == null ? new ArrayList<SmallestQueueDecision>() : semaphoresItem.getSmallestQueueDecisions();
-
 
                         if (outSemaphoresType != null) {
                             accessInSemaphores = accessInSemaphoreType.getSemaphores();
@@ -1068,12 +1200,11 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             inSemaphore = inSemaphoreType.getSemaphores().get(0);
                             controlSemaphore = controlSemaphoreType.getSemaphores().get(0);
                         }
-                        var percentages = getPercentages(item);
-                        var sendToStrategy = item.getItem().getSendToStrategy();
 
-                        var total = 0;
                         try {
                             Double setUpTimeServer = (Double.parseDouble(item.getServer().getSetupTime()) * 1000.0) / multiplierTime;
+
+                            //This loop will be executing until the simulation stops
                             while (true) {
                                 switch ((String) strategyTime.keySet().toArray()[0]) {
                                     case "NegExp":
@@ -1133,37 +1264,56 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                     default:
                                         sleep = 0.0;
                                 }
+                                //It is a quick simulation, so the time is accelerated
                                 sleep = sleep / multiplierTime;
                                 accessOutSemaphore.release();
+
+                                //Receives the product
                                 product = (Product) inExchanger.exchange(null);
                                 product.setArrivalTime((double) System.currentTimeMillis());
-
                                 inSemaphore.acquire();
+
+                                //Simulates the setup time the server needs to process a product
                                 Thread.sleep(setUpTimeServer.longValue());
                                 controlSemaphore.acquire();
+                                //The set up time is considered as idle time, so it recalculates the total idle time
                                 now = (double) System.currentTimeMillis();
                                 totalIdle = totalIdle + (now - currentIdle);
                                 currentBusy = now;
+
+                                //Once the server is already setup, the server will process the product, so we change the control variables
                                 idleOrBusy = 1;
                                 controlSemaphore.release();
+
+                                //Simulates the processing time
                                 Thread.sleep(sleep.longValue());
                                 controlSemaphore.acquire();
+
+                                //The product has been processed, so it recalculates the total busy time
                                 now = (double) System.currentTimeMillis();
                                 totalBusy = totalBusy + (now - currentBusy);
+
+                                //Once the server has processed the product, we change the control variables to iddle mode
                                 currentIdle = now;
                                 idleOrBusy = 0;
                                 controlSemaphore.release();
+
                                 switch (sendToStrategy) {
                                     case "Aleatorio (lo manda independientemente de si hay hueco o no)":
+                                        //Selects a random channel to send the product
                                         var sendTo = random.nextInt(outSemaphores.size());
+                                        //If the channel is not available, it is "sent" but "lost"
                                         if (!accessInSemaphores.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
                                             controlSemaphore.acquire();
                                             total++;
                                             controlSemaphore.release();
                                         } else {
+                                            //If the channel is available, it sends the product
                                             arrivalTimeOfProduct = product.getArrivalTime();
                                             outExchanger.get(sendTo).exchange(product);
                                             controlSemaphore.acquire();
+
+                                            //Updates some statistics
                                             currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                             maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                             totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
@@ -1175,6 +1325,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                     case "Porcentaje (si está llena la cola seleccionada, espera hasta que haya hueco)":
                                         var randomNumber = random.nextInt(100) + 1;
                                         sendTo = 0;
+                                        //Selects a random channel to send the product considering the percentages
                                         for (var index = 0; index < percentages.size(); index++) {
                                             if (randomNumber < percentages.get(index) && index == 0) {
                                                 sendTo = index;
@@ -1188,6 +1339,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         arrivalTimeOfProduct = product.getArrivalTime();
                                         outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
+                                        //Updates some statistics
                                         currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                         maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                         totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
@@ -1196,11 +1348,14 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         outSemaphores.get(sendTo).release();
                                         break;
                                     case "Aleatorio (si está llena la cola seleccionada, espera hasta que haya hueco)":
+                                        //Selects a random channel to send the product
                                         sendTo = random.nextInt(outSemaphores.size());
+                                        //Waits for the channel to be available to send the product
                                         accessInSemaphores.get(sendTo).acquire();
                                         arrivalTimeOfProduct = product.getArrivalTime();
                                         outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
+                                        //Updates some statistics
                                         currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                         maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                         totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
@@ -1210,6 +1365,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         break;
                                     case "Primera conexión disponible":
                                         sendTo = 0;
+                                        //Stays in this loop until there is a slot in the next item
                                         while (!accessInSemaphores.get(sendTo).tryAcquire() && !Thread.currentThread().isInterrupted()) {
                                             if (outSemaphores.size() > (sendTo + 1)) {
                                                 sendTo++;
@@ -1220,6 +1376,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         arrivalTimeOfProduct = product.getArrivalTime();
                                         outExchanger.get(sendTo).exchange(product);
                                         controlSemaphore.acquire();
+                                        //Updates some statistics
                                         currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                         maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                         totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
@@ -1231,6 +1388,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         var products = Double.POSITIVE_INFINITY;
                                         var queueProducts = 0;
                                         var smallestQueue = 0;
+                                        //TODO Si una cola está llena busca otra aunque tenga mas productos dentro pero haya hueco
                                         for (var index = 0; index < queues.size(); index++) {
                                             if (queues.get(index).getTypeItem().equals("Queue")) {
                                                 queues.get(index).getControlDestinationSemaphore().acquire();
@@ -1249,6 +1407,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                         arrivalTimeOfProduct = product.getArrivalTime();
                                         outExchanger.get(smallestQueue).exchange(product);
                                         controlSemaphore.acquire();
+                                        //Updates some statistics
                                         currentTimeOfStay = System.currentTimeMillis() - arrivalTimeOfProduct;
                                         maxTimeOfStay = currentTimeOfStay > maxTimeOfStay ? currentTimeOfStay : maxTimeOfStay;
                                         totalTimeOfStay = totalTimeOfStay + currentTimeOfStay;
@@ -1259,8 +1418,9 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 }
                             }
                         } catch (InterruptedException e) {
+                            //When is interrupted it saves the state of the simulation
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
-                            //Server
+                            //Calculates the total busy and idle time when the simulation has been interrupted
                             pctBusy = 0.0;
                             if (idleOrBusy == 0) {
                                 totalIdle = totalIdle + ((double) System.currentTimeMillis() - currentIdle);
@@ -1286,6 +1446,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                 case "Sink":
                     finalI = i;
                     var sink = new Thread(() -> {
+                        //Initialise the semaphore that controls the correct state of the simulation when it is interrupted
                         interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
                         interruptedAndSavedTheadsState.add(false);
                         var indexState = interruptedAndSavedTheadsState.size() - 1;
@@ -1293,6 +1454,8 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         interruptedAndSavedTheadsStateSemaphore.release();
 
                         var productsInSink = 0;
+
+                        //Initialises the semaphores of the sink
                         var inSemaphoreType = getSemaphore(semaphoresItem, "In");
                         var accessOutType = getSemaphore(semaphoresItem, "AccessOut");
                         var controlSemaphoreType = getSemaphore(semaphoresItem, "Control");
@@ -1309,7 +1472,9 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         }
 
                         try {
+                            //This loop will be executing until the simulation stops
                             while (true) {
+                                //Receives all objects from the server
                                 accessOutSemaphore.release();
                                 inExchanger.exchange(null);
                                 inSemaphore.acquire();
@@ -1318,8 +1483,8 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                                 controlSemaphore.release();
                             }
                         } catch (InterruptedException e) {
+                            //When is interrupted it saves the state of the simulation
                             interruptedAndSavedTheadsStateSemaphore.acquireUninterruptibly();
-                            //sink
                             item.getSink().setInSink(productsInSink);
                             interruptedAndSavedTheadsState.set(indexState, true);
                             interruptedAndSavedTheadsStateSemaphore.release();
@@ -1330,20 +1495,28 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
             }
         }
 
+        //Starts the simulation
         startSimulation = (double) System.currentTimeMillis();
+
+        //Starts all threads
         for (Thread hilo : itemList) {
             hilo.start();
         }
 
+        //Calculate how long (real) the simulation will be running.
         var timeOfSimulationRecalculated = timeOfSimulation / multiplierTime;
 
+        //Waits for the simulation to stop
         while ((System.currentTimeMillis() - startSimulation) < timeOfSimulationRecalculated) {
             Thread.sleep(100);
         }
+
+        //If the simulation has been interrupted, we interrupt all the active threads of the simulation
         for (Thread thread : totalThreads) {
             thread.interrupt();
         }
 
+        //It waits until all threads has been properly interrupted
         Boolean allStopped = false;
         while (!allStopped) {
             interruptedAndSavedTheadsStateSemaphore.acquire();
@@ -1359,6 +1532,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
             Thread.sleep(100);
         }
 
+        //Return the results of the simulation
         return simulation;
     }
 

@@ -19,22 +19,26 @@ import java.util.Map;
 @Service
 public class PdfGeneratorService {
 
-    public PDDocument generatePdf(List<List<ItemDTO>> simulations, String nameFile) throws IOException {
+    public PDDocument generatePdf(List<List<ItemDTO>> simulations) throws IOException {
+        //Creates a pdf document and a page
         PDDocument document = new PDDocument();
         PDPage page = new PDPage();
         document.addPage(page);
 
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
+
+        //Sets the styles and margins of the document
         float margin = 50;
         float yStart = page.getMediaBox().getHeight() - margin;
         float tableWidth = page.getMediaBox().getWidth() - 2 * margin;
-        float yPosition = yStart;
 
+        //Gets the statistics of the simulation formatted
         List<ItemStatistics> itemStatisticsList = StatisticFormat.formatListSimulations(simulations);
 
         int rows;
         int cols = 5;
         for (ItemStatistics itemStatistics : itemStatisticsList) {
+            //If there is no space left on the page, create another page and continue writing on it
             if (yStart<200){
                 contentStream.close();
                 page = new PDPage();
@@ -42,23 +46,26 @@ public class PdfGeneratorService {
 
                 contentStream = new PDPageContentStream(document, page);
                 yStart = page.getMediaBox().getHeight() - margin;
-                yPosition = yStart;
             }
+
             rows = itemStatistics.getNameStatistic().size()+1;
 
             float rowHeight = 20f;
             float tableHeight = rowHeight * (float) rows;
-            float tableYBottom = yStart - tableHeight;
+            float tableBottom = yStart - tableHeight;
 
             float y = yStart;
 
-            float cellWidth = tableWidth / (float) cols;
+            float columnWidth = tableWidth / (float) cols;
             float cellHeight = rowHeight;
+
+            //Sets the style of the name of the item
             contentStream.setNonStrokingColor(new Color(255, 165, 0));
-            contentStream.addRect(margin, yStart - rowHeight, cellWidth, cellHeight);
+            contentStream.addRect(margin, yStart - rowHeight, columnWidth, cellHeight);
             contentStream.fill();
             contentStream.setNonStrokingColor(Color.BLACK);
 
+            //Ads the horizontal lines of the tables
             for (int i = 0; i <= rows; i++) {
                 contentStream.moveTo(margin, y);
                 contentStream.lineTo(margin + tableWidth, y);
@@ -67,22 +74,28 @@ public class PdfGeneratorService {
             }
 
             float x = margin;
+            //Ads the vertical lines of the tables
             for (int i = 0; i <= cols; i++) {
                 contentStream.moveTo(x, yStart);
-                contentStream.lineTo(x, tableYBottom);
+                contentStream.lineTo(x, tableBottom);
                 contentStream.stroke();
                 x += tableWidth / (float) cols;
             }
 
+            //Sets the properties of the text inside the tables
             float textx = margin + 4;
             float texty = yStart - 15;
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 9);
 
+            //TODO Verificar si se deberia aprovechar a escribir aquí el nombre del item
+            //Starts with the header of the table
+            //The firts header corresponds to the name of the item, which will be written later on
             contentStream.beginText();
             contentStream.newLineAtOffset(textx, texty);
             contentStream.showText("");
             contentStream.endText();
             textx += tableWidth / (float) cols;
+            //The rest of the headers
             for (String header : itemStatistics.getStatistics().get(0).keySet()) {
                 contentStream.beginText();
                 contentStream.newLineAtOffset(textx, texty);
@@ -91,19 +104,23 @@ public class PdfGeneratorService {
                 textx += tableWidth / (float) cols;
             }
 
-            float dataY = yStart - 13;
 
+            //Writes the name of the item with some styles
+            float dataY = yStart - 13;
             contentStream.setFont(PDType1Font.HELVETICA, 12);
             contentStream.beginText();
             contentStream.newLineAtOffset(margin+4, dataY);
             contentStream.showText(itemStatistics.getNameItem());
             contentStream.endText();
 
+
             List<List<String>> data= getDataFromHashMap(itemStatistics);
             dataY = yStart - 32.5f;
+            //Writes the content of the table
             for (List<String> row : data) {
                 float dataX = margin + 4;
                 for (String cell : row) {
+                    //TODO es necesaria esta linea?
                     contentStream.setFont(PDType1Font.HELVETICA, 6);
                     contentStream.beginText();
                     contentStream.newLineAtOffset(dataX, dataY);
@@ -114,66 +131,12 @@ public class PdfGeneratorService {
                 dataY -= rowHeight;
             }
 
-            yStart= tableYBottom - 40f;
+            yStart= tableBottom - 40f;
 
         }
-/*
-        int rows = data.size();
-        int cols = headers.size();
-        float rowHeight = 20f;
-        float tableHeight = rowHeight * (float) rows;
-        float tableYBottom = yStart - tableHeight;
-
-        // Dibujar las celdas de la tabla
-        float y = yStart;
-        for (int i = 0; i <= rows; i++) {
-            contentStream.moveTo(margin, y);
-            contentStream.lineTo(margin + tableWidth, y);
-            contentStream.stroke();
-            y -= rowHeight;
-        }
-
-        float x = margin;
-        for (int i = 0; i <= cols; i++) {
-            contentStream.moveTo(x, yStart);
-            contentStream.lineTo(x, tableYBottom);
-            contentStream.stroke();
-            x += tableWidth / (float) cols;
-        }
-
-        // Escribir encabezados
-        float textx = margin + 4;
-        float texty = yStart - 15;
-        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
-        for (String header : headers) {
-            contentStream.beginText();
-            contentStream.newLineAtOffset(textx, texty);
-            contentStream.showText(header);
-            contentStream.endText();
-            textx += tableWidth / (float) cols;
-        }
-
-        // Escribir datos
-        float dataY = yStart - 20;
-        for (List<String> row : data) {
-            float dataX = margin + 4;
-            for (String cell : row) {
-                contentStream.setFont(PDType1Font.HELVETICA, 12);
-                contentStream.beginText();
-                contentStream.newLineAtOffset(dataX, dataY);
-                contentStream.showText(cell);
-                contentStream.endText();
-                dataX += tableWidth / (float) cols;
-            }
-            dataY -= rowHeight;
-        }
-*/
         contentStream.close();
 
-        // Guardar el documento PDF
-        //File file = new File(nameFile);
         return document;
-        //Desktop.getDesktop().open(new File(nameFile));
     }
 
     private List<List<String>> getDataFromHashMap(ItemStatistics statistics) {

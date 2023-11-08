@@ -11,6 +11,7 @@ public final class StatisticFormat {
 
     }
 
+    //Returns the statistics of the simulations results
     public static List<ItemStatistics> formatListSimulations(List<List<ItemDTO>> simulations){
         List<ItemStatistics> itemStatisticsList = new ArrayList<>();
         for (var i = 0; i < simulations.get(0).size(); i++) {

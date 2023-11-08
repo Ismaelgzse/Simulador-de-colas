@@ -308,7 +308,7 @@ public class SimulationAPIController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Boolean with the value of the check.",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Simulation.class))}),
+                            schema = @Schema(implementation = Boolean.class))}),
             @ApiResponse(responseCode = "403", description = "Not authenticated.",
                     content = @Content),
             @ApiResponse(responseCode = "500", description = "Error occurred while checking the status of the simulation.",
@@ -329,9 +329,25 @@ public class SimulationAPIController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    /**
+     * Checks if there is an active quick simulation running.
+     * @param idSimulation Id of the simulation.
+     * @param request Http servlet information.
+     * @return {@code} Boolean with the value of the check. {@code} Bad request.
+     */
+    @Operation(summary = "Checks if the quick simulation is running.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Boolean with the value of the check.",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Boolean.class))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error occurred while checking the status of the simulation.",
+                    content = @Content)
+    })
     @GetMapping("simulation/{idSimulation}/isRunningQuickSimulation")
     public ResponseEntity<Boolean> isRunningQuickSimulation(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
-                                             @Parameter(description = "Http servlet information") HttpServletRequest request) {
+                                                            @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var simulation = simulationService.findById(idSimulation).get();
         if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
             if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
@@ -344,10 +360,27 @@ public class SimulationAPIController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    /**
+     * Initialise and wait for the result of the quick simulation (List of ItemDTO).
+     * @param idSimulation Id of the simulation.
+     * @param quickSimulationDTO The DTO that stores the simulations and other options.
+     * @param request Http servlet information.
+     * @return {@code} The status of the simulations after they have been completed. {@code} Bad request.
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    @Operation(summary = "Initialise and wait for the result of the quick simulation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of simulations.",
+                    content = {@Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = ItemDTO.class)))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content)
+    })
     @PostMapping("simulation/{idSimulation}/quickSimulation")
-    public ResponseEntity<List<List<ItemDTO>>> quickSimulation(@PathVariable Integer idSimulation,
-                                                               @RequestBody QuickSimulationDTO quickSimulationDTO,
-                                                               HttpServletRequest request) throws ExecutionException, InterruptedException {
+    public ResponseEntity<List<List<ItemDTO>>> quickSimulation(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                                               @Parameter(description = "Quick simulation DTO") @RequestBody QuickSimulationDTO quickSimulationDTO,
+                                                               @Parameter(description = "Http servlet information") HttpServletRequest request) throws ExecutionException, InterruptedException {
         var simulation = simulationService.findById(idSimulation).get();
         if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
             if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
@@ -366,14 +399,30 @@ public class SimulationAPIController {
 
     }
 
+    /**
+     * Returns an array of bytes corresponding to the results of the simulation (List of ItemDTO) in pdf format.
+     * @param idSimulation Id of the simulation.
+     * @param simulations List of simulations.
+     * @param request Http servlet information.
+     * @return {@code} An array of bytes.
+     * @throws IOException
+     */
+    @Operation(summary = "Returns an array of bytes corresponding to the results of the simulation (List of ItemDTO) in pdf format.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "An array of bytes.",
+                    content = {@Content(mediaType = "application/octet-stream",
+                            schema = @Schema(type = "string", format = "binary"))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content)
+    })
     @PostMapping("simulation/{idSimulation}/quickSimulation/pdf")
-    public ResponseEntity<byte[]> downloadPDF(@PathVariable Integer idSimulation,
-                                                @RequestBody List<List<ItemDTO>> simulations,
-                                                HttpServletRequest request) throws IOException {
+    public ResponseEntity<byte[]> downloadPDF(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                              @Parameter(description = "List of simulations (List of ItemDTO)") @RequestBody List<List<ItemDTO>> simulations,
+                                              @Parameter(description = "Http servlet information") HttpServletRequest request) throws IOException {
         var simulation = simulationService.findById(idSimulation).get();
         if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
             if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
-                PDDocument result= simulationService.generatePDF(simulations,simulation.getTitle());
+                PDDocument result= simulationService.generatePDF(simulations);
 
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 result.save(byteArrayOutputStream);
@@ -391,10 +440,26 @@ public class SimulationAPIController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    /**
+     * Returns an array of bytes corresponding to the results of the simulation (List of ItemDTO) in excel format.
+     * @param idSimulation Id of the simulation.
+     * @param simulations List of simulations.
+     * @param request Http servlet information.
+     * @return {@code} An array of bytes.
+     * @throws IOException
+     */
+    @Operation(summary = "Returns an array of bytes corresponding to the results of the simulation (List of ItemDTO) in excel format.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "An array of bytes.",
+                    content = {@Content(mediaType = "application/octet-stream",
+                            schema = @Schema(type = "string", format = "binary"))}),
+            @ApiResponse(responseCode = "403", description = "Not authenticated.",
+                    content = @Content)
+    })
     @PostMapping("simulation/{idSimulation}/quickSimulation/excel")
-    public ResponseEntity<byte[]> downloadExcel(@PathVariable Integer idSimulation,
-                                                @RequestBody List<List<ItemDTO>> simulations,
-                                                HttpServletRequest request) throws IOException {
+    public ResponseEntity<byte[]> downloadExcel(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+                                                @Parameter(description = "List of simulations (List of ItemDTO)") @RequestBody List<List<ItemDTO>> simulations,
+                                                @Parameter(description = "Http servlet information") HttpServletRequest request) throws IOException {
         var simulation = simulationService.findById(idSimulation).get();
         if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
             if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {

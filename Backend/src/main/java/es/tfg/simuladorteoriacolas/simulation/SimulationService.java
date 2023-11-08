@@ -40,9 +40,6 @@ public class SimulationService {
     private SimpMessageSendingOperations simpMessageSendingOperations;
 
     @Autowired
-    private ItemTypesService itemTypesService;
-
-    @Autowired
     private ItemService itemService;
 
     @Autowired
@@ -96,15 +93,16 @@ public class SimulationService {
 
     public void simulate(Integer simulationId){
         Simulation simulation=simulationRepository.findById(simulationId).get();
+        //Gets all items of the simulation
         List<ItemDTO> simulationItems= itemService.getSimulationItems(simulation);
-        Algorithm algorithm= new Algorithm(simulationId,simulationItems,itemTypesService,this,simpMessageSendingOperations);
+        //Creates and starts the algorithm
+        Algorithm algorithm= new Algorithm(simulationId,simulationItems,this,simpMessageSendingOperations);
         Thread thread= new Thread(algorithm);
-
         thread.start();
     }
 
-    public PDDocument generatePDF(List<List<ItemDTO>> simulations, String filename) throws IOException {
-        return pdfGeneratorService.generatePdf(simulations,filename);
+    public PDDocument generatePDF(List<List<ItemDTO>> simulations) throws IOException {
+        return pdfGeneratorService.generatePdf(simulations);
     }
 
     public Workbook generateExcel(List<List<ItemDTO>> simulations, String filename) throws IOException {
@@ -118,24 +116,36 @@ public class SimulationService {
             simulation.setStatusQuickSimulation("1");
             simulationRepository.save(simulation);
             List<ItemDTO> simulationItems=itemService.getSimulationItems(simulation);
+
+            //The time of the simulation is reduced according to the number of minutes
             Double durationOfQuickSimulation;
+
+            //If the simulation time is less than 30 minutes
             if(timeSimulation<30){
                 durationOfQuickSimulation=timeSimulation*60*0.15*1000;
             }
+
+            //If the simulation time is between 30 and 60 minutes
             else if (timeSimulation>=30 && timeSimulation<60){
                 durationOfQuickSimulation=timeSimulation*60*0.1*1000;
             }
+
+            //If the simulation time is greater than 60 minutes
             else {
                 durationOfQuickSimulation=timeSimulation*60*0.07*1000;
             }
+
             var multiplierTime= (timeSimulation*60000)/durationOfQuickSimulation;
             ExecutorService executorService= Executors.newCachedThreadPool();
             List<List<ItemDTO>> allSimulations= new ArrayList<>();
             List<Future<List<ItemDTO>>> futureList= new ArrayList<>();
+
+            //Create as many concurrent simulations as necessary
             for (var i=0;i<numberSimulations;i++){
                 QuickSimulationAlgorithm quickSimulationAlgorithm= new QuickSimulationAlgorithm(simulations.get(i),timeSimulation,multiplierTime);
                 futureList.add(executorService.submit(quickSimulationAlgorithm));
             }
+            //Waits for the results of the algorithm
             for (Future<List<ItemDTO>> future: futureList) {
                 var futureAux=future.get();
                 allSimulations.add(futureAux);
