@@ -16,6 +16,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
@@ -254,7 +255,7 @@ public class SimulationAPIController {
     })
     @GetMapping("/simulations/{idSimulation}/image")
     public ResponseEntity<Object> getSimulationImage(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
-                                                     @Parameter(description = "Http servlet information") HttpServletRequest request) throws SQLException {
+                                                     @Parameter(description = "Http servlet information") HttpServletRequest request) throws SQLException, IOException {
         var requestUser = request.getUserPrincipal().getName();
         var simulation = simulationService.findById(idSimulation).orElseThrow();
         if (requestUser.equals(simulation.getUserCreator().getNickname())) {
@@ -263,6 +264,12 @@ public class SimulationAPIController {
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_TYPE, simulation.getMimeImage())
                         .contentLength(simulation.getImageFile().length()).body(image);
+            }
+            else {
+                ClassPathResource defaultImage = new ClassPathResource("static/images/noImageAvailable.png");
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_TYPE, "image/png")
+                        .contentLength(defaultImage.contentLength()).body(new InputStreamResource(defaultImage.getInputStream()));
             }
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
