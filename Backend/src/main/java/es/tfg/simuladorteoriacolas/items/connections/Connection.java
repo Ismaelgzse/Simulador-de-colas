@@ -10,7 +10,7 @@ public class Connection {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer idConnect;
 
-    private Integer percentage;
+    private Double percentage;
 
     @ManyToOne
     private Item originItem;
@@ -22,11 +22,11 @@ public class Connection {
 
     }
 
-    public Integer getPercentage() {
+    public Double getPercentage() {
         return percentage;
     }
 
-    public void setPercentage(Integer percentage) {
+    public void setPercentage(Double percentage) {
         this.percentage = percentage;
     }
 

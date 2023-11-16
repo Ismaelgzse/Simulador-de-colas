@@ -1762,6 +1762,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
           for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
             this.addInput(i, "Source");
             // @ts-ignore
+          }
+          // @ts-ignore
+          for (let i = this.itemContainerModal.connections?.length-1; i >= 0; i--) {
+            // @ts-ignore
             this.editSourceForm.controls['percentagesSource'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
           }
         }
@@ -1783,6 +1787,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
           // @ts-ignore
           for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
             this.addInput(i, "Server");
+          }
+          // @ts-ignore
+          for (let i = this.itemContainerModal.connections?.length-1; i >= 0; i--) {
             // @ts-ignore
             this.editServerForm.controls['percentagesServer'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
           }
@@ -1801,6 +1808,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
           for (let i = 0; i < this.itemContainerModal.connections?.length; i++) {
             // @ts-ignore
             this.addInput(i, "Queue");
+          }
+          // @ts-ignore
+          for (let i = this.itemContainerModal.connections?.length-1; i >= 0; i--) {
             // @ts-ignore
             this.editQueueForm.controls['percentagesQueue'].controls[i].setValue(this.itemContainerModal.connections[i].percentage)
           }
@@ -1814,6 +1824,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
   resetListNames() {
     this.listNames = []
+    this.numConnections = 0
   }
 
 //When the user resets the position of the item we place the items in controled positions, in order to be visible

@@ -502,7 +502,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
 
                             //Gets the formatted sending strategy of products
                             var sendToStrategy = item.getItem().getSendToStrategy();
-                            var percentages = getPercentages(item);
+                            List<Double> percentages = getPercentages(item);
 
                             //Initialises the semaphores of the sourceOut
                             List<Semaphore> outSemaphores = null;
@@ -832,7 +832,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                             Double totalTimeMultipliedContent;
                             Double queueActivationTime = (double) System.currentTimeMillis();
                             Double arrivalTimeOfProduct;
-                            var percentages = getPercentages(item);
+                            List<Double> percentages = getPercentages(item);
                             var totalIn = 0;
                             var totalOut = 0;
 
@@ -1095,7 +1095,7 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
                         Double currentTimeOfStay;
                         Product product;
                         var queues = semaphoresItem.getSmallestQueueDecisions() == null ? new ArrayList<SmallestQueueDecision>() : semaphoresItem.getSmallestQueueDecisions();
-                        var percentages = getPercentages(item);
+                        List<Double> percentages = getPercentages(item);
                         var sendToStrategy = item.getItem().getSendToStrategy();
                         var total = 0;
 
@@ -1719,9 +1719,9 @@ public class QuickSimulationAlgorithm implements Callable<List<ItemDTO>> {
         return numbersList;
     }
 
-    private List<Integer> getPercentages(ItemDTO item) {
-        List<Integer> percentagesList = new ArrayList<>();
-        Integer cumulativePercentage = 0;
+    private List<Double> getPercentages(ItemDTO item) {
+        List<Double> percentagesList = new ArrayList<>();
+        Double cumulativePercentage = 0.0;
         for (Connection connection : item.getConnections()) {
             cumulativePercentage += connection.getPercentage();
             percentagesList.add(cumulativePercentage);

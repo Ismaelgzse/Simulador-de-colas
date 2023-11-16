@@ -13,7 +13,7 @@ public class ConnectionService {
     @Autowired
     private ConnectionRepository connectionRepository;
 
-    public Connection save(Integer id, Item originItem,Item destinationItem,Integer percentage){
+    public Connection save(Integer id, Item originItem, Item destinationItem, Double percentage){
         Connection connection;
         if (id==null){
             connection= new Connection();

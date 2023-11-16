@@ -508,7 +508,7 @@ public class Algorithm implements Runnable {
 
                             //Gets the formatted sending strategy of products
                             var sendToStrategy = item.getItem().getSendToStrategy();
-                            var percentages = getPercentages(item);
+                            List<Double> percentages = getPercentages(item);
 
                             //Initialises the semaphores of the sourceOut
                             List<Semaphore> outSemaphores = null;
@@ -785,7 +785,7 @@ public class Algorithm implements Runnable {
                             interruptedAndSavedTheadsStateSemaphore.release();
 
                             var sendToStrategy = item.getItem().getSendToStrategy();
-                            var percentages = getPercentages(item);
+                            List<Double> percentages = getPercentages(item);
                             var totalIn = 0;
                             var totalOut = 0;
                             Product outProduct = null;
@@ -974,7 +974,7 @@ public class Algorithm implements Runnable {
                         var queues = semaphoresItem.getSmallestQueueDecisions() == null ? new ArrayList<SmallestQueueDecision>() : semaphoresItem.getSmallestQueueDecisions();
                         var total = 0;
                         var in = 0;
-                        var percentages = getPercentages(item);
+                        List<Double> percentages = getPercentages(item);
                         var sendToStrategy = item.getItem().getSendToStrategy();
 
                         //Initialise the possible distributions
@@ -1647,9 +1647,9 @@ public class Algorithm implements Runnable {
         return numbersList;
     }
 
-    private List<Integer> getPercentages(ItemDTO item) {
-        List<Integer> percentagesList = new ArrayList<>();
-        Integer cumulativePercentage = 0;
+    private List<Double> getPercentages(ItemDTO item) {
+        List<Double> percentagesList = new ArrayList<>();
+        Double cumulativePercentage = 0.0;
         for (Connection connection : item.getConnections()) {
             cumulativePercentage += connection.getPercentage();
             percentagesList.add(cumulativePercentage);
