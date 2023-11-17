@@ -1,6 +1,7 @@
 package es.tfg.simuladorteoriacolas.exportation;
 
 import es.tfg.simuladorteoriacolas.items.ItemDTO;
+import org.w3c.dom.ls.LSException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -186,4 +187,108 @@ public final class StatisticFormat {
         }
         return itemStatisticsList;
     }
+
+    //Returns the raw data from the simulations
+    public static List<RawData> formatRawData(List<List<ItemDTO>> simulations){
+
+        List<RawData> itemsRawDataList = new ArrayList<>();
+        for (var i = 0; i < simulations.get(0).size(); i++) {
+            String typeOfItem = simulations.get(0).get(i).getItem().getDescription();
+            String nameOfItem = simulations.get(0).get(i).getItem().getName();
+            RawData rawData = new RawData();
+            rawData.setNameItem(nameOfItem);
+            List<String> nameStatisticList= new ArrayList<>();
+            List<List<String>> rawDataFromSimulations = new ArrayList<>();
+            switch (typeOfItem) {
+                case "Source":
+                    List<String> outProducts= new ArrayList<>();
+                    nameStatisticList.add("Nº productos salen (Output)");
+                    for (var simulationIndex = 0; simulationIndex < simulations.size(); simulationIndex++) {
+                        ItemDTO currentItem = simulations.get(simulationIndex).get(i);
+                        outProducts.add(String.valueOf(Math.round(currentItem.getSource().getOutSource() * 100d) / 100d));
+                    }
+                    rawDataFromSimulations.add(outProducts);
+
+                    rawData.setNameItem(nameOfItem);
+                    rawData.setRawDataFromSimulations(rawDataFromSimulations);
+                    rawData.setNameStatisticList(nameStatisticList);
+                    break;
+                case "Queue":
+                    nameStatisticList = List.of("Nº productos salen (Output)", "Nº productos entran (Input)", "Contenido medio de la cola", "Contenido máximo de la cola", "Estancia máxima de producto (seg)", "Estancia media de productos (seg)");
+                    outProducts= new ArrayList<>();
+                    List<String> inProducts= new ArrayList<>();
+                    List<String> avgContent= new ArrayList<>();
+                    List<String> maxContent= new ArrayList<>();
+                    List<String> maxStays= new ArrayList<>();
+                    List<String> avgStays = new ArrayList<>();
+
+                    for (var simulationIndex = 0; simulationIndex < simulations.size(); simulationIndex++) {
+                        ItemDTO currentItem = simulations.get(simulationIndex).get(i);
+                        outProducts.add(String.valueOf(Math.round(currentItem.getQueue().getOutQueue() * 100d) / 100d));
+                        inProducts.add(String.valueOf(Math.round(currentItem.getQueue().getTotalInQueue() * 100d) / 100d));
+                        avgContent.add(String.valueOf(Math.round(currentItem.getQueue().getAvgContent() * 100d) / 100d));
+                        maxContent.add(String.valueOf(Math.round(currentItem.getQueue().getMaxContent() * 100d) / 100d));
+                        maxStays.add(String.valueOf(Math.round(currentItem.getQueue().getMaxStays() * 100d) / 100d));
+                        avgStays.add(String.valueOf(Math.round(currentItem.getQueue().getAvgStayTime() * 100d) / 100d));
+                    }
+
+                    rawDataFromSimulations.add(outProducts);
+                    rawDataFromSimulations.add(inProducts);
+                    rawDataFromSimulations.add(avgContent);
+                    rawDataFromSimulations.add(maxContent);
+                    rawDataFromSimulations.add(maxStays);
+                    rawDataFromSimulations.add(avgStays);
+
+                    rawData.setNameStatisticList(nameStatisticList);
+                    rawData.setRawDataFromSimulations(rawDataFromSimulations);
+                    rawData.setNameItem(nameOfItem);
+                    break;
+
+                case "Server":
+                    nameStatisticList = List.of("Nº productos salen (Output)", "Estancia máxima de producto (seg)", "Estancia media de productos (seg)", "Pct. uso de utilización");
+
+                    outProducts= new ArrayList<>();
+                    maxStays= new ArrayList<>();
+                    avgStays = new ArrayList<>();
+                    List<String> utilPct= new ArrayList<>();
+
+                    for (var simulationIndex = 0; simulationIndex < simulations.size(); simulationIndex++) {
+                        ItemDTO currentItem = simulations.get(simulationIndex).get(i);
+                        outProducts.add(String.valueOf(Math.round(currentItem.getServer().getOutServer() * 100d) / 100d));
+                        maxStays.add(String.valueOf(Math.round(currentItem.getServer().getMaxStays() * 100d) / 100d));
+                        avgStays.add(String.valueOf(Math.round(currentItem.getServer().getAvgStayTime() * 100d) / 100d));
+                        utilPct.add(String.valueOf(Math.round(currentItem.getServer().getPctBusyTime() * 100d) / 100d));
+                    }
+
+                    rawDataFromSimulations.add(outProducts);
+                    rawDataFromSimulations.add(maxStays);
+                    rawDataFromSimulations.add(avgStays);
+                    rawDataFromSimulations.add(utilPct);
+
+                    rawData.setNameStatisticList(nameStatisticList);
+                    rawData.setRawDataFromSimulations(rawDataFromSimulations);
+                    rawData.setNameItem(nameOfItem);
+                    break;
+
+                case "Sink":
+                    nameStatisticList.add("Nº productos entran (Input)");
+                    inProducts = new ArrayList<>();
+
+                    for (var simulationIndex = 0; simulationIndex < simulations.size(); simulationIndex++) {
+                        ItemDTO currentItem = simulations.get(simulationIndex).get(i);
+                        inProducts.add(String.valueOf(Math.round(currentItem.getSink().getInSink() * 100d) / 100d));
+                    }
+                    rawDataFromSimulations.add(inProducts);
+                    rawData.setNameItem(nameOfItem);
+                    rawData.setRawDataFromSimulations(rawDataFromSimulations);
+                    rawData.setNameStatisticList(nameStatisticList);
+
+                    break;
+            }
+            itemsRawDataList.add(rawData);
+        }
+        return itemsRawDataList;
+
+    }
+
 }
