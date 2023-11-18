@@ -80,12 +80,14 @@ public class ExcelGeneratorService {
         //Creates the sheet for the raw data of the simulations
         Sheet rawDataSheet = workbook.createSheet("Datos brutos (Raw data)");
 
+        //Sets the width of the columns
         rawDataSheet.setColumnWidth(0, 9000);
         for (var i=0;i<simulations.size();i++){
             rawDataSheet.setColumnWidth(i+1, 4000);
 
         }
 
+        //Gets the raw data of the simulations formatted
         List<RawData> rawDataList= StatisticFormat.formatRawData(simulations);
 
         contRows=0;
@@ -99,7 +101,7 @@ public class ExcelGeneratorService {
             headerCell.setCellStyle(headerStyle);
 
             contCell++;
-            //Sets the other headers of the statistics
+            //Sets the headers
             for (var j=0;j<simulations.size();j++) {
                 headerCell = header.createCell(contCell);
                 headerCell.setCellValue("Simulación "+ (j+1));

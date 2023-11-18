@@ -623,3 +623,17 @@ body {
   display: flex;
   justify-content: center;
 }
+
+.loadingAlert{
+  top: 175px;
+  transition: all 0.15s;
+  z-index: 3 !important;
+  box-sizing: border-box;
+}
+
+.warningAlert{
+  top: 175px;
+  transition: all 0.15s;
+  z-index: 3 !important;
+  box-sizing: border-box;
+}

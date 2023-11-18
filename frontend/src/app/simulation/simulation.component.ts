@@ -329,6 +329,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   quickSimulating: boolean;
 
   referenceModal: any;
+  loading:boolean;
   stageQuickSimulating: number;
   connectionModal: ConnectionModel;
   listConnections: ConnectionModel[]
@@ -464,7 +465,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.percentageCountDownText = "0%"
-
+    this.loading=false;
     //Resets the error message and the alert
     let alertErrorMessage = document.getElementById("cancelConnect");
     // @ts-ignore
@@ -551,6 +552,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
     this.route.params.subscribe({
       next: (params) => {
+        this.loading=true;
         this.id = params['id'];
         //If the user refresh the component, it checks if the simulation was running
         if (refresh) {
@@ -579,6 +581,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                         }
                       }
                       this.listConnectionsBackUp = this.listConnections;
+                      this.loading=false;
                     },
                     error: (err) => {
                       this.router.navigate(['error403']);
@@ -612,6 +615,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                     }
                   }
                   this.listConnectionsBackUp = this.listConnections;
+                  this.loading=false
                 },
                 error: (err) => {
                   this.router.navigate(['error403']);
@@ -670,6 +674,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
         //If the object is from the side menu then we will create a new object
         if (parentClass === "dragItemContainer") {
+          this.loading=true;
           let type = data.substring(0, 4)
           switch (type) {
             case "Fuen":
@@ -723,6 +728,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
             next: (item) => {
               item.connections = []
               this.listItems.push(item);
+              this.loading=false;
             },
             error: (err) => {
               this.router.navigate(['error500']);
@@ -773,6 +779,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   editItem() {
+    this.loading=true;
     if (this.itemContainerModal.item.idItem) {
       switch (this.itemContainerModal.item.description) {
         //Gets the data of the item from the modal
@@ -837,6 +844,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       this.simulationService.updateItem(this.id, this.itemContainerModal.item.idItem, this.itemContainerModal).subscribe({
         next: (itemContainer) => {
           this.replaceItemByItsId(itemContainer);
+          this.loading=false;
         },
         error: (err) => {
           this.router.navigate(['error500']);
@@ -939,6 +947,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   customTemplateFormSubmit() {
+    this.loading=true;
     this.sourceInfo.outSource = 0;
     this.sourceInfo.numberProducts = 'Ilimitados';
     // @ts-ignore
@@ -1286,6 +1295,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     //Stores the reference of the modal
     this.referenceModal = content;
 
+    this.loading=true;
+
     //checks if the simulation structure is valid
     if (this.checkSimulationStructure(this.listItems)) {
       //Checks if the simulation is already running
@@ -1315,14 +1326,17 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
                     this.updateTimer();
                   }, 1000);
                 }
+                this.loading=false;
                 //Sends a message through the websocket to start the active simulation
                 this.simulationService.sendMessage(this.id.toString(), "start");
 
               } else {
+                this.loading=false;
                 //If there is an active simulation, a modal is displayed
                 this.modalService.open(this.referenceModal, {centered: true});
               }
               if (status === true) {
+                this.loading=false;
                 //If there is an active simulation, sends a message through the websocket to stop the active simulation
                 this.simulationService.sendMessage(this.id.toString(), "stop");
               }
@@ -1331,6 +1345,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         }
       })
     } else {
+      this.loading=false;
+
       //if the simulation structure isn't valid, an error message is displayed
       let alertErrorMessage = document.getElementById("cancelConnect");
       // @ts-ignore
@@ -1501,6 +1517,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   newConnection(event: Event, itemContainer: ItemContainerModel) {
+    this.loading=true;
+
     //When the user presses the button to add a new connection we add a blackscreen to focus
     this.blackScreen = true;
     // @ts-ignore
@@ -1593,6 +1611,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
             this.correctServerShown = false;
             this.listConnections.push(connection);
             this.addConnectionToItem(connection);
+            this.loading=false;
           },
           error: (err) => {
             this.router.navigate(['error500'])
@@ -1619,16 +1638,20 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       let blackCanvas = document.getElementById('blackScreen')
       // @ts-ignore
       blackCanvas.classList.toggle("showScreen")
+      this.loading=false;
     }
   }
 
   deleteItemFunction() {
+    this.loading=true;
+
     //If the item is not null, we delete the selected item
     if (this.itemContainerModal.item.idItem) {
       this.simulationService.deleteItem(this.id, this.itemContainerModal.item.idItem).subscribe({
         next: (item) => {
           this.deleteConnectionsByItsItem(item);
           this.deleteItemByItsId(item);
+          this.loading=false;
         },
         error: (err) => {
           this.router.navigate(['error500']);
@@ -1638,12 +1661,15 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   deleteConnectionFunction() {
+    this.loading=true;
+
     //If the connection is not null, we delete the selected connection
     if (this.connectionModal.idConnect) {
       this.simulationService.deleteConnection(this.connectionModal.idConnect).subscribe({
         next: (connection) => {
           this.deleteConnectionByItsId(connection);
           this.deleteConnectionOfItem(connection)
+          this.loading=false;
         },
         error: (err) => {
           this.router.navigate(['error500']);
@@ -1829,6 +1855,8 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
 //When the user resets the position of the item we place the items in controled positions, in order to be visible
   resetPositions() {
+    this.loading=true;
+
     let x = -15;
     let y = 30;
     for (let i = 0; i < this.listItems.length; i++) {
@@ -1853,6 +1881,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
           }
         }
         this.listConnectionsBackUp = this.listConnections;
+        this.loading=false;
       },
       error: (err) => {
         this.router.navigate(['error500']);

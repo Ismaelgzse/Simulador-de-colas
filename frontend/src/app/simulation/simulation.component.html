@@ -546,6 +546,20 @@
   </div>
 </div>
 
+<div class="alert alert-secondary loadingAlert" *ngIf="loading">
+  <i class="fas fa-spin fa-circle-notch"></i> Cargando...
+</div>
+<div class="alert alert-warning warningAlert" *ngIf="!loading && (simulationService.listItemSimulation===undefined || simulationService.listItemSimulation.length===0) && simulating">
+  <h4 class="alert-heading">Nota importante:</h4>
+  Si está viendo esta alerta durante unos segundos, vaya a la consola pulsando F12 y asegúrese que no hay ningún error del tipo: Failed to load resource: <strong>net::ERR_CERT_AUTHORITY_INVALID</strong>.<br>Si es así, sigua los siguientes pasos:<br>
+  <strong>1º:</strong> Copie y pegue la url (<strong>https://localhost:8443/ws</strong>) en una pestaña nueva en el navegador.<br>
+  <strong>2º</strong> Al hacer eso, se le mostrará una advertencia de que el sitio no es seguro, ignórelo y pulse en el botón de "Avanzado" o "Configuración avanzada".<br>
+  <strong>3º</strong> Pinche en continuar en el sitio web.<br>
+  <strong>4º</strong> Una vez hecho eso vuelva a la pestaña donde estaba y refresque. Eso le habrá solucionado el error, y podrá cerrar la pestaña que había abierto.<br>
+  <br>
+  El error que se mostraba es debido a que su navegador detecta que el certificado no está firmado por una entidad confiable, es normal, ya que se trata de un certificado Self signed.
+</div>
+
 <button class="controlButtons help" (click)="openHelpModal(helpModal)">
   <i class="fa-regular fa-circle-question fa-4x"></i>
 </button>
