@@ -321,7 +321,7 @@ public class SimulationAPIController {
             @ApiResponse(responseCode = "500", description = "Error occurred while checking the status of the simulation.",
                     content = @Content)
     })
-    @GetMapping("simulation/{idSimulation}/isRunning")
+    @GetMapping("/simulation/{idSimulation}/isRunning")
     public ResponseEntity<Boolean> isRunning(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
                                              @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var simulation = simulationService.findById(idSimulation).get();
@@ -352,7 +352,7 @@ public class SimulationAPIController {
             @ApiResponse(responseCode = "500", description = "Error occurred while checking the status of the simulation.",
                     content = @Content)
     })
-    @GetMapping("simulation/{idSimulation}/isRunningQuickSimulation")
+    @GetMapping("/simulation/{idSimulation}/isRunningQuickSimulation")
     public ResponseEntity<Boolean> isRunningQuickSimulation(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
                                                             @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var simulation = simulationService.findById(idSimulation).get();
@@ -384,7 +384,7 @@ public class SimulationAPIController {
             @ApiResponse(responseCode = "403", description = "Not authenticated.",
                     content = @Content)
     })
-    @PostMapping("simulation/{idSimulation}/quickSimulation")
+    @PostMapping("/simulation/{idSimulation}/quickSimulation")
     public ResponseEntity<List<List<ItemDTO>>> quickSimulation(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
                                                                @Parameter(description = "Quick simulation DTO") @RequestBody QuickSimulationDTO quickSimulationDTO,
                                                                @Parameter(description = "Http servlet information") HttpServletRequest request) throws ExecutionException, InterruptedException {
@@ -422,7 +422,7 @@ public class SimulationAPIController {
             @ApiResponse(responseCode = "403", description = "Not authenticated.",
                     content = @Content)
     })
-    @PostMapping("simulation/{idSimulation}/quickSimulation/pdf")
+    @PostMapping("/simulation/{idSimulation}/quickSimulation/pdf")
     public ResponseEntity<byte[]> downloadPDF(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
                                               @Parameter(description = "List of simulations (List of ItemDTO)") @RequestBody List<List<ItemDTO>> simulations,
                                               @Parameter(description = "Http servlet information") HttpServletRequest request) throws IOException {
@@ -463,7 +463,7 @@ public class SimulationAPIController {
             @ApiResponse(responseCode = "403", description = "Not authenticated.",
                     content = @Content)
     })
-    @PostMapping("simulation/{idSimulation}/quickSimulation/excel")
+    @PostMapping("/simulation/{idSimulation}/quickSimulation/excel")
     public ResponseEntity<byte[]> downloadExcel(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
                                                 @Parameter(description = "List of simulations (List of ItemDTO)") @RequestBody List<List<ItemDTO>> simulations,
                                                 @Parameter(description = "Http servlet information") HttpServletRequest request) throws IOException {
