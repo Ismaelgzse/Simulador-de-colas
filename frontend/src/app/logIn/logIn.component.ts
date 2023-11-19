@@ -39,7 +39,7 @@ export class LogInComponent implements OnInit {
       //If is autheticated, the user is redirected to the home screen
     } else {
       this.homeService.isAuthenticated().subscribe({
-          next: (isAuthenticated:boolean) => {
+          next: (isAuthenticated) => {
             if (isAuthenticated) {
               this.router.navigate(['home'])
             }

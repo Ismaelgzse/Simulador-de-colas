@@ -31,7 +31,7 @@ export class HeaderComponent {
   changeHeader() {
     //If the user is logged in, we decide the information of the header
     this.homeService.isAuthenticated().subscribe({
-        next: (isAuthenticated: boolean) => {
+        next: (isAuthenticated) => {
           this.header = isAuthenticated ? 0 : 1;
         },
         error: (err => this.header = 1)

@@ -441,11 +441,11 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   //When the user exits the component, this method is necessary to take the necessary steps to control the state of the simulation
   ngOnDestroy(): void {
     this.homeService.isAuthenticated().subscribe({
-      next: (success:boolean) => {
+      next: (success) => {
         if (success) {
           this.simulationService.getStatusSimulation(this.id).subscribe({
             //If a simulation is running, it stops it
-            next: (status:boolean) => {
+            next: (status) => {
               if (status) {
                 this.simulationService.sendMessage(this.id.toString(), "stop")
               }
@@ -557,7 +557,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         //If the user refresh the component, it checks if the simulation was running
         if (refresh) {
           this.simulationService.getStatusSimulation(this.id).subscribe({
-            next: (status:boolean) => {
+            next: (status) => {
               if (status) {
                 //If was running, it stops it
                 this.simulationService.connectAlt(this.id.toString(), "stop");
@@ -662,10 +662,22 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     event.preventDefault()
   }
 
+  resetErrors(){
+    let alertErrorMessage = document.getElementById("cancelConnect");
+    // @ts-ignore
+    let listClasses = alertErrorMessage.classList;
+    if (listClasses.length > 1) {
+      // @ts-ignore
+      alertErrorMessage.classList.toggle('alertCancelConnectionAlt');
+    }
+    this.errorConnection=0;
+  }
+
   newElement(event: DragEvent, simulationComponent: any) {
     if (event != undefined) {
       event.preventDefault();
       if (event.dataTransfer !== null) {
+        this.resetErrors();
         //Get the data from the object that triggered the event
         var data = event.dataTransfer.getData("text")
         // @ts-ignore
@@ -779,6 +791,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   editItem() {
+    this.resetErrors();
     this.loading=true;
     if (this.itemContainerModal.item.idItem) {
       switch (this.itemContainerModal.item.description) {
@@ -1166,9 +1179,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
     //First check if there is an active simulation or an active quick simulation
     this.simulationService.getStatusQuickSimulation(this.id).subscribe({
-      next: (statusQuickSimulation:boolean) => {
+      next: (statusQuickSimulation) => {
         this.simulationService.getStatusSimulation(this.id).subscribe({
-          next: (status:boolean) => {
+          next: (status) => {
             //If no simulation is active, the countdown starts
             if (status === false && statusQuickSimulation === false) {
               this.countDown(this.countDownTimeQuickSimulation);
@@ -1303,7 +1316,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
       this.simulationService.getStatusSimulation(this.id).subscribe({
         next: (status:boolean) => {
           this.simulationService.getStatusQuickSimulation(this.id).subscribe({
-            next: (statusQuickSimulation:boolean) => {
+            next: (statusQuickSimulation) => {
               if (status === false && statusQuickSimulation === false) {
 
                 //Whe sets the visuals needed
@@ -1643,6 +1656,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   deleteItemFunction() {
+    this.resetErrors();
     this.loading=true;
 
     //If the item is not null, we delete the selected item
@@ -1661,6 +1675,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   deleteConnectionFunction() {
+    this.resetErrors();
     this.loading=true;
 
     //If the connection is not null, we delete the selected connection
