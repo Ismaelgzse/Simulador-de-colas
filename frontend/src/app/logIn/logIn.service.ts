@@ -13,7 +13,7 @@ export class LogInService {
   }
 
   logOut():Observable<any>{
-    return this.httpClient.post('api/logout',{},{withCredentials:true}) as Observable<any>;
+    return this.httpClient.post('/api/logout',{},{withCredentials:true}) as Observable<any>;
   }
 
 }
