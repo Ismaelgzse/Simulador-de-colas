@@ -106,10 +106,10 @@ public class UserAPIController {
                     content = @Content)
     })
     @GetMapping("/isAuthenticated")
-    public ResponseEntity<Boolean> isAuthenticated(@Parameter(description = "Http servlet information") HttpServletRequest request){
+    public Boolean isAuthenticated(@Parameter(description = "Http servlet information") HttpServletRequest request){
         if (request.getUserPrincipal()!=null){
-            return ResponseEntity.ok(userService.existUser(request.getUserPrincipal().getName()));
+            return userService.existUser(request.getUserPrincipal().getName());
         }
-        return ResponseEntity.ok(false);
+        return false;
     }
 }

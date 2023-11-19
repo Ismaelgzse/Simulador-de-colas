@@ -19,7 +19,7 @@ export class Error500Component implements OnInit{
     //If the user is logged in when the error pops up we decide where the user is redirected to
     this.homeService.isAuthenticated().subscribe(
       {
-        next: (success)=>{
+        next: (success: boolean)=>{
           this.logged=success;
         },
         error: (err)=>{

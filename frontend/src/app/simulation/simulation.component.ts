@@ -441,11 +441,11 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
   //When the user exits the component, this method is necessary to take the necessary steps to control the state of the simulation
   ngOnDestroy(): void {
     this.homeService.isAuthenticated().subscribe({
-      next: (success) => {
+      next: (success:boolean) => {
         if (success) {
           this.simulationService.getStatusSimulation(this.id).subscribe({
             //If a simulation is running, it stops it
-            next: (status) => {
+            next: (status:boolean) => {
               if (status) {
                 this.simulationService.sendMessage(this.id.toString(), "stop")
               }
@@ -557,7 +557,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         //If the user refresh the component, it checks if the simulation was running
         if (refresh) {
           this.simulationService.getStatusSimulation(this.id).subscribe({
-            next: (status) => {
+            next: (status:boolean) => {
               if (status) {
                 //If was running, it stops it
                 this.simulationService.connectAlt(this.id.toString(), "stop");
@@ -1166,9 +1166,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
 
     //First check if there is an active simulation or an active quick simulation
     this.simulationService.getStatusQuickSimulation(this.id).subscribe({
-      next: (statusQuickSimulation) => {
+      next: (statusQuickSimulation:boolean) => {
         this.simulationService.getStatusSimulation(this.id).subscribe({
-          next: (status) => {
+          next: (status:boolean) => {
             //If no simulation is active, the countdown starts
             if (status === false && statusQuickSimulation === false) {
               this.countDown(this.countDownTimeQuickSimulation);
@@ -1301,9 +1301,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     if (this.checkSimulationStructure(this.listItems)) {
       //Checks if the simulation is already running
       this.simulationService.getStatusSimulation(this.id).subscribe({
-        next: (status) => {
+        next: (status:boolean) => {
           this.simulationService.getStatusQuickSimulation(this.id).subscribe({
-            next: (statusQuickSimulation) => {
+            next: (statusQuickSimulation:boolean) => {
               if (status === false && statusQuickSimulation === false) {
 
                 //Whe sets the visuals needed

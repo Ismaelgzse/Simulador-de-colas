@@ -322,18 +322,18 @@ public class SimulationAPIController {
                     content = @Content)
     })
     @GetMapping("/simulation/{idSimulation}/isRunning")
-    public ResponseEntity<Boolean> isRunning(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+    public Boolean isRunning(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
                                              @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var simulation = simulationService.findById(idSimulation).get();
         if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
             if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
                 if (simulation.getStatusSimulation().equals("1")) {
-                    return ResponseEntity.ok(true);
+                    return true;
                 }
-                return ResponseEntity.ok(false);
+                return false;
             }
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return false;
     }
 
     /**
@@ -353,18 +353,18 @@ public class SimulationAPIController {
                     content = @Content)
     })
     @GetMapping("/simulation/{idSimulation}/isRunningQuickSimulation")
-    public ResponseEntity<Boolean> isRunningQuickSimulation(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
+    public Boolean isRunningQuickSimulation(@Parameter(description = "Id of the simulation") @PathVariable Integer idSimulation,
                                                             @Parameter(description = "Http servlet information") HttpServletRequest request) {
         var simulation = simulationService.findById(idSimulation).get();
         if (request.getUserPrincipal() != null && request.getUserPrincipal().getName() != null) {
             if (simulation.getUserCreator().getNickname().equals(request.getUserPrincipal().getName())) {
                 if (simulation.getStatusQuickSimulation().equals("1")) {
-                    return ResponseEntity.ok(true);
+                    return true;
                 }
-                return ResponseEntity.ok(false);
+                return false;
             }
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return false;
     }
 
     /**

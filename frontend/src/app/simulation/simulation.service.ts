@@ -119,12 +119,12 @@ export class SimulationService {
 
   }
 
-  getStatusSimulation(idSimulation: number): Observable<any> {
-    return this.httpClient.get('api/simulation/' + idSimulation + "/isRunning", {withCredentials: true}) as Observable<any>;
+  getStatusSimulation(idSimulation: number): Observable<boolean> {
+    return this.httpClient.get('api/simulation/' + idSimulation + "/isRunning", {withCredentials: true}) as Observable<boolean>;
   }
 
-  getStatusQuickSimulation(idSimulation: number): Observable<any> {
-    return this.httpClient.get('api/simulation/' + idSimulation + "/isRunningQuickSimulation", {withCredentials: true}) as Observable<any>;
+  getStatusQuickSimulation(idSimulation: number): Observable<boolean> {
+    return this.httpClient.get('api/simulation/' + idSimulation + "/isRunningQuickSimulation", {withCredentials: true}) as Observable<boolean>;
   }
 
 }
