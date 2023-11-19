@@ -55,7 +55,7 @@ export class SimulationService {
 
   quickSimulation(idSimulation: number, quickSimulatonForm: quickSimulationFormDTOModel): Observable<any> {
     // @ts-ignore
-    return this.httpClient.post('api/simulation/' + idSimulation + '/quickSimulation', quickSimulatonForm, {withCredentials: true}) as Observable<any>;
+    return this.httpClient.post('/api/simulation/' + idSimulation + '/quickSimulation', quickSimulatonForm, {withCredentials: true}) as Observable<any>;
   }
 
   generatePDF(idSimulation: number, listSimulations: ItemContainerModel[][]): Observable<Blob> {
