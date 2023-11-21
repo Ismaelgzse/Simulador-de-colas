@@ -1,0 +1,23 @@
+version: '1'
+
+services:
+  db:
+    image: mysql:8.2.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: simuladorcolas
+      MYSQL_ROOT_PASSWORD: manager
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8443:8443"
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db/simuladorcolas
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: manager
+    depends_on:
+      - db
