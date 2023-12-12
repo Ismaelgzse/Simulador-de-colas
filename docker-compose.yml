@@ -9,9 +9,7 @@ services:
       MYSQL_ROOT_PASSWORD: manager
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ismaelgzse/simuladorcolas:v0.1
     ports:
       - "8443:8443"
     restart: always
