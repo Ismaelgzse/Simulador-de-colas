@@ -39,15 +39,12 @@ Estos son los pasos a seguir:
 	
 2. Ejecutar el siguiente comando en la consola: 
 
-
 `docker build -t nombre_imagen_deseado .`
 	> **Nota**: En **nombre_imagen_deseado** podrás poner el nombre que desees a la imagen.
 3. Una vez construida la imagen, ejecutar el siguiente comando en la consola para correr la aplicación:
 
-
 `docker run -p 8443:8443 nombre_imagen_deseado`
 4. Se podrá acceder a la aplicación en la siguiente url:
-
 
 [https://127.0.0.1:8443/app/](https://127.0.0.1:8443/app/)
 5. Para parar la aplicación pulsa `Ctrl + C`
