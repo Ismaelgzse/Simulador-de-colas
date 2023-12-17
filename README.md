@@ -15,14 +15,10 @@ Hay dos formas de empezar a utilizar la aplicación:
 Esta es la forma más rápida y sencilla de empezar a usar la aplicación. Estos son los pasos a seguir:
 1. Descargar el archivo llamado [docker-compose.yml](https://github.com/Ismaelgzse/Simulador-de-colas/blob/main/docker-compose.yml) que se encuentra en la raíz del repositorio.
 2.  Abrir la consola del ordenador y apuntar a la carpeta o directorio en el que se encuentra el archivo descargado.
-3. Escribir el siguiente comando en la terminal:
-
-
+3. Escribir el siguiente comando en la terminal:  
 `docker compose up -d`
 4. Una vez terminado el proceso de construcción de los contenedores, se podrá acceder en la siguiente url: [https://127.0.0.1:8443/app/](https://127.0.0.1:8443/app/)
-5. Para parar la aplicación bastará con poner en la terminal el siguiente comando:
-
-
+5. Para parar la aplicación bastará con poner en la terminal el siguiente comando:  
 `docker compose down`
 
 ### Mediante Dockerfile
@@ -37,14 +33,11 @@ Estos son los pasos a seguir:
 1. Una vez descargado el código de la aplicación, abrir la consola apuntando a la raíz del proyecto.
 	> **Nota**: Se considera raíz del proyecto donde están los archivos Dockerfile, docker-compose.yml, y las carpetas de backend y frontend de la aplicación.
 	
-2. Ejecutar el siguiente comando en la consola: 
-
+2. Ejecutar el siguiente comando en la consola:  
 `docker build -t nombre_imagen_deseado .`
 	> **Nota**: En **nombre_imagen_deseado** podrás poner el nombre que desees a la imagen.
-3. Una vez construida la imagen, ejecutar el siguiente comando en la consola para correr la aplicación:
-
+3. Una vez construida la imagen, ejecutar el siguiente comando en la consola para correr la aplicación:  
 `docker run -p 8443:8443 nombre_imagen_deseado`
-4. Se podrá acceder a la aplicación en la siguiente url:
-
+4. Se podrá acceder a la aplicación en la siguiente url:  
 [https://127.0.0.1:8443/app/](https://127.0.0.1:8443/app/)
 5. Para parar la aplicación pulsa `Ctrl + C`
