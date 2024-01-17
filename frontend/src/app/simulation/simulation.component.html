@@ -136,7 +136,7 @@
       </div>
     </div>
     <div class="dragItemContainer">
-      <div class="titleDragContainer">Procesador</div>
+      <div class="titleDragContainer">Servidor</div>
       <div id="Proc" class="image" draggable="true">
         <svg width="200" height="100" cursor="grab">
           <g stroke="black" stroke-width="1px" fill="white">
@@ -153,7 +153,7 @@
                   stroke="rgb(0, 0, 0)"
                   stroke-width="2.1"></rect>
             <text x="50%" y="22.5%" alignment-baseline="middle" text-anchor="middle" fill="black"
-                  stroke="none">Procesador
+                  stroke="none">Servidor
             </text>
 
           </g>
@@ -637,9 +637,9 @@
           - Cola o Queue:
         </div>
         <p class="subTextHelpMenu">Este tipo de elementos son los encargados de almacenar los productos que provienen de
-          las fuentes o procesadores.</p>
+          las fuentes o servidores.</p>
         <div class="subTitleHelpMenu">
-          - Procesador o Server:
+          - Servidor o Server:
         </div>
         <p class="subTextHelpMenu">Este tipo de elementos son los encargados de procesar los productos que provienen de
           las colas.</p>
@@ -1145,7 +1145,7 @@
     <h5 *ngIf="itemContainerModal.item.description==='Source'" class="modal-title">Eliminar fuente</h5>
     <h5 *ngIf="itemContainerModal.item.description==='Sink'" class="modal-title">Eliminar desagüe</h5>
     <h5 *ngIf="itemContainerModal.item.description==='Queue'" class="modal-title">Eliminar cola</h5>
-    <h5 *ngIf="itemContainerModal.item.description==='Server'" class="modal-title">Eliminar procesador</h5>
+    <h5 *ngIf="itemContainerModal.item.description==='Server'" class="modal-title">Eliminar servidor</h5>
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
@@ -1396,7 +1396,7 @@
 <ng-template class="modal fade" #editServer let-modal>
   <div class="modal-content">
     <div class="modal-header">
-      <h5 class="modal-title">Editar Procesador</h5>
+      <h5 class="modal-title">Editar servidor</h5>
       <button type="button" class="btn-close" aria-label="Close" (click)="[resetListNames(),modal.dismiss()]"></button>
     </div>
     <form [formGroup]="editServerForm" (ngSubmit)="editItem()">
