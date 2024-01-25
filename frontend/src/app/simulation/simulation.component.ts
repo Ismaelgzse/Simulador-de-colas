@@ -687,9 +687,9 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         //If the object is from the side menu then we will create a new object
         if (parentClass === "dragItemContainer") {
           this.loading=true;
-          let type = data.substring(0, 4)
+          let type = data.substring(0, 11)
           switch (type) {
-            case "Fuen":
+            case "Fuennnnnnnn":
               this.sourceInfo.outSource = 0;
               this.sourceInfo.numberProducts = 'Ilimitados';
               this.sourceInfo.interArrivalTime = '10';
@@ -699,7 +699,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
               this.itemContainerInfo.item = this.itemInfo;
               this.itemContainerInfo.source = this.sourceInfo;
               break;
-            case "Cola":
+            case "Colaaaaaaaa":
               this.queueInfo.capacityQueue = 'Ilimitados';
               this.queueInfo.disciplineQueue = 'Fifo';
               this.queueInfo.inQueue = 0;
@@ -710,7 +710,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
               this.itemContainerInfo.item = this.itemInfo;
               this.itemContainerInfo.queue = this.queueInfo;
               break;
-            case "Proc":
+            case "Procccccccc":
               this.serverInfo.outServer = 0;
               this.serverInfo.cicleTime = '10'
               this.serverInfo.setupTime = '0'
@@ -720,7 +720,7 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
               this.itemContainerInfo.item = this.itemInfo;
               this.itemContainerInfo.server = this.serverInfo;
               break;
-            case "Sumi":
+            case "Sumiiiiiiii":
               this.sinkInfo.inSink = 0;
               this.itemInfo.name = '';
               this.itemInfo.description = 'Sink';
@@ -1663,9 +1663,10 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
     if (this.itemContainerModal.item.idItem) {
       this.simulationService.deleteItem(this.id, this.itemContainerModal.item.idItem).subscribe({
         next: (item) => {
-          this.deleteConnectionsByItsItem(item);
-          this.deleteItemByItsId(item);
+          //this.deleteConnectionsByItsItem(item);
+          //this.deleteItemByItsId(item);
           this.loading=false;
+          this.ngOnInit();
         },
         error: (err) => {
           this.router.navigate(['error500']);
@@ -2549,12 +2550,16 @@ export class SimulationComponent implements AfterViewInit, OnInit, OnDestroy {
         // @ts-ignore
         if (this.listItems[i].connections[j].originItem.idItem === itemContainer.item.idItem) {
           // @ts-ignore
+          this.listItems[i].connections[j].originItem.name=itemContainer.item.name;
+          // @ts-ignore
           this.listItems[i].connections[j].originItem.positionX = itemContainer.item.positionX;
           // @ts-ignore
           this.listItems[i].connections[j].originItem.positionY = itemContainer.item.positionY;
         }
         // @ts-ignore
         if (this.listItems[i].connections[j].destinationItem.idItem === itemContainer.item.idItem) {
+          // @ts-ignore
+          this.listItems[i].connections[j].destinationItem.name=itemContainer.item.name;
           // @ts-ignore
           this.listItems[i].connections[j].destinationItem.positionX = itemContainer.item.positionX;
           // @ts-ignore
