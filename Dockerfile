@@ -7,7 +7,7 @@ RUN npm run build
 
 # Build the spring boot application with maven and copy the generated files of the angular frontend to the static folder
 FROM maven:3.8.4-openjdk-17-slim AS maven
-COPY Backend /app/backend
+COPY backend /app/backend
 COPY --from=angular /app/frontend/dist/frontend /app/backend/src/main/resources/static/app
 WORKDIR /app/backend
 RUN mvn -f /app/backend/pom.xml clean package

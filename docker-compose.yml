@@ -9,7 +9,7 @@ services:
       MYSQL_ROOT_PASSWORD: manager
 
   backend:
-    image: ismaelgzse/simuladorcolas:v0.1
+    image: ismaelgzse/simuladorcolas:v1.0
     ports:
       - "8443:8443"
     restart: always
